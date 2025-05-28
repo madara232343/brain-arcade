@@ -122,19 +122,23 @@ const allGames: Game[] = [
   }
 ];
 
-export const GameFeed: React.FC<GameFeedProps> = ({ onPlayGame, playedGames }) => {
-  const [games, setGames] = useState<Game[]>([]);
+export const GameFeed: React.FC<GameFeedProps> = ({ onPlayGame, playedGames = [] }) => {
+  const [games, setGames] = useState<Game[]>(allGames);
 
   useEffect(() => {
-    // Randomize games after first play
-    if (playedGames.length > 0) {
+    // Randomize games after first play - only if playedGames is defined and has content
+    if (playedGames && playedGames.length > 0) {
       const shuffled = [...allGames].sort(() => Math.random() - 0.5);
       setGames(shuffled.map(game => ({
         ...game,
         isPlayed: playedGames.includes(game.id)
       })));
     } else {
-      setGames(allGames);
+      // Set initial games with played status
+      setGames(allGames.map(game => ({
+        ...game,
+        isPlayed: playedGames ? playedGames.includes(game.id) : false
+      })));
     }
   }, [playedGames]);
 
