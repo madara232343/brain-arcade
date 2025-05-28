@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { GameResult } from '@/pages/Index';
+import { PowerUpBar } from '@/components/PowerUpBar';
+import { audioManager } from '@/utils/audioUtils';
 
 interface ColorMemoryGameProps {
   onComplete: (result: GameResult) => void;
@@ -18,6 +20,7 @@ interface ColorCell {
   isTarget: boolean;
   isGuessed: boolean;
   isCorrect?: boolean;
+  isHighlighted?: boolean;
 }
 
 export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ onComplete, gameId }) => {
@@ -29,9 +32,12 @@ export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ onComplete, ga
   const [startTime, setStartTime] = useState(0);
   const [gameStarted, setGameStarted] = useState(false);
   const [wrongGuesses, setWrongGuesses] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [activePowerUps, setActivePowerUps] = useState<Set<string>>(new Set());
+  const [highlightedCells, setHighlightedCells] = useState<Set<number>>(new Set());
 
-  const gridSize = Math.min(3 + Math.floor(round / 2), 5);
-  const targetCount = Math.min(2 + round, Math.floor(gridSize * gridSize / 3));
+  const gridSize = Math.min(3 + Math.floor(round / 3), 4);
+  const targetCount = Math.min(2 + Math.floor(round / 2), Math.floor(gridSize * gridSize / 2));
 
   const generateGrid = () => {
     const cells: ColorCell[] = [];
@@ -42,22 +48,40 @@ export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ onComplete, ga
         id: i,
         color: shuffledColors[i % shuffledColors.length],
         isTarget: false,
-        isGuessed: false
+        isGuessed: false,
+        isHighlighted: false
       });
     }
 
-    // Set random cells as targets
+    // Set random cells as targets with better distribution
     const targetIndices: number[] = [];
-    while (targetIndices.length < targetCount) {
+    const attempts = 50; // Prevent infinite loop
+    let attemptCount = 0;
+    
+    while (targetIndices.length < targetCount && attemptCount < attempts) {
       const randomIndex = Math.floor(Math.random() * cells.length);
       if (!targetIndices.includes(randomIndex)) {
-        targetIndices.push(randomIndex);
-        cells[randomIndex].isTarget = true;
+        // Ensure targets aren't too close to each other
+        const isValidPosition = targetIndices.every(existingIndex => {
+          const row1 = Math.floor(existingIndex / gridSize);
+          const col1 = existingIndex % gridSize;
+          const row2 = Math.floor(randomIndex / gridSize);
+          const col2 = randomIndex % gridSize;
+          const distance = Math.abs(row1 - row2) + Math.abs(col1 - col2);
+          return distance > 1 || targetIndices.length < 2;
+        });
+        
+        if (isValidPosition) {
+          targetIndices.push(randomIndex);
+          cells[randomIndex].isTarget = true;
+        }
       }
+      attemptCount++;
     }
 
     setGrid(cells);
     setWrongGuesses(0);
+    setHighlightedCells(new Set(targetIndices));
   };
 
   const startGame = () => {
@@ -65,55 +89,112 @@ export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ onComplete, ga
     setStartTime(Date.now());
     generateGrid();
     
-    // Show colors for memorization
+    // Show colors for memorization with progressive timing
+    const memorizationTime = Math.max(2000 + round * 200, 1500);
     setTimeout(() => {
       setShowColors(false);
       setGamePhase('recall');
-    }, 2000 + round * 300);
+      setHighlightedCells(new Set());
+    }, memorizationTime);
   };
+
+  // Timer effect
+  useEffect(() => {
+    if (gameStarted && gamePhase === 'recall' && timeLeft > 0) {
+      const timer = setTimeout(() => {
+        if (!activePowerUps.has('timeFreeze')) {
+          setTimeLeft(prev => prev - 1);
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0 && gamePhase === 'recall') {
+      endGame();
+    }
+  }, [timeLeft, gameStarted, gamePhase, activePowerUps]);
 
   const handleCellClick = (cellId: number) => {
     if (gamePhase !== 'recall') return;
 
-    setGrid(prev => prev.map(cell => {
-      if (cell.id === cellId && !cell.isGuessed) {
-        const isCorrect = cell.isTarget;
+    const cell = grid.find(c => c.id === cellId);
+    if (!cell || cell.isGuessed) return;
+
+    setGrid(prev => prev.map(c => {
+      if (c.id === cellId) {
+        const isCorrect = c.isTarget;
         if (isCorrect) {
-          setScore(prev => prev + 15);
+          setScore(prev => prev + (15 * (activePowerUps.has('doubleXP') ? 2 : 1)));
+          audioManager.play('success');
         } else {
-          setWrongGuesses(prev => prev + 1);
+          if (!activePowerUps.has('shield')) {
+            setWrongGuesses(prev => prev + 1);
+          } else {
+            // Use up shield
+            setActivePowerUps(prev => {
+              const newSet = new Set(prev);
+              newSet.delete('shield');
+              return newSet;
+            });
+          }
+          audioManager.play('error');
         }
-        return { ...cell, isGuessed: true, isCorrect };
+        return { ...c, isGuessed: true, isCorrect };
       }
-      return cell;
+      return c;
     }));
 
-    // Check game state after update
+    // Check game state
     setTimeout(() => {
-      const currentGrid = grid.map(cell => {
-        if (cell.id === cellId && !cell.isGuessed) {
-          return { ...cell, isGuessed: true, isCorrect: cell.isTarget };
+      const updatedGrid = grid.map(c => {
+        if (c.id === cellId) {
+          return { ...c, isGuessed: true, isCorrect: c.isTarget };
         }
-        return cell;
+        return c;
       });
 
-      const allTargetsFound = currentGrid.filter(cell => cell.isTarget).every(cell => cell.isGuessed && cell.isCorrect);
-      const wrongCount = currentGrid.filter(cell => cell.isGuessed && !cell.isTarget).length;
+      const allTargetsFound = updatedGrid.filter(c => c.isTarget).every(c => c.isGuessed && c.isCorrect);
+      const wrongCount = updatedGrid.filter(c => c.isGuessed && !c.isTarget).length;
 
       if (allTargetsFound) {
-        // Perfect round - bonus points and continue
-        setScore(prev => prev + 25);
+        setScore(prev => prev + (25 * (activePowerUps.has('doubleXP') ? 2 : 1)));
+        audioManager.play('complete');
         setTimeout(() => {
           setRound(prev => prev + 1);
           setShowColors(true);
           setGamePhase('memorize');
+          setTimeLeft(30 + round * 2);
           generateGrid();
         }, 1500);
       } else if (wrongCount >= 3) {
-        // Too many mistakes - end game
         endGame();
       }
     }, 100);
+  };
+
+  const handlePowerUpUsed = (type: string) => {
+    setActivePowerUps(prev => new Set([...prev, type]));
+    
+    if (type === 'timeFreeze') {
+      setTimeout(() => {
+        setActivePowerUps(prev => {
+          const newSet = new Set(prev);
+          newSet.delete('timeFreeze');
+          return newSet;
+        });
+      }, 10000);
+    } else if (type === 'accuracyBoost') {
+      // Show one target briefly
+      const targets = grid.filter(c => c.isTarget && !c.isGuessed);
+      if (targets.length > 0) {
+        const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+        setHighlightedCells(new Set([randomTarget.id]));
+        setTimeout(() => setHighlightedCells(new Set()), 2000);
+      }
+      setActivePowerUps(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('accuracyBoost');
+        return newSet;
+      });
+    }
   };
 
   const endGame = () => {
@@ -133,28 +214,22 @@ export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ onComplete, ga
     }, 2000);
   };
 
-  useEffect(() => {
-    if (gameStarted && gamePhase === 'memorize') {
-      generateGrid();
-    }
-  }, [round, gameStarted]);
-
   if (!gameStarted) {
     return (
-      <div className="text-center text-white">
-        <h3 className="text-2xl font-bold mb-4">🎨 Color Memory</h3>
-        <p className="mb-6 text-lg">Remember the highlighted colors and click them when they disappear!</p>
+      <div className="text-center text-white p-4">
+        <h3 className="text-xl md:text-2xl font-bold mb-4">🎨 Color Memory</h3>
+        <p className="mb-6 text-sm md:text-lg">Remember the highlighted colors and click them!</p>
         <div className="mb-6">
-          <div className="inline-block bg-white/20 rounded-lg p-4">
-            <p className="text-sm mb-2">• Watch the colored grid carefully</p>
-            <p className="text-sm mb-2">• Remember which cells are highlighted</p>
-            <p className="text-sm mb-2">• Click the correct cells when they turn gray</p>
-            <p className="text-sm">• Maximum 3 mistakes allowed per round</p>
+          <div className="inline-block bg-white/20 rounded-lg p-3 md:p-4 text-left">
+            <p className="text-xs md:text-sm mb-2">• Watch highlighted cells carefully</p>
+            <p className="text-xs md:text-sm mb-2">• Click the correct cells when they turn gray</p>
+            <p className="text-xs md:text-sm mb-2">• Maximum 3 mistakes per round</p>
+            <p className="text-xs md:text-sm">• Use power-ups for advantages</p>
           </div>
         </div>
         <button
           onClick={startGame}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"
+          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-lg transition-all duration-300 hover:scale-105 touch-target"
         >
           Start Game
         </button>
@@ -164,77 +239,87 @@ export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ onComplete, ga
 
   if (gamePhase === 'result') {
     return (
-      <div className="text-center text-white">
-        <h3 className="text-2xl font-bold mb-4">🎉 Great Memory!</h3>
-        <div className="space-y-3 text-lg">
+      <div className="text-center text-white p-4">
+        <h3 className="text-xl md:text-2xl font-bold mb-4 animate-success-bounce">🎉 Great Memory!</h3>
+        <div className="space-y-2 md:space-y-3 text-sm md:text-lg">
           <p>Round Reached: <span className="text-yellow-400 font-bold">{round}</span></p>
           <p>Final Score: <span className="text-green-400 font-bold">{score}</span> points</p>
-          <p className="text-sm text-white/70">Keep practicing to improve your visual memory!</p>
+          <p className="text-xs md:text-sm text-white/70">Keep practicing to improve your visual memory!</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="text-center text-white">
-      <div className="flex justify-between mb-6 text-lg">
+    <div className="text-center text-white p-2 md:p-4">
+      <PowerUpBar onPowerUpUsed={handlePowerUpUsed} />
+      
+      <div className="flex flex-wrap justify-between mb-4 md:mb-6 text-sm md:text-lg gap-2">
         <div>Round: <span className="font-bold">{round}</span></div>
         <div>Score: <span className="font-bold text-yellow-400">{score}</span></div>
-        <div>Targets: <span className="font-bold text-blue-400">{targetCount}</span></div>
+        <div>Time: <span className={`font-bold ${timeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-blue-400'}`}>{timeLeft}s</span></div>
       </div>
 
       {gamePhase === 'memorize' && (
-        <div className="mb-4 text-xl font-bold animate-pulse text-yellow-400">
-          🧠 Memorize the highlighted colors...
+        <div className="mb-4 text-lg md:text-xl font-bold animate-pulse text-yellow-400">
+          🧠 Memorize the glowing colors...
         </div>
       )}
 
       {gamePhase === 'recall' && (
-        <div className="mb-4 text-xl font-bold text-green-400">
+        <div className="mb-4 text-lg md:text-xl font-bold text-green-400">
           🎯 Click the highlighted cells!
         </div>
       )}
 
       <div 
-        className="grid gap-3 mx-auto mb-6 max-w-md"
+        className="grid gap-2 md:gap-3 mx-auto mb-4 md:mb-6 max-w-xs md:max-w-md"
         style={{ 
           gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
           aspectRatio: '1'
         }}
       >
-        {grid.map((cell) => (
-          <button
-            key={cell.id}
-            onClick={() => handleCellClick(cell.id)}
-            className={`aspect-square rounded-xl transition-all duration-300 border-2 flex items-center justify-center font-bold text-sm ${
-              gamePhase === 'memorize' 
-                ? cell.isTarget 
-                  ? 'border-yellow-400 border-4 animate-pulse shadow-lg shadow-yellow-400/50' 
-                  : 'border-white/30'
-                : cell.isGuessed
-                  ? cell.isCorrect
-                    ? 'border-green-400 border-4 shadow-lg shadow-green-400/50'
-                    : 'border-red-400 border-4 shadow-lg shadow-red-400/50'
-                  : 'border-white/30 hover:border-white/60 hover:scale-105'
-            } ${
-              gamePhase === 'recall' && !cell.isGuessed ? 'hover:shadow-lg cursor-pointer' : ''
-            }`}
-            style={{
-              backgroundColor: showColors || cell.isGuessed ? cell.color : '#4a5568',
-              minHeight: '60px'
-            }}
-            disabled={gamePhase !== 'recall' || cell.isGuessed}
-          >
-            {cell.isGuessed && cell.isCorrect && '✓'}
-            {cell.isGuessed && !cell.isCorrect && '✗'}
-          </button>
-        ))}
+        {grid.map((cell) => {
+          const isCurrentlyHighlighted = (gamePhase === 'memorize' && cell.isTarget) || 
+                                        highlightedCells.has(cell.id);
+          
+          return (
+            <button
+              key={cell.id}
+              onClick={() => handleCellClick(cell.id)}
+              className={`aspect-square rounded-lg md:rounded-xl transition-all duration-300 border-2 flex items-center justify-center font-bold text-sm md:text-base touch-target ${
+                isCurrentlyHighlighted
+                  ? 'border-yellow-400 border-4 animate-pulse-glow shadow-lg shadow-yellow-400/50 scale-105' 
+                  : cell.isGuessed
+                    ? cell.isCorrect
+                      ? 'border-green-400 border-4 shadow-lg shadow-green-400/50 scale-105'
+                      : 'border-red-400 border-4 shadow-lg shadow-red-400/50'
+                    : 'border-white/30 hover:border-white/60 hover:scale-105 active:scale-95'
+              }`}
+              style={{
+                backgroundColor: showColors || cell.isGuessed || isCurrentlyHighlighted ? cell.color : '#4a5568',
+                minHeight: '50px'
+              }}
+              disabled={gamePhase !== 'recall' || cell.isGuessed}
+            >
+              {cell.isGuessed && cell.isCorrect && <span className="text-white text-lg md:text-xl">✓</span>}
+              {cell.isGuessed && !cell.isCorrect && <span className="text-white text-lg md:text-xl">✗</span>}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex justify-center space-x-6 text-sm text-white/70">
-        <span>Mistakes: <span className="font-bold text-red-400">{wrongGuesses}/3</span></span>
+      <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-xs md:text-sm text-white/70">
+        <span>Mistakes: <span className={`font-bold ${wrongGuesses >= 2 ? 'text-red-400' : 'text-yellow-400'}`}>{wrongGuesses}/3</span></span>
         <span>Found: <span className="font-bold text-green-400">{grid.filter(cell => cell.isGuessed && cell.isCorrect).length}/{targetCount}</span></span>
+        <span>Targets: <span className="font-bold text-blue-400">{targetCount}</span></span>
       </div>
+
+      {activePowerUps.size > 0 && (
+        <div className="mt-4 text-xs text-yellow-400">
+          Active: {Array.from(activePowerUps).join(', ')}
+        </div>
+      )}
     </div>
   );
 };
