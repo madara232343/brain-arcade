@@ -1,9 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
+import { BarChart3, Gift, ShoppingCart } from 'lucide-react';
 import { GameFeed } from '@/components/GameFeed';
 import { DailyChallenge } from '@/components/DailyChallenge';
 import { ProgressHeader } from '@/components/ProgressHeader';
 import { GameModal } from '@/components/GameModal';
+import { StatsModal } from '@/components/StatsModal';
+import { RewardsModal } from '@/components/RewardsModal';
+import { ShopModal } from '@/components/ShopModal';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { audioManager } from '@/utils/audioUtils';
 
@@ -15,6 +19,7 @@ export interface UserProgress {
   gamesPlayed: number;
   totalScore: number;
   playedGames: string[];
+  ownedItems: string[];
 }
 
 export interface GameResult {
@@ -33,11 +38,16 @@ const Index = () => {
     lastPlayDate: '',
     gamesPlayed: 0,
     totalScore: 0,
-    playedGames: []
+    playedGames: [],
+    ownedItems: []
   });
 
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [showGameModal, setShowGameModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showRewardsModal, setShowRewardsModal] = useState(false);
+  const [showShopModal, setShowShopModal] = useState(false);
+  const [gameStats, setGameStats] = useState<any[]>([]);
 
   const handleGameComplete = (result: GameResult) => {
     const today = new Date().toDateString();
@@ -47,11 +57,21 @@ const Index = () => {
     const newXP = userProgress.xp + result.xpEarned;
     const newLevel = Math.floor(newXP / 100) + 1;
     
-    // Update played games list
-    const updatedPlayedGames = [...userProgress.playedGames];
+    // Update played games list safely
+    const updatedPlayedGames = Array.isArray(userProgress.playedGames) 
+      ? [...userProgress.playedGames] 
+      : [];
+    
     if (!updatedPlayedGames.includes(result.gameId)) {
       updatedPlayedGames.push(result.gameId);
     }
+    
+    // Update stats
+    setGameStats(prev => [...prev, {
+      ...result,
+      timestamp: Date.now(),
+      date: today
+    }]);
     
     setUserProgress(prev => ({
       ...prev,
@@ -71,10 +91,41 @@ const Index = () => {
     setSelectedGame(null);
   };
 
+  const handlePurchase = (itemId: string, price: number) => {
+    if (userProgress.totalScore >= price) {
+      setUserProgress(prev => ({
+        ...prev,
+        totalScore: prev.totalScore - price,
+        ownedItems: [...(prev.ownedItems || []), itemId]
+      }));
+      audioManager.play('success');
+    }
+  };
+
+  const handleClaimReward = (rewardId: string) => {
+    // Implementation for claiming rewards
+    audioManager.play('success');
+  };
+
   const openGame = (game: any) => {
     audioManager.play('click');
     setSelectedGame(game);
     setShowGameModal(true);
+  };
+
+  const openStats = () => {
+    audioManager.play('click');
+    setShowStatsModal(true);
+  };
+
+  const openRewards = () => {
+    audioManager.play('click');
+    setShowRewardsModal(true);
+  };
+
+  const openShop = () => {
+    audioManager.play('click');
+    setShowShopModal(true);
   };
 
   return (
@@ -87,10 +138,36 @@ const Index = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6 max-w-6xl relative z-10">
+        {/* Header with action buttons */}
+        <div className="flex justify-end space-x-3 mb-6">
+          <button
+            onClick={openStats}
+            className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
+          >
+            <BarChart3 className="h-5 w-5 text-white" />
+            <span className="text-white font-medium">Stats</span>
+          </button>
+          <button
+            onClick={openRewards}
+            className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
+          >
+            <Gift className="h-5 w-5 text-white" />
+            <span className="text-white font-medium">Rewards</span>
+          </button>
+          <button
+            onClick={openShop}
+            className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
+          >
+            <ShoppingCart className="h-5 w-5 text-white" />
+            <span className="text-white font-medium">Shop</span>
+          </button>
+        </div>
+
         <ProgressHeader userProgress={userProgress} />
         <DailyChallenge userProgress={userProgress} onPlayGame={openGame} />
-        <GameFeed onPlayGame={openGame} playedGames={userProgress.playedGames} />
+        <GameFeed onPlayGame={openGame} playedGames={userProgress.playedGames || []} />
         
+        {/* Modals */}
         {showGameModal && selectedGame && (
           <GameModal
             game={selectedGame}
@@ -99,6 +176,39 @@ const Index = () => {
               audioManager.play('click');
               setShowGameModal(false);
               setSelectedGame(null);
+            }}
+          />
+        )}
+
+        {showStatsModal && (
+          <StatsModal
+            userProgress={userProgress}
+            gameStats={gameStats}
+            onClose={() => {
+              audioManager.play('click');
+              setShowStatsModal(false);
+            }}
+          />
+        )}
+
+        {showRewardsModal && (
+          <RewardsModal
+            userProgress={userProgress}
+            onClaimReward={handleClaimReward}
+            onClose={() => {
+              audioManager.play('click');
+              setShowRewardsModal(false);
+            }}
+          />
+        )}
+
+        {showShopModal && (
+          <ShopModal
+            userProgress={userProgress}
+            onPurchase={handlePurchase}
+            onClose={() => {
+              audioManager.play('click');
+              setShowShopModal(false);
             }}
           />
         )}

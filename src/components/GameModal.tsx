@@ -9,6 +9,9 @@ import { ColorMemoryGame } from '@/components/games/ColorMemoryGame';
 import { PatternMatchGame } from '@/components/games/PatternMatchGame';
 import { SpeedTypingGame } from '@/components/games/SpeedTypingGame';
 import { VisualAttentionGame } from '@/components/games/VisualAttentionGame';
+import { WordAssociationGame } from '@/components/games/WordAssociationGame';
+import { SpatialReasoningGame } from '@/components/games/SpatialReasoningGame';
+import { NumberSequenceGame } from '@/components/games/NumberSequenceGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
 
@@ -40,27 +43,32 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onComplete, onClose 
   };
 
   const renderGame = () => {
-    switch (game.type) {
-      case 'memory':
-        if (game.id === 'color-memory') {
-          return <ColorMemoryGame onComplete={handleGameComplete} gameId={game.id} />;
-        }
+    switch (game.id) {
+      case 'memory-sequence':
         return <MemoryGame onComplete={handleGameComplete} gameId={game.id} />;
-      case 'math':
+      case 'color-memory':
+        return <ColorMemoryGame onComplete={handleGameComplete} gameId={game.id} />;
+      case 'math-sprint':
         return <MathSprintGame onComplete={handleGameComplete} gameId={game.id} />;
-      case 'speed':
+      case 'reaction-time':
         return <ReactionTimeGame onComplete={handleGameComplete} gameId={game.id} />;
-      case 'pattern':
+      case 'pattern-match':
         return <PatternMatchGame onComplete={handleGameComplete} gameId={game.id} />;
-      case 'typing':
+      case 'speed-typing':
         return <SpeedTypingGame onComplete={handleGameComplete} gameId={game.id} />;
-      case 'attention':
+      case 'visual-attention':
         return <VisualAttentionGame onComplete={handleGameComplete} gameId={game.id} />;
+      case 'word-association':
+        return <WordAssociationGame onComplete={handleGameComplete} gameId={game.id} />;
+      case 'spatial-reasoning':
+        return <SpatialReasoningGame onComplete={handleGameComplete} gameId={game.id} />;
+      case 'number-sequence':
+        return <NumberSequenceGame onComplete={handleGameComplete} gameId={game.id} />;
       default:
         return (
           <div className="text-center py-8">
-            <p className="text-white text-lg mb-4">🚧 Coming Soon!</p>
-            <p className="text-white/80 mb-6">This game type is still in development.</p>
+            <p className="text-white text-lg mb-4">🚧 Game Not Found!</p>
+            <p className="text-white/80 mb-6">This game is not implemented yet.</p>
             <button
               onClick={() => handleGameComplete({
                 gameId: game.id,

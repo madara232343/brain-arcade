@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Calendar, Play, Flame, Star, Trophy, Gift } from 'lucide-react';
+import { Calendar, Play, Flame, Star, Trophy, Gift, Target, Zap, Clock, Brain } from 'lucide-react';
 import { UserProgress } from '@/pages/Index';
 
 interface DailyChallengeProps {
@@ -16,7 +16,8 @@ const dailyChallenges = [
     type: 'memory',
     difficulty: 'hard',
     xpReward: 100,
-    bonusReward: 'Memory Champion Badge'
+    bonusReward: 'Memory Champion Badge',
+    icon: Brain
   },
   {
     id: 'daily-speed-demon',
@@ -25,7 +26,8 @@ const dailyChallenges = [
     type: 'speed',
     difficulty: 'medium',
     xpReward: 75,
-    bonusReward: 'Lightning Badge'
+    bonusReward: 'Lightning Badge',
+    icon: Zap
   },
   {
     id: 'daily-math-wizard',
@@ -34,7 +36,8 @@ const dailyChallenges = [
     type: 'math',
     difficulty: 'hard',
     xpReward: 120,
-    bonusReward: 'Calculator Master Badge'
+    bonusReward: 'Calculator Master Badge',
+    icon: Target
   },
   {
     id: 'daily-pattern-genius',
@@ -43,7 +46,38 @@ const dailyChallenges = [
     type: 'pattern',
     difficulty: 'medium',
     xpReward: 80,
-    bonusReward: 'Pattern Expert Badge'
+    bonusReward: 'Pattern Expert Badge',
+    icon: Star
+  },
+  {
+    id: 'daily-typing-master',
+    title: 'Typing Master Challenge',
+    description: 'Achieve 60+ WPM in speed typing',
+    type: 'typing',
+    difficulty: 'medium',
+    xpReward: 90,
+    bonusReward: 'Speed Typer Badge',
+    icon: Clock
+  },
+  {
+    id: 'daily-attention-focus',
+    title: 'Focus Master Challenge',
+    description: 'Complete visual attention with 100% accuracy',
+    type: 'attention',
+    difficulty: 'hard',
+    xpReward: 110,
+    bonusReward: 'Eagle Eye Badge',
+    icon: Trophy
+  },
+  {
+    id: 'daily-word-wizard',
+    title: 'Word Wizard Challenge',
+    description: 'Get 20 correct word associations in a row',
+    type: 'language',
+    difficulty: 'medium',
+    xpReward: 85,
+    bonusReward: 'Word Master Badge',
+    icon: Gift
   }
 ];
 
@@ -73,6 +107,8 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ userProgress, on
     ...todaysChallenge,
     isDailyChallenge: true
   };
+
+  const IconComponent = todaysChallenge.icon;
 
   return (
     <div className={`bg-gradient-to-r ${getStreakColor()} rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-2xl animate-fade-in hover:scale-[1.02] transition-all duration-300`}>
@@ -106,13 +142,15 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ userProgress, on
 
         <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 mb-6">
           <div className="flex items-center space-x-3 mb-3">
-            <Trophy className="h-6 w-6 text-yellow-300" />
+            <div className="p-2 bg-white/20 rounded-xl">
+              <IconComponent className="h-6 w-6 text-white" />
+            </div>
             <h3 className="text-xl font-bold">{todaysChallenge.title}</h3>
           </div>
           <p className="text-lg mb-4 opacity-95">
             {todaysChallenge.description}
           </p>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 flex-wrap gap-2">
             <div className="flex items-center space-x-2 bg-white/20 rounded-lg px-3 py-2">
               <Star className="h-4 w-4" />
               <span className="text-sm font-medium">{todaysChallenge.difficulty}</span>
