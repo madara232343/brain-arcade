@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Brain, Puzzle, Zap, Timer, Target, Memory } from 'lucide-react';
+import { Brain, Puzzle, Zap, Timer, Target } from 'lucide-react';
 
 interface Game {
   id: string;
@@ -26,7 +25,7 @@ const games: Game[] = [
     difficulty: 'medium',
     estimatedTime: '2 min',
     xpReward: 25,
-    icon: Memory
+    icon: Brain
   },
   {
     id: 'math-sprint',
