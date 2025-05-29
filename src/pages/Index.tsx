@@ -1,29 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart3, Gift, ShoppingCart, RotateCcw } from 'lucide-react';
-import { GameFeed } from '@/components/GameFeed';
-import { DailyChallenge } from '@/components/DailyChallenge';
-import { ProgressHeader } from '@/components/ProgressHeader';
-import { GameModal } from '@/components/GameModal';
-import { StatsModal } from '@/components/StatsModal';
-import { RewardsModal } from '@/components/RewardsModal';
-import { ShopModal } from '@/components/ShopModal';
-import { AchievementNotification } from '@/components/AchievementNotification';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { audioManager } from '@/utils/audioUtils';
-import { powerUpManager } from '@/utils/powerUpManager';
 
-export interface UserProgress {
-  xp: number;
-  level: number;
-  streak: number;
-  lastPlayDate: string;
-  gamesPlayed: number;
-  totalScore: number;
-  playedGames: string[];
-  ownedItems: string[];
-  achievements: string[];
-  totalPlayTime: number;
-}
+import React, { useState, useEffect } from 'react';
+import { GameFeed } from '@/components/GameFeed';
+import { DashboardStats } from '@/components/DashboardStats';
+import { GameModal } from '@/components/GameModal';
+import { GameCompleteModal } from '@/components/GameCompleteModal';
+import { DailyChallenge } from '@/components/DailyChallenge';
+import { ProfileModal } from '@/components/ProfileModal';
+import { ShopModal } from '@/components/ShopModal';
+import { ReviewModal } from '@/components/ReviewModal';
+import { PowerUpBar } from '@/components/PowerUpBar';
+import { AchievementToast } from '@/components/AchievementToast';
+import { User, Trophy, ShoppingCart, Star, Settings } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 export interface GameResult {
   gameId: string;
@@ -33,94 +21,138 @@ export interface GameResult {
   xpEarned: number;
 }
 
+export interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  requirement: number;
+  currentProgress: number;
+  unlocked: boolean;
+  icon: string;
+  category: 'games' | 'score' | 'streak' | 'time';
+}
+
 const Index = () => {
-  const [userProgress, setUserProgress] = useLocalStorage<UserProgress>('brainArcadeProgress', {
-    xp: 0,
-    level: 1,
-    streak: 0,
-    lastPlayDate: '',
-    gamesPlayed: 0,
-    totalScore: 0,
-    playedGames: [],
-    ownedItems: [],
-    achievements: [],
-    totalPlayTime: 0
+  const [selectedGame, setSelectedGame] = useState<any>(null);
+  const [gameResult, setGameResult] = useState<GameResult | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showShop, setShowShop] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [activePowerUps, setActivePowerUps] = useState<Set<string>>(new Set());
+  const [achievementToShow, setAchievementToShow] = useState<Achievement | null>(null);
+
+  const [userProgress, setUserProgress] = useState<UserProgress>(() => {
+    const saved = localStorage.getItem('brainArcadeProgress');
+    return saved ? JSON.parse(saved) : {
+      totalScore: 0,
+      totalXP: 0,
+      level: 1,
+      gamesPlayed: [],
+      achievements: [],
+      rank: 'Beginner',
+      streak: 0,
+      purchasedItems: [],
+      activeTheme: 'default',
+      activePowerUps: []
+    };
   });
 
-  const [selectedGame, setSelectedGame] = useState<any>(null);
-  const [showGameModal, setShowGameModal] = useState(false);
-  const [showStatsModal, setShowStatsModal] = useState(false);
-  const [showRewardsModal, setShowRewardsModal] = useState(false);
-  const [showShopModal, setShowShopModal] = useState(false);
-  const [gameStats, setGameStats] = useState<any[]>([]);
-  const [currentAchievement, setCurrentAchievement] = useState<any>(null);
-
-  // Achievement definitions
-  const achievements = [
-    { id: 'first-game', title: 'Getting Started', description: 'Play your first game', reward: 50, trigger: (progress: UserProgress) => progress.gamesPlayed >= 1 },
-    { id: 'streak-master', title: 'Streak Master', description: 'Maintain a 7-day streak', reward: 200, trigger: (progress: UserProgress) => progress.streak >= 7 },
-    { id: 'score-hunter', title: 'Score Hunter', description: 'Earn 10,000 total points', reward: 300, trigger: (progress: UserProgress) => progress.totalScore >= 10000 },
-    { id: 'level-up', title: 'Level Up!', description: 'Reach level 5', reward: 150, trigger: (progress: UserProgress) => progress.level >= 5 },
-    { id: 'time-warrior', title: 'Time Warrior', description: 'Play for 60 minutes total', reward: 100, trigger: (progress: UserProgress) => progress.totalPlayTime >= 3600 },
-    { id: 'game-explorer', title: 'Game Explorer', description: 'Try all available games', reward: 400, trigger: (progress: UserProgress) => progress.playedGames.length >= 10 }
-  ];
-
-  const checkAchievements = (newProgress: UserProgress) => {
-    const unlockedAchievements = achievements.filter(achievement => {
-      return !newProgress.achievements.includes(achievement.id) && achievement.trigger(newProgress);
-    });
-
-    if (unlockedAchievements.length > 0) {
-      const achievement = unlockedAchievements[0];
-      setCurrentAchievement(achievement);
-      
-      setUserProgress(prev => ({
-        ...prev,
-        achievements: [...prev.achievements, achievement.id],
-        xp: prev.xp + achievement.reward
-      }));
-    }
-  };
+  useEffect(() => {
+    localStorage.setItem('brainArcadeProgress', JSON.stringify(userProgress));
+  }, [userProgress]);
 
   const handleGameComplete = (result: GameResult) => {
-    const today = new Date().toDateString();
-    const isNewDay = userProgress.lastPlayDate !== today;
+    setGameResult(result);
     
-    const newXP = userProgress.xp + result.xpEarned;
-    const newLevel = Math.floor(newXP / 100) + 1;
+    const newTotalScore = userProgress.totalScore + result.score;
+    const newTotalXP = userProgress.totalXP + result.xpEarned;
+    const newLevel = Math.floor(newTotalXP / 100) + 1;
     
-    const updatedPlayedGames = Array.isArray(userProgress.playedGames) 
-      ? [...userProgress.playedGames] 
-      : [];
-    
-    if (!updatedPlayedGames.includes(result.gameId)) {
-      updatedPlayedGames.push(result.gameId);
-    }
-    
-    setGameStats(prev => [...prev, {
-      ...result,
-      timestamp: Date.now(),
-      date: today
-    }]);
-    
-    const newProgress = {
-      ...userProgress,
-      xp: newXP,
-      level: newLevel,
-      streak: isNewDay ? userProgress.streak + 1 : userProgress.streak,
-      lastPlayDate: today,
-      gamesPlayed: userProgress.gamesPlayed + 1,
-      totalScore: userProgress.totalScore + result.score,
-      playedGames: updatedPlayedGames,
-      totalPlayTime: userProgress.totalPlayTime + result.timeSpent
-    };
-    
-    setUserProgress(newProgress);
-    checkAchievements(newProgress);
+    const newGamesPlayed = userProgress.gamesPlayed.includes(result.gameId) 
+      ? userProgress.gamesPlayed 
+      : [...userProgress.gamesPlayed, result.gameId];
 
-    audioManager.play('success');
-    setShowGameModal(false);
-    setSelectedGame(null);
+    let newRank = userProgress.rank;
+    if (newLevel >= 50) newRank = 'Master';
+    else if (newLevel >= 30) newRank = 'Expert';
+    else if (newLevel >= 20) newRank = 'Advanced';
+    else if (newLevel >= 10) newRank = 'Intermediate';
+    else if (newLevel >= 5) newRank = 'Novice';
+
+    setUserProgress(prev => ({
+      ...prev,
+      totalScore: newTotalScore,
+      totalXP: newTotalXP,
+      level: newLevel,
+      gamesPlayed: newGamesPlayed,
+      rank: newRank
+    }));
+
+    // Check for achievements
+    checkAchievements(newTotalScore, newTotalXP, newGamesPlayed.length, result);
+  };
+
+  const checkAchievements = (score: number, xp: number, gamesCount: number, result: GameResult) => {
+    const achievements: Achievement[] = [
+      {
+        id: 'first-game',
+        title: 'First Steps',
+        description: 'Play your first game',
+        requirement: 1,
+        currentProgress: gamesCount,
+        unlocked: gamesCount >= 1,
+        icon: '🎮',
+        category: 'games'
+      },
+      {
+        id: 'score-master',
+        title: 'Score Master',
+        description: 'Reach 1000 total points',
+        requirement: 1000,
+        currentProgress: score,
+        unlocked: score >= 1000,
+        icon: '⭐',
+        category: 'score'
+      },
+      {
+        id: 'perfect-game',
+        title: 'Perfectionist',
+        description: 'Get 100% accuracy in any game',
+        requirement: 100,
+        currentProgress: result.accuracy,
+        unlocked: result.accuracy === 100,
+        icon: '🎯',
+        category: 'games'
+      }
+    ];
+
+    achievements.forEach(achievement => {
+      if (achievement.unlocked && !userProgress.achievements.includes(achievement.id)) {
+        setUserProgress(prev => ({
+          ...prev,
+          achievements: [...prev.achievements, achievement.id]
+        }));
+        setAchievementToShow(achievement);
+        toast({
+          title: "🏆 Achievement Unlocked!",
+          description: `${achievement.title}: ${achievement.description}`,
+          duration: 4000,
+        });
+      }
+    });
   };
 
   const handlePurchase = (itemId: string, price: number) => {
@@ -128,163 +160,130 @@ const Index = () => {
       setUserProgress(prev => ({
         ...prev,
         totalScore: prev.totalScore - price,
-        ownedItems: [...(prev.ownedItems || []), itemId]
+        purchasedItems: [...prev.purchasedItems, itemId]
       }));
-      
-      // Add power-up to inventory
-      if (itemId.includes('double-xp')) {
-        powerUpManager.addPowerUp('double-xp', 5);
-      } else if (itemId.includes('time-freeze')) {
-        powerUpManager.addPowerUp('time-freeze', 3);
-      } else if (itemId.includes('accuracy-boost')) {
-        powerUpManager.addPowerUp('accuracy-boost', 3);
-      } else if (itemId.includes('shield')) {
-        powerUpManager.addPowerUp('shield', 5);
+
+      // Apply theme if it's a theme item
+      if (itemId.includes('theme')) {
+        setUserProgress(prev => ({
+          ...prev,
+          activeTheme: itemId
+        }));
       }
-      
-      audioManager.play('success');
-    }
-  };
 
-  const handleResetProgress = () => {
-    if (confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
-      setUserProgress({
-        xp: 0,
-        level: 1,
-        streak: 0,
-        lastPlayDate: '',
-        gamesPlayed: 0,
-        totalScore: 0,
-        playedGames: [],
-        ownedItems: [],
-        achievements: [],
-        totalPlayTime: 0
+      toast({
+        title: "🛒 Purchase Successful!",
+        description: "Item added to your inventory",
+        duration: 3000,
       });
-      setGameStats([]);
-      audioManager.play('click');
     }
   };
 
-  const handleClaimReward = (rewardId: string) => {
-    audioManager.play('success');
-  };
-
-  const openGame = (game: any) => {
-    audioManager.play('click');
-    setSelectedGame(game);
-    setShowGameModal(true);
-  };
-
-  const openStats = () => {
-    audioManager.play('click');
-    setShowStatsModal(true);
-  };
-
-  const openRewards = () => {
-    audioManager.play('click');
-    setShowRewardsModal(true);
-  };
-
-  const openShop = () => {
-    audioManager.play('click');
-    setShowShopModal(true);
+  const handlePowerUpUsed = (type: string) => {
+    if (userProgress.purchasedItems.includes(type)) {
+      setActivePowerUps(prev => new Set([...prev, type]));
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-3/4 right-1/4 w-48 md:w-80 h-48 md:h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 w-32 md:w-64 h-32 md:h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
-      </div>
+    <div className={`min-h-screen transition-all duration-500 ${
+      userProgress.activeTheme === 'neon-theme' 
+        ? 'bg-gradient-to-br from-purple-900 via-blue-900 to-black'
+        : userProgress.activeTheme === 'nature-theme'
+        ? 'bg-gradient-to-br from-green-800 via-emerald-700 to-teal-900'
+        : userProgress.activeTheme === 'space-theme'
+        ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-black'
+        : 'bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900'
+    }`}>
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        {/* Header */}
+        <header className="flex flex-col md:flex-row justify-between items-center mb-6 md:mb-8">
+          <div className="mb-4 md:mb-0">
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 text-center md:text-left">
+              🧠 Brain Burst Arcade
+            </h1>
+            <p className="text-white/80 text-center md:text-left">Challenge your mind with engaging brain games</p>
+          </div>
+          
+          <div className="flex items-center space-x-3 md:space-x-4">
+            <button
+              onClick={() => setShowProfile(true)}
+              className="bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-xl transition-all duration-300 hover:scale-105 touch-target"
+            >
+              <User className="h-5 w-5 md:h-6 md:w-6" />
+            </button>
+            <button
+              onClick={() => setShowShop(true)}
+              className="bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-xl transition-all duration-300 hover:scale-105 touch-target"
+            >
+              <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
+            </button>
+            <button
+              onClick={() => setShowReview(true)}
+              className="bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-xl transition-all duration-300 hover:scale-105 touch-target"
+            >
+              <Star className="h-5 w-5 md:h-6 md:w-6" />
+            </button>
+          </div>
+        </header>
 
-      <div className="container mx-auto px-3 md:px-4 py-4 md:py-6 max-w-6xl relative z-10">
-        {/* Mobile-optimized header */}
-        <div className="flex flex-wrap justify-end gap-2 md:gap-3 mb-4 md:mb-6">
-          <button
-            onClick={openStats}
-            className="flex items-center space-x-1 md:space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-lg md:rounded-xl px-2 md:px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105 touch-target text-xs md:text-sm"
-          >
-            <BarChart3 className="h-4 w-4 md:h-5 md:w-5 text-white" />
-            <span className="text-white font-medium hidden sm:inline">Stats</span>
-          </button>
-          <button
-            onClick={openRewards}
-            className="flex items-center space-x-1 md:space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-lg md:rounded-xl px-2 md:px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105 touch-target text-xs md:text-sm"
-          >
-            <Gift className="h-4 w-4 md:h-5 md:w-5 text-white" />
-            <span className="text-white font-medium hidden sm:inline">Rewards</span>
-          </button>
-          <button
-            onClick={openShop}
-            className="flex items-center space-x-1 md:space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-lg md:rounded-xl px-2 md:px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105 touch-target text-xs md:text-sm"
-          >
-            <ShoppingCart className="h-4 w-4 md:h-5 md:w-5 text-white" />
-            <span className="text-white font-medium hidden sm:inline">Shop</span>
-          </button>
-          <button
-            onClick={handleResetProgress}
-            className="flex items-center space-x-1 md:space-x-2 bg-red-500/20 hover:bg-red-500/30 backdrop-blur-lg rounded-lg md:rounded-xl px-2 md:px-4 py-2 border border-red-500/30 transition-all duration-300 hover:scale-105 touch-target text-xs md:text-sm"
-          >
-            <RotateCcw className="h-4 w-4 md:h-5 md:w-5 text-red-400" />
-            <span className="text-red-400 font-medium hidden sm:inline">Reset</span>
-          </button>
-        </div>
+        {/* Dashboard Stats */}
+        <DashboardStats userProgress={userProgress} />
 
-        <ProgressHeader userProgress={userProgress} />
-        <DailyChallenge userProgress={userProgress} onPlayGame={openGame} />
-        <GameFeed onPlayGame={openGame} playedGames={userProgress.playedGames || []} />
-        
-        {/* Achievement notification */}
-        <AchievementNotification
-          achievement={currentAchievement}
-          onClose={() => setCurrentAchievement(null)}
+        {/* Daily Challenge */}
+        <DailyChallenge userProgress={userProgress} onComplete={handleGameComplete} />
+
+        {/* Game Feed */}
+        <GameFeed 
+          onPlayGame={setSelectedGame}
+          playedGames={userProgress.gamesPlayed}
         />
-        
+
         {/* Modals */}
-        {showGameModal && selectedGame && (
+        {selectedGame && (
           <GameModal
             game={selectedGame}
             onComplete={handleGameComplete}
+            onClose={() => setSelectedGame(null)}
+            activePowerUps={activePowerUps}
+            onPowerUpUsed={handlePowerUpUsed}
+          />
+        )}
+
+        {gameResult && (
+          <GameCompleteModal
+            result={gameResult}
+            game={selectedGame}
             onClose={() => {
-              audioManager.play('click');
-              setShowGameModal(false);
+              setGameResult(null);
               setSelectedGame(null);
             }}
           />
         )}
 
-        {showStatsModal && (
-          <StatsModal
+        {showProfile && (
+          <ProfileModal
             userProgress={userProgress}
-            gameStats={gameStats}
-            onClose={() => {
-              audioManager.play('click');
-              setShowStatsModal(false);
-            }}
+            onClose={() => setShowProfile(false)}
           />
         )}
 
-        {showRewardsModal && (
-          <RewardsModal
-            userProgress={userProgress}
-            onClaimReward={handleClaimReward}
-            onClose={() => {
-              audioManager.play('click');
-              setShowRewardsModal(false);
-            }}
-          />
-        )}
-
-        {showShopModal && (
+        {showShop && (
           <ShopModal
             userProgress={userProgress}
+            onClose={() => setShowShop(false)}
             onPurchase={handlePurchase}
-            onClose={() => {
-              audioManager.play('click');
-              setShowShopModal(false);
-            }}
+          />
+        )}
+
+        {showReview && (
+          <ReviewModal onClose={() => setShowReview(false)} />
+        )}
+
+        {achievementToShow && (
+          <AchievementToast
+            achievement={achievementToShow}
+            onClose={() => setAchievementToShow(null)}
           />
         )}
       </div>

@@ -17,32 +17,68 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose }) => {
     setIsSubmitting(true);
 
     try {
-      // Send review to email
       const reviewData = {
         rating,
         review,
         timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent
+        userAgent: navigator.userAgent,
+        url: window.location.href
       };
 
-      // Here you would typically send to your backend
-      // For now, we'll simulate sending to email
-      console.log('Review submitted:', reviewData);
+      // Send review via mailto (opens email client)
+      const subject = `Brain Burst Arcade Review - ${rating} Stars`;
+      const body = `
+Rating: ${rating}/5 stars
+Review: ${review}
+Timestamp: ${reviewData.timestamp}
+User Agent: ${reviewData.userAgent}
+URL: ${reviewData.url}
+      `;
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      toast({
-        title: "🌟 Review Submitted!",
-        description: "Thank you for your feedback!",
-        duration: 3000,
+      const mailtoLink = `mailto:dhwanilraval274@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      // For demo purposes, we'll use a form submission service
+      const response = await fetch('https://formsubmit.co/ajax/dhwanilraval274@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          subject: subject,
+          message: body,
+          _captcha: false
+        })
       });
+
+      if (response.ok) {
+        toast({
+          title: "🌟 Review Submitted!",
+          description: "Thank you for your feedback!",
+          duration: 3000,
+        });
+      } else {
+        // Fallback to mailto
+        window.location.href = mailtoLink;
+        toast({
+          title: "📧 Email Client Opened",
+          description: "Please send the email to complete your review",
+          duration: 3000,
+        });
+      }
 
       onClose();
     } catch (error) {
+      // Fallback to mailto
+      const subject = `Brain Burst Arcade Review - ${rating} Stars`;
+      const body = `Rating: ${rating}/5 stars\nReview: ${review}\nTimestamp: ${new Date().toISOString()}`;
+      const mailtoLink = `mailto:dhwanilraval274@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      window.location.href = mailtoLink;
+      
       toast({
-        title: "❌ Error",
-        description: "Failed to submit review. Please try again.",
+        title: "📧 Email Client Opened",
+        description: "Please send the email to complete your review",
         duration: 3000,
       });
     } finally {
@@ -52,10 +88,10 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-3xl max-w-md w-full border border-white/30 shadow-2xl">
+      <div className="bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-3xl max-w-md w-full border border-white/30 shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between p-6 border-b border-white/20 bg-white/5">
-          <h2 className="text-2xl font-bold text-white">Leave a Review</h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+          <h2 className="text-2xl font-bold text-white">🌟 Leave a Review</h2>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors touch-target">
             <X className="h-6 w-6 text-white" />
           </button>
         </div>
@@ -63,13 +99,13 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose }) => {
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-6">
             <label className="block text-white font-medium mb-3">Rating</label>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 justify-center">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
-                  className="transition-all duration-200 hover:scale-110"
+                  className="transition-all duration-200 hover:scale-110 touch-target"
                 >
                   <Star
                     className={`h-8 w-8 ${
@@ -98,10 +134,10 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose }) => {
           <button
             type="submit"
             disabled={isSubmitting || !review.trim()}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2"
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2 touch-target"
           >
             {isSubmitting ? (
-              <div className="loading-spinner" />
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
             ) : (
               <>
                 <Send className="h-5 w-5" />

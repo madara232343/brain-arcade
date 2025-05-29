@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { GameResult } from '@/pages/Games';
+import { GameResult } from '@/pages/Index';
 import { audioManager } from '@/utils/audioUtils';
 
 interface ColorMemoryGameProps {
@@ -11,183 +11,153 @@ interface ColorMemoryGameProps {
 }
 
 const colors = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', 
-  '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+  { name: 'red', bg: 'bg-red-500', glow: 'shadow-red-500/50' },
+  { name: 'blue', bg: 'bg-blue-500', glow: 'shadow-blue-500/50' },
+  { name: 'green', bg: 'bg-green-500', glow: 'shadow-green-500/50' },
+  { name: 'yellow', bg: 'bg-yellow-500', glow: 'shadow-yellow-500/50' },
+  { name: 'purple', bg: 'bg-purple-500', glow: 'shadow-purple-500/50' },
+  { name: 'orange', bg: 'bg-orange-500', glow: 'shadow-orange-500/50' },
+  { name: 'pink', bg: 'bg-pink-500', glow: 'shadow-pink-500/50' },
+  { name: 'cyan', bg: 'bg-cyan-500', glow: 'shadow-cyan-500/50' }
 ];
-
-interface ColorCell {
-  id: number;
-  color: string;
-  isTarget: boolean;
-  isGuessed: boolean;
-  isCorrect?: boolean;
-  isHighlighted?: boolean;
-}
 
 export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ 
   onComplete, 
   gameId, 
-  activePowerUps = new Set(), 
+  activePowerUps = new Set(),
   onPowerUpUsed 
 }) => {
-  const [grid, setGrid] = useState<ColorCell[]>([]);
-  const [showColors, setShowColors] = useState(true);
+  const [gridSize, setGridSize] = useState(3);
+  const [targetColors, setTargetColors] = useState<number[]>([]);
+  const [displayedColors, setDisplayedColors] = useState<number[]>([]);
+  const [userClicks, setUserClicks] = useState<number[]>([]);
+  const [isShowingColors, setIsShowingColors] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
   const [gamePhase, setGamePhase] = useState<'memorize' | 'recall' | 'result'>('memorize');
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
-  const [startTime, setStartTime] = useState(0);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [wrongGuesses, setWrongGuesses] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(15);
-  const [highlightedCells, setHighlightedCells] = useState<Set<number>>(new Set());
+  const [timeLeft, setTimeLeft] = useState(45);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
 
-  const gridSize = Math.min(3 + Math.floor(round / 3), 4);
-  const targetCount = Math.min(2 + Math.floor(round / 2), Math.floor(gridSize * gridSize / 2));
-
-  const generateGrid = () => {
-    const cells: ColorCell[] = [];
-    const shuffledColors = [...colors].sort(() => Math.random() - 0.5);
+  const generateColorPattern = () => {
+    const numColors = Math.min(2 + round, gridSize * gridSize - 1);
+    const pattern: number[] = [];
+    const usedPositions = new Set<number>();
     
-    for (let i = 0; i < gridSize * gridSize; i++) {
-      cells.push({
-        id: i,
-        color: shuffledColors[i % shuffledColors.length],
-        isTarget: false,
-        isGuessed: false,
-        isHighlighted: false
-      });
+    for (let i = 0; i < numColors; i++) {
+      let position;
+      do {
+        position = Math.floor(Math.random() * (gridSize * gridSize));
+      } while (usedPositions.has(position));
+      
+      usedPositions.add(position);
+      pattern.push(position);
     }
-
-    // Set random cells as targets
-    const targetIndices: number[] = [];
-    while (targetIndices.length < targetCount) {
-      const randomIndex = Math.floor(Math.random() * cells.length);
-      if (!targetIndices.includes(randomIndex)) {
-        targetIndices.push(randomIndex);
-        cells[randomIndex].isTarget = true;
-      }
-    }
-
-    setGrid(cells);
-    setWrongGuesses(0);
-    setHighlightedCells(new Set(targetIndices));
+    
+    return pattern.sort((a, b) => a - b);
   };
 
   const startGame = () => {
     setGameStarted(true);
-    setStartTime(Date.now());
-    generateGrid();
-    
-    const memorizationTime = Math.max(3000 - round * 100, 1500);
-    setTimeout(() => {
-      setShowColors(false);
-      setGamePhase('recall');
-      setHighlightedCells(new Set());
-    }, memorizationTime);
+    startRound();
   };
 
-  // Timer effect
+  const startRound = () => {
+    const pattern = generateColorPattern();
+    setTargetColors(pattern);
+    setDisplayedColors(pattern);
+    setUserClicks([]);
+    setGamePhase('memorize');
+    setIsShowingColors(true);
+
+    // Show colors for a few seconds
+    setTimeout(() => {
+      setIsShowingColors(false);
+      setGamePhase('recall');
+    }, 2000 + round * 500);
+  };
+
   useEffect(() => {
-    if (gameStarted && gamePhase === 'recall' && timeLeft > 0) {
+    if (gameStarted && timeLeft > 0) {
       const timer = setTimeout(() => {
         if (!activePowerUps.has('timeFreeze')) {
           setTimeLeft(prev => prev - 1);
         }
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (timeLeft === 0 && gamePhase === 'recall') {
+    } else if (timeLeft === 0) {
       endGame();
     }
-  }, [timeLeft, gameStarted, gamePhase, activePowerUps]);
+  }, [timeLeft, gameStarted, activePowerUps]);
 
-  const handleCellClick = (cellId: number) => {
-    if (gamePhase !== 'recall') return;
+  const handleCellClick = (position: number) => {
+    if (gamePhase !== 'recall' || isShowingColors) return;
 
-    const cell = grid.find(c => c.id === cellId);
-    if (!cell || cell.isGuessed) return;
+    const newUserClicks = [...userClicks, position];
+    setUserClicks(newUserClicks);
+    audioManager.play('click');
 
-    const isCorrect = cell.isTarget;
-    let newScore = score;
-    let newWrongGuesses = wrongGuesses;
-
-    if (isCorrect) {
-      const points = 15 * (activePowerUps.has('doubleXP') ? 2 : 1);
-      newScore += points;
-      setScore(newScore);
-      audioManager.play('success');
-    } else {
-      if (!activePowerUps.has('shield')) {
-        newWrongGuesses++;
-        setWrongGuesses(newWrongGuesses);
+    // Check if this click is correct
+    const isCorrect = targetColors[newUserClicks.length - 1] === position;
+    
+    if (!isCorrect) {
+      if (activePowerUps.has('shield') && onPowerUpUsed) {
+        onPowerUpUsed('shield');
+        return; // Shield protects from wrong answer
       }
-      audioManager.play('error');
+      // Wrong answer - end game
+      endGame();
+      return;
     }
 
-    setGrid(prev => prev.map(c => 
-      c.id === cellId ? { ...c, isGuessed: true, isCorrect } : c
-    ));
-
-    // Check game state
-    setTimeout(() => {
-      const updatedGrid = grid.map(c => {
-        if (c.id === cellId) {
-          return { ...c, isGuessed: true, isCorrect: c.isTarget };
-        }
-        return c;
-      });
-
-      const allTargetsFound = updatedGrid.filter(c => c.isTarget).every(c => c.isGuessed && c.isCorrect);
-
-      if (allTargetsFound) {
-        const bonus = 25 * (activePowerUps.has('doubleXP') ? 2 : 1);
-        setScore(prev => prev + bonus);
-        audioManager.play('complete');
-        setTimeout(() => {
+    // Check if pattern is complete
+    if (newUserClicks.length === targetColors.length) {
+      setCorrectAnswers(prev => prev + 1);
+      const roundScore = targetColors.length * 10 * (activePowerUps.has('doubleXP') ? 2 : 1);
+      setScore(prev => prev + roundScore);
+      
+      setTimeout(() => {
+        if (round < 8) {
           setRound(prev => prev + 1);
-          setShowColors(true);
-          setGamePhase('memorize');
-          setTimeLeft(15);
-          generateGrid();
-        }, 1500);
-      } else if (newWrongGuesses >= 3) {
-        endGame();
-      }
-    }, 100);
+          if (round % 2 === 0 && gridSize < 5) {
+            setGridSize(prev => prev + 1);
+          }
+          startRound();
+        } else {
+          endGame();
+        }
+      }, 1000);
+    }
   };
 
   const endGame = () => {
-    setGamePhase('result');
-    const timeSpent = Math.round((Date.now() - startTime) / 1000);
-    const accuracy = Math.round((score / Math.max(round * 40, 1)) * 100);
-    const xpEarned = Math.round(score / 2);
+    const accuracy = Math.round((correctAnswers / round) * 100);
+    const xpEarned = Math.round(score / 4);
 
-    setTimeout(() => {
-      onComplete({
-        gameId,
-        score,
-        accuracy,
-        timeSpent,
-        xpEarned
-      });
-    }, 2000);
+    onComplete({
+      gameId,
+      score,
+      accuracy,
+      timeSpent: 45 - timeLeft,
+      xpEarned
+    });
   };
 
   if (!gameStarted) {
     return (
       <div className="text-center text-white p-4">
         <h3 className="text-xl md:text-2xl font-bold mb-4">🎨 Color Memory</h3>
-        <p className="mb-6 text-sm md:text-lg">Remember the highlighted colors and click them!</p>
+        <p className="mb-6 text-sm md:text-lg">Remember the highlighted colors and click them in order!</p>
         <div className="mb-6">
-          <div className="inline-block bg-white/20 rounded-lg p-3 md:p-4 text-left">
-            <p className="text-xs md:text-sm mb-2">• Watch glowing cells carefully</p>
-            <p className="text-xs md:text-sm mb-2">• Click the correct cells when they turn gray</p>
-            <p className="text-xs md:text-sm mb-2">• Maximum 3 mistakes per round</p>
-            <p className="text-xs md:text-sm">• Use power-ups for advantages</p>
+          <div className="inline-block bg-white/20 rounded-lg p-3 md:p-4">
+            <p className="text-xs md:text-sm mb-2">• Watch the colors that light up</p>
+            <p className="text-xs md:text-sm mb-2">• Click them back in the same order</p>
+            <p className="text-xs md:text-sm">• Each round adds more colors</p>
           </div>
         </div>
         <button
           onClick={startGame}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-lg transition-all duration-300 hover:scale-105 touch-target"
+          className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-lg transition-all duration-300 hover:scale-105"
         >
           Start Game
         </button>
@@ -195,14 +165,14 @@ export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({
     );
   }
 
-  if (gamePhase === 'result') {
+  if (timeLeft === 0 || (gamePhase === 'result')) {
     return (
       <div className="text-center text-white p-4">
-        <h3 className="text-xl md:text-2xl font-bold mb-4 animate-success-bounce">🎉 Great Memory!</h3>
+        <h3 className="text-xl md:text-2xl font-bold mb-4">🏆 Great Memory!</h3>
         <div className="space-y-2 md:space-y-3 text-sm md:text-lg">
-          <p>Round Reached: <span className="text-yellow-400 font-bold">{round}</span></p>
-          <p>Final Score: <span className="text-green-400 font-bold">{score}</span> points</p>
-          <p className="text-xs md:text-sm text-white/70">Keep practicing to improve your visual memory!</p>
+          <p>Round Reached: <span className="text-purple-400 font-bold">{round}</span></p>
+          <p>Score: <span className="text-yellow-400 font-bold">{score}</span></p>
+          <p>Accuracy: <span className="text-green-400 font-bold">{Math.round((correctAnswers / round) * 100)}%</span></p>
         </div>
       </div>
     );
@@ -211,64 +181,53 @@ export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({
   return (
     <div className="text-center text-white p-2 md:p-4">
       <div className="flex flex-wrap justify-between mb-4 md:mb-6 text-sm md:text-lg gap-2">
-        <div>Round: <span className="font-bold">{round}</span></div>
+        <div>Time: <span className={`font-bold ${timeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-blue-400'}`}>{timeLeft}s</span></div>
+        <div>Round: <span className="font-bold text-purple-400">{round}</span></div>
         <div>Score: <span className="font-bold text-yellow-400">{score}</span></div>
-        <div>Time: <span className={`font-bold ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-blue-400'}`}>{timeLeft}s</span></div>
       </div>
 
       {gamePhase === 'memorize' && (
-        <div className="mb-4 text-lg md:text-xl font-bold animate-pulse text-yellow-400">
-          🧠 Memorize the glowing colors...
+        <div className="mb-4 text-lg md:text-xl font-bold animate-pulse text-blue-400">
+          🧠 Memorize the colors...
         </div>
       )}
 
       {gamePhase === 'recall' && (
         <div className="mb-4 text-lg md:text-xl font-bold text-green-400">
-          🎯 Click the highlighted cells!
+          🎯 Click the colors in order! ({userClicks.length}/{targetColors.length})
         </div>
       )}
 
       <div 
-        className="grid gap-2 md:gap-3 mx-auto mb-4 md:mb-6 max-w-xs md:max-w-md"
-        style={{ 
-          gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-          aspectRatio: '1'
-        }}
+        className={`grid gap-2 md:gap-3 max-w-sm mx-auto`}
+        style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}
       >
-        {grid.map((cell) => {
-          const isCurrentlyHighlighted = (gamePhase === 'memorize' && cell.isTarget) || 
-                                        highlightedCells.has(cell.id);
+        {Array.from({ length: gridSize * gridSize }).map((_, index) => {
+          const isTarget = targetColors.includes(index);
+          const isClicked = userClicks.includes(index);
+          const shouldGlow = isShowingColors && isTarget;
           
           return (
             <button
-              key={cell.id}
-              onClick={() => handleCellClick(cell.id)}
-              className={`aspect-square rounded-lg md:rounded-xl transition-all duration-300 border-2 flex items-center justify-center font-bold text-sm md:text-base touch-target ${
-                isCurrentlyHighlighted
-                  ? 'border-yellow-400 border-4 animate-pulse shadow-lg shadow-yellow-400/50 scale-105' 
-                  : cell.isGuessed
-                    ? cell.isCorrect
-                      ? 'border-green-400 border-4 shadow-lg shadow-green-400/50 scale-105'
-                      : 'border-red-400 border-4 shadow-lg shadow-red-400/50'
-                    : 'border-white/30 hover:border-white/60 hover:scale-105 active:scale-95'
+              key={index}
+              onClick={() => handleCellClick(index)}
+              className={`aspect-square rounded-lg transition-all duration-300 border-2 touch-target ${
+                shouldGlow
+                  ? `${colors[index % colors.length].bg} ${colors[index % colors.length].glow} shadow-2xl scale-110 border-white`
+                  : isClicked
+                  ? `${colors[index % colors.length].bg} border-green-400 scale-105`
+                  : 'bg-gray-600 border-gray-500 hover:border-gray-400 hover:scale-105'
               }`}
-              style={{
-                backgroundColor: showColors || cell.isGuessed || isCurrentlyHighlighted ? cell.color : '#4a5568',
-                minHeight: '50px'
-              }}
-              disabled={gamePhase !== 'recall' || cell.isGuessed}
+              disabled={gamePhase !== 'recall' || isShowingColors}
             >
-              {cell.isGuessed && cell.isCorrect && <span className="text-white text-lg md:text-xl">✓</span>}
-              {cell.isGuessed && !cell.isCorrect && <span className="text-white text-lg md:text-xl">✗</span>}
+              {isClicked && <div className="text-white font-bold">✓</div>}
             </button>
           );
         })}
       </div>
 
-      <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-xs md:text-sm text-white/70">
-        <span>Mistakes: <span className={`font-bold ${wrongGuesses >= 2 ? 'text-red-400' : 'text-yellow-400'}`}>{wrongGuesses}/3</span></span>
-        <span>Found: <span className="font-bold text-green-400">{grid.filter(cell => cell.isGuessed && cell.isCorrect).length}/{targetCount}</span></span>
-        <span>Targets: <span className="font-bold text-blue-400">{targetCount}</span></span>
+      <div className="mt-4 text-xs md:text-sm text-white/70">
+        Click the highlighted colors in the order they appeared
       </div>
     </div>
   );

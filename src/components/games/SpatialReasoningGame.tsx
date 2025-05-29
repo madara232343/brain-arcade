@@ -1,196 +1,278 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Box, Sphere, Cone, Cylinder } from '@react-three/drei';
 import { GameResult } from '@/pages/Index';
+import { Mesh } from 'three';
 
 interface SpatialReasoningGameProps {
   onComplete: (result: GameResult) => void;
   gameId: string;
+  activePowerUps?: Set<string>;
+  onPowerUpUsed?: (type: string) => void;
 }
-
-const shapes = ['🔺', '🔴', '🔶', '⬛', '🟡', '🔷'];
-const rotations = [0, 90, 180, 270];
 
 interface Shape3D {
   id: number;
-  shape: string;
-  rotation: number;
+  type: 'box' | 'sphere' | 'cone' | 'cylinder';
+  color: string;
+  position: [number, number, number];
+  rotation: [number, number, number];
   isTarget: boolean;
 }
 
-export const SpatialReasoningGame: React.FC<SpatialReasoningGameProps> = ({ onComplete, gameId }) => {
-  const [targetShape, setTargetShape] = useState<Shape3D | null>(null);
-  const [options, setOptions] = useState<Shape3D[]>([]);
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(90);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(0);
-  const [round, setRound] = useState(1);
+const Shape3DComponent: React.FC<{ shape: Shape3D; onClick: () => void; isGlowing?: boolean }> = ({ 
+  shape, 
+  onClick, 
+  isGlowing = false 
+}) => {
+  const meshRef = useRef<Mesh>(null);
 
-  const generateQuestion = () => {
-    const baseShape = shapes[Math.floor(Math.random() * shapes.length)];
-    const baseRotation = rotations[Math.floor(Math.random() * rotations.length)];
+  useFrame((state) => {
+    if (meshRef.current && isGlowing) {
+      meshRef.current.rotation.y += 0.02;
+    }
+  });
+
+  const shapeProps = {
+    ref: meshRef,
+    position: shape.position,
+    rotation: shape.rotation,
+    onClick,
+    scale: isGlowing ? 1.2 : 1
+  };
+
+  const material = (
+    <meshStandardMaterial 
+      color={shape.color} 
+      emissive={isGlowing ? shape.color : '#000000'}
+      emissiveIntensity={isGlowing ? 0.3 : 0}
+    />
+  );
+
+  switch (shape.type) {
+    case 'box':
+      return <Box {...shapeProps}>{material}</Box>;
+    case 'sphere':
+      return <Sphere {...shapeProps}>{material}</Sphere>;
+    case 'cone':
+      return <Cone {...shapeProps}>{material}</Cone>;
+    case 'cylinder':
+      return <Cylinder {...shapeProps}>{material}</Cylinder>;
+    default:
+      return <Box {...shapeProps}>{material}</Box>;
+  }
+};
+
+export const SpatialReasoningGame: React.FC<SpatialReasoningGameProps> = ({ 
+  onComplete, 
+  gameId,
+  activePowerUps = new Set(),
+  onPowerUpUsed 
+}) => {
+  const [shapes, setShapes] = useState<Shape3D[]>([]);
+  const [targetShape, setTargetShape] = useState<Shape3D | null>(null);
+  const [score, setScore] = useState(0);
+  const [round, setRound] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [showingTarget, setShowingTarget] = useState(false);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+
+  const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd'];
+  const shapeTypes: ('box' | 'sphere' | 'cone' | 'cylinder')[] = ['box', 'sphere', 'cone', 'cylinder'];
+
+  const generateShapes = () => {
+    const newShapes: Shape3D[] = [];
+    const targetType = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+    const targetColor = colors[Math.floor(Math.random() * colors.length)];
     
+    // Create target shape
     const target: Shape3D = {
       id: 0,
-      shape: baseShape,
-      rotation: baseRotation,
+      type: targetType,
+      color: targetColor,
+      position: [0, 2, 0],
+      rotation: [Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI],
       isTarget: true
     };
+    
+    setTargetShape(target);
 
-    // Create the correct answer (same shape, different rotation)
-    const correctRotation = rotations[Math.floor(Math.random() * rotations.length)];
-    const correctAnswer: Shape3D = {
-      id: 1,
-      shape: baseShape,
-      rotation: correctRotation,
-      isTarget: false
-    };
-
-    // Create wrong answers
-    const wrongAnswers: Shape3D[] = [];
-    for (let i = 0; i < 3; i++) {
-      wrongAnswers.push({
-        id: i + 2,
-        shape: shapes[Math.floor(Math.random() * shapes.length)],
-        rotation: rotations[Math.floor(Math.random() * rotations.length)],
-        isTarget: false
+    // Create answer options (including correct one)
+    for (let i = 0; i < 6; i++) {
+      const isCorrect = i === 0;
+      newShapes.push({
+        id: i + 1,
+        type: isCorrect ? targetType : shapeTypes[Math.floor(Math.random() * shapeTypes.length)],
+        color: isCorrect ? targetColor : colors[Math.floor(Math.random() * colors.length)],
+        position: [
+          (i % 3 - 1) * 3,
+          -2,
+          Math.floor(i / 3) * 3 - 1.5
+        ],
+        rotation: [Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI],
+        isTarget: isCorrect
       });
     }
 
-    const allOptions = [correctAnswer, ...wrongAnswers].sort(() => Math.random() - 0.5);
-    
-    setTargetShape(target);
-    setOptions(allOptions);
+    // Shuffle the shapes
+    for (let i = newShapes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newShapes[i], newShapes[j]] = [newShapes[j], newShapes[i]];
+    }
+
+    setShapes(newShapes);
   };
 
   const startGame = () => {
     setGameStarted(true);
-    generateQuestion();
+    generateShapes();
+    setShowingTarget(true);
+    
+    setTimeout(() => {
+      setShowingTarget(false);
+    }, 3000);
   };
 
   useEffect(() => {
-    if (gameStarted && timeLeft > 0 && !gameOver) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+    if (gameStarted && timeLeft > 0) {
+      const timer = setTimeout(() => {
+        if (!activePowerUps.has('timeFreeze')) {
+          setTimeLeft(prev => prev - 1);
+        }
+      }, 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
       endGame();
     }
-  }, [timeLeft, gameStarted, gameOver]);
+  }, [timeLeft, gameStarted, activePowerUps]);
 
-  const handleAnswer = (selectedShape: Shape3D) => {
-    const isCorrect = selectedShape.shape === targetShape?.shape;
+  const handleShapeClick = (shape: Shape3D) => {
+    if (showingTarget) return;
+
+    const isCorrect = shape.isTarget;
     
-    setTotalQuestions(prev => prev + 1);
-
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
-      setScore(prev => prev + (15 + round * 5));
-    }
-
-    setTimeout(() => {
-      if (totalQuestions > 0 && (totalQuestions + 1) % 5 === 0) {
+      const roundScore = 50 * (activePowerUps.has('doubleXP') ? 2 : 1);
+      setScore(prev => prev + roundScore);
+      
+      if (round < 10) {
         setRound(prev => prev + 1);
+        generateShapes();
+        setShowingTarget(true);
+        setTimeout(() => setShowingTarget(false), 2000);
+      } else {
+        endGame();
       }
-      generateQuestion();
-    }, 1500);
+    } else {
+      if (activePowerUps.has('shield') && onPowerUpUsed) {
+        onPowerUpUsed('shield');
+        return;
+      }
+      endGame();
+    }
   };
 
   const endGame = () => {
-    setGameOver(true);
-    const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
-    const xpEarned = Math.round(score / 2);
+    const accuracy = Math.round((correctAnswers / round) * 100);
+    const xpEarned = Math.round(score / 3);
 
     onComplete({
       gameId,
       score,
       accuracy,
-      timeSpent: 90,
+      timeSpent: 60 - timeLeft,
       xpEarned
     });
   };
 
-  const getShapeStyle = (shape: Shape3D) => ({
-    transform: `rotate(${shape.rotation}deg)`,
-    fontSize: '3rem',
-    transition: 'transform 0.3s ease'
-  });
-
   if (!gameStarted) {
     return (
-      <div className="text-center text-white">
-        <h3 className="text-2xl font-bold mb-4">🔄 Spatial Reasoning</h3>
-        <p className="mb-6 text-lg">Rotate and match 3D objects!</p>
+      <div className="text-center text-white p-4">
+        <h3 className="text-xl md:text-2xl font-bold mb-4">🔄 3D Spatial Reasoning</h3>
+        <p className="mb-6 text-sm md:text-lg">Match 3D shapes in this spatial reasoning challenge!</p>
         <div className="mb-6">
-          <div className="inline-block bg-white/20 rounded-lg p-4">
-            <p className="text-sm mb-2">• Look at the target shape and its rotation</p>
-            <p className="text-sm mb-2">• Find the same shape among the options</p>
-            <p className="text-sm mb-2">• Ignore the rotation - focus on the shape</p>
-            <p className="text-sm">• Complete as many as possible in 90 seconds</p>
+          <div className="inline-block bg-white/20 rounded-lg p-3 md:p-4">
+            <p className="text-xs md:text-sm mb-2">• Study the target 3D shape</p>
+            <p className="text-xs md:text-sm mb-2">• Find the matching shape below</p>
+            <p className="text-xs md:text-sm">• Use mouse to rotate the view</p>
           </div>
         </div>
         <button
           onClick={startGame}
-          className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"
+          className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-lg transition-all duration-300 hover:scale-105"
         >
-          Start Game
+          Start 3D Game
         </button>
       </div>
     );
   }
 
-  if (gameOver) {
+  if (timeLeft === 0 || round > 10) {
     return (
-      <div className="text-center text-white">
-        <h3 className="text-2xl font-bold mb-4">🧠 Spatial Master!</h3>
-        <div className="space-y-3 text-lg">
+      <div className="text-center text-white p-4">
+        <h3 className="text-xl md:text-2xl font-bold mb-4">🧠 3D Master!</h3>
+        <div className="space-y-2 md:space-y-3 text-sm md:text-lg">
           <p>Round Reached: <span className="text-purple-400 font-bold">{round}</span></p>
-          <p>Final Score: <span className="text-yellow-400 font-bold">{score}</span> points</p>
-          <p>Correct Answers: <span className="text-green-400 font-bold">{correctAnswers}/{totalQuestions}</span></p>
-          <p>Accuracy: <span className="text-blue-400 font-bold">{totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0}%</span></p>
+          <p>Score: <span className="text-yellow-400 font-bold">{score}</span></p>
+          <p>Accuracy: <span className="text-green-400 font-bold">{Math.round((correctAnswers / round) * 100)}%</span></p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="text-center text-white">
-      <div className="flex justify-between mb-6 text-lg">
-        <div>Time: <span className="font-bold text-red-400">{timeLeft}s</span></div>
+    <div className="text-white p-2 md:p-4">
+      <div className="flex flex-wrap justify-between mb-4 text-sm md:text-lg gap-2">
+        <div>Time: <span className={`font-bold ${timeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-blue-400'}`}>{timeLeft}s</span></div>
         <div>Round: <span className="font-bold text-purple-400">{round}</span></div>
         <div>Score: <span className="font-bold text-yellow-400">{score}</span></div>
       </div>
 
-      {targetShape && (
-        <div className="mb-8">
-          <p className="text-lg mb-4">Find the same shape:</p>
-          <div className="bg-white/20 rounded-xl p-8 inline-block mb-6">
-            <div style={getShapeStyle(targetShape)} className="animate-pulse">
-              {targetShape.shape}
-            </div>
-          </div>
-
-          <p className="text-sm text-white/70 mb-6">Click on the matching shape (rotation doesn't matter)</p>
-
-          <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-            {options.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => handleAnswer(option)}
-                className="bg-white/10 hover:bg-white/20 border border-white/30 hover:border-blue-400 rounded-xl p-6 transition-all duration-200 hover:scale-105 hover:shadow-lg"
-              >
-                <div style={getShapeStyle(option)}>
-                  {option.shape}
-                </div>
-              </button>
-            ))}
-          </div>
+      {showingTarget && (
+        <div className="text-center mb-4 text-lg md:text-xl font-bold animate-pulse text-blue-400">
+          🎯 Study the target shape above!
         </div>
       )}
 
-      <div className="text-sm text-white/70">
-        Question {totalQuestions + 1} • {correctAnswers} correct
+      {!showingTarget && (
+        <div className="text-center mb-4 text-lg md:text-xl font-bold text-green-400">
+          🔍 Click the matching shape below!
+        </div>
+      )}
+
+      <div className="w-full h-96 bg-black/20 rounded-xl overflow-hidden">
+        <Canvas camera={{ position: [0, 0, 8], fov: 60 }}>
+          <Suspense fallback={null}>
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[10, 10, 5]} intensity={1} />
+            <pointLight position={[-10, -10, -5]} intensity={0.5} />
+            
+            {targetShape && showingTarget && (
+              <Shape3DComponent
+                shape={targetShape}
+                onClick={() => {}}
+                isGlowing={true}
+              />
+            )}
+            
+            {!showingTarget && shapes.map((shape) => (
+              <Shape3DComponent
+                key={shape.id}
+                shape={shape}
+                onClick={() => handleShapeClick(shape)}
+              />
+            ))}
+            
+            <OrbitControls enablePan={false} enableZoom={true} />
+          </Suspense>
+        </Canvas>
+      </div>
+
+      <div className="text-center mt-4 text-xs md:text-sm text-white/70">
+        Drag to rotate • Scroll to zoom • Click shapes to select
       </div>
     </div>
   );
