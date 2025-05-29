@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, Volume2, VolumeX } from 'lucide-react';
 import { GameResult } from '@/pages/Games';
@@ -13,7 +14,12 @@ import { SpatialReasoningGame } from '@/components/games/SpatialReasoningGame';
 import { NumberSequenceGame } from '@/components/games/NumberSequenceGame';
 import { SimonSaysGame } from '@/components/games/SimonSaysGame';
 import { MemoryCardGame } from '@/components/games/MemoryCardGame';
-import { Simple3DGame } from '@/components/games/Simple3DGame';
+import { PuzzleBlocksGame } from '@/components/games/PuzzleBlocksGame';
+import { ShapeRotatorGame } from '@/components/games/ShapeRotatorGame';
+import { MazeRunnerGame } from '@/components/games/MazeRunnerGame';
+import { TowerBuilderGame } from '@/components/games/TowerBuilderGame';
+import { CubeMatcherGame } from '@/components/games/CubeMatcherGame';
+import { OrbitNavigatorGame } from '@/components/games/OrbitNavigatorGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
 
@@ -87,17 +93,17 @@ export const GameModal: React.FC<GameModalProps> = ({
         case 'spatial-reasoning':
           return <SpatialReasoningGame {...gameProps} />;
         case 'puzzle-blocks':
-          return <Simple3DGame {...gameProps} title="🧩 Puzzle Blocks" description="Arrange 3D blocks to solve puzzles" />;
+          return <PuzzleBlocksGame {...gameProps} />;
         case 'shape-rotator':
-          return <Simple3DGame {...gameProps} title="🔄 Shape Rotator" description="Rotate 3D shapes to match targets" />;
+          return <ShapeRotatorGame {...gameProps} />;
         case 'maze-runner':
-          return <Simple3DGame {...gameProps} title="🏃 Maze Runner" description="Navigate through 3D mazes" />;
+          return <MazeRunnerGame {...gameProps} />;
         case 'tower-builder':
-          return <Simple3DGame {...gameProps} title="🏗️ Tower Builder" description="Stack 3D blocks to build towers" />;
+          return <TowerBuilderGame {...gameProps} />;
         case 'cube-matcher':
-          return <Simple3DGame {...gameProps} title="🎯 Cube Matcher" description="Match 3D cube patterns" />;
+          return <CubeMatcherGame {...gameProps} />;
         case 'orbit-navigator':
-          return <Simple3DGame {...gameProps} title="🌌 Orbit Navigator" description="Navigate objects in 3D space" />;
+          return <OrbitNavigatorGame {...gameProps} />;
         default:
           return <GenericDemoGame {...gameProps} game={game} />;
       }

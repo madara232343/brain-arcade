@@ -254,18 +254,21 @@ const Index = () => {
             <button
               onClick={() => setShowProfile(true)}
               className="bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-xl transition-all duration-300 hover:scale-105 touch-target"
+              title="Profile"
             >
               <User className="h-5 w-5 md:h-6 md:w-6" />
             </button>
             <button
               onClick={() => setShowShop(true)}
               className="bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-xl transition-all duration-300 hover:scale-105 touch-target"
+              title="Shop"
             >
               <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
             </button>
             <button
               onClick={() => setShowReview(true)}
               className="bg-white/20 hover:bg-white/30 text-white p-2 md:p-3 rounded-xl transition-all duration-300 hover:scale-105 touch-target"
+              title="Leave a Review"
             >
               <Star className="h-5 w-5 md:h-6 md:w-6" />
             </button>
