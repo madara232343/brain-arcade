@@ -15,30 +15,16 @@ interface UserProgress {
   activePowerUps: string[];
 }
 
-interface ProgressHeaderProps {
+interface DashboardStatsProps {
   userProgress: UserProgress;
 }
 
-export const ProgressHeader: React.FC<ProgressHeaderProps> = ({ userProgress }) => {
+export const DashboardStats: React.FC<DashboardStatsProps> = ({ userProgress }) => {
   const xpToNextLevel = (userProgress.level * 100) - userProgress.totalXP;
   const progressPercentage = ((userProgress.totalXP % 100) / 100) * 100;
 
   return (
     <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 border border-white/20">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-bold text-white">Brain Arcade</h1>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1 text-yellow-300">
-            <Flame className="h-5 w-5" />
-            <span className="font-bold">{userProgress.streak}</span>
-          </div>
-          <div className="flex items-center space-x-1 text-blue-300">
-            <Zap className="h-5 w-5" />
-            <span className="font-bold">{userProgress.totalXP} XP</span>
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div className="bg-white/10 rounded-lg p-3 text-center">
           <Trophy className="h-6 w-6 text-yellow-400 mx-auto mb-1" />

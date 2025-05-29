@@ -2,7 +2,19 @@
 import React from 'react';
 import { X, TrendingUp, Target, Zap, Trophy, Calendar, Award } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { UserProgress } from '@/pages/Index';
+
+interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+}
 
 interface StatsModalProps {
   userProgress: UserProgress;
@@ -59,12 +71,12 @@ export const StatsModal: React.FC<StatsModalProps> = ({ userProgress, onClose, g
             </div>
             <div className="bg-white/10 rounded-xl p-4 text-center">
               <Zap className="h-8 w-8 text-blue-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{userProgress.xp}</div>
+              <div className="text-2xl font-bold text-white">{userProgress.totalXP}</div>
               <div className="text-sm text-white/70">Total XP</div>
             </div>
             <div className="bg-white/10 rounded-xl p-4 text-center">
               <Target className="h-8 w-8 text-green-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-white">{userProgress.gamesPlayed}</div>
+              <div className="text-2xl font-bold text-white">{userProgress.gamesPlayed.length}</div>
               <div className="text-sm text-white/70">Games Played</div>
             </div>
             <div className="bg-white/10 rounded-xl p-4 text-center">

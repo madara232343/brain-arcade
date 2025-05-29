@@ -231,7 +231,7 @@ const Index = () => {
         <DashboardStats userProgress={userProgress} />
 
         {/* Daily Challenge */}
-        <DailyChallenge userProgress={userProgress} onComplete={handleGameComplete} />
+        <DailyChallenge userProgress={userProgress} onPlayGame={setSelectedGame} />
 
         {/* Game Feed */}
         <GameFeed 

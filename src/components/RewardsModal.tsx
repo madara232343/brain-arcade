@@ -1,7 +1,19 @@
 
 import React, { useState } from 'react';
 import { X, Gift, Star, Trophy, Target, Clock, Zap } from 'lucide-react';
-import { UserProgress } from '@/pages/Index';
+
+interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+}
 
 interface Reward {
   id: string;
@@ -32,10 +44,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Daily Player',
       description: 'Play 5 games today',
       requirement: 'Play 5 games',
-      progress: Math.min(userProgress.gamesPlayed % 5, 5),
+      progress: Math.min(userProgress.gamesPlayed.length % 5, 5),
       maxProgress: 5,
       xpReward: 50,
-      completed: (userProgress.gamesPlayed % 5) >= 5,
+      completed: (userProgress.gamesPlayed.length % 5) >= 5,
       type: 'daily',
       icon: Zap
     },
@@ -81,10 +93,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Weekly Warrior',
       description: 'Play 50 games this week',
       requirement: 'Play 50 games',
-      progress: Math.min(userProgress.gamesPlayed, 50),
+      progress: Math.min(userProgress.gamesPlayed.length, 50),
       maxProgress: 50,
       xpReward: 300,
-      completed: userProgress.gamesPlayed >= 50,
+      completed: userProgress.gamesPlayed.length >= 50,
       type: 'weekly',
       icon: Clock
     },
@@ -106,10 +118,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Dedicated Player',
       description: 'Play 100 games total',
       requirement: 'Play 100 games',
-      progress: Math.min(userProgress.gamesPlayed, 100),
+      progress: Math.min(userProgress.gamesPlayed.length, 100),
       maxProgress: 100,
       xpReward: 1000,
-      completed: userProgress.gamesPlayed >= 100,
+      completed: userProgress.gamesPlayed.length >= 100,
       type: 'achievement',
       icon: Gift
     }
