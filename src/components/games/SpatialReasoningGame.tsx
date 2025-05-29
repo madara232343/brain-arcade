@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Box, Sphere, Cone } from '@react-three/drei';
-import { Mesh, Vector3 } from 'three';
+import { OrbitControls } from '@react-three/drei';
+import { Mesh } from 'three';
 import { GameResult } from '@/pages/Games';
 
 interface SpatialReasoningGameProps {
@@ -34,51 +34,52 @@ const RotatingShape: React.FC<{
     }
   });
 
-  const getShapeComponent = () => {
-    const props = {
-      ref: meshRef,
-      position: shape.position,
-      onClick,
-      scale: shape.isSelected ? 1.2 : 1.0
-    };
+  const shapeColor = shape.isSelected ? '#ffff00' : shape.color;
+  const shapeScale = shape.isSelected ? 1.2 : 1.0;
 
-    switch (shape.type) {
-      case 'box':
-        return (
-          <Box {...props}>
-            <meshStandardMaterial 
-              color={shape.isSelected ? '#ffff00' : shape.color} 
-              transparent 
-              opacity={0.8} 
-            />
-          </Box>
-        );
-      case 'sphere':
-        return (
-          <Sphere {...props}>
-            <meshStandardMaterial 
-              color={shape.isSelected ? '#ffff00' : shape.color} 
-              transparent 
-              opacity={0.8} 
-            />
-          </Sphere>
-        );
-      case 'cone':
-        return (
-          <Cone {...props}>
-            <meshStandardMaterial 
-              color={shape.isSelected ? '#ffff00' : shape.color} 
-              transparent 
-              opacity={0.8} 
-            />
-          </Cone>
-        );
-      default:
-        return null;
-    }
-  };
+  if (shape.type === 'box') {
+    return (
+      <mesh 
+        ref={meshRef} 
+        position={shape.position} 
+        onClick={onClick}
+        scale={[shapeScale, shapeScale, shapeScale]}
+      >
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color={shapeColor} transparent opacity={0.8} />
+      </mesh>
+    );
+  }
 
-  return getShapeComponent();
+  if (shape.type === 'sphere') {
+    return (
+      <mesh 
+        ref={meshRef} 
+        position={shape.position} 
+        onClick={onClick}
+        scale={[shapeScale, shapeScale, shapeScale]}
+      >
+        <sphereGeometry args={[0.5, 32, 32]} />
+        <meshStandardMaterial color={shapeColor} transparent opacity={0.8} />
+      </mesh>
+    );
+  }
+
+  if (shape.type === 'cone') {
+    return (
+      <mesh 
+        ref={meshRef} 
+        position={shape.position} 
+        onClick={onClick}
+        scale={[shapeScale, shapeScale, shapeScale]}
+      >
+        <coneGeometry args={[0.5, 1, 32]} />
+        <meshStandardMaterial color={shapeColor} transparent opacity={0.8} />
+      </mesh>
+    );
+  }
+
+  return null;
 };
 
 export const SpatialReasoningGame: React.FC<SpatialReasoningGameProps> = ({
