@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Brain, Puzzle, Zap, Timer, Target, Gamepad2, Eye, Calculator, Music, Layers, Cube, Palette, Clock, Star, Trophy, Heart, Lightbulb, Shuffle, Grid3X3, Flame, MousePointer, Diamond, Sparkles, Volume2, Navigation, Radar, Crosshair, Compass, Dice1, Scissors, Book, Car, Plane, Rocket, Globe, Camera, Fingerprint, Fingerprint as Finger, Hexagon, Octagon, Square } from 'lucide-react';
+import { Brain, Puzzle, Zap, Timer, Target, Gamepad2, Eye, Calculator, Music, Layers, Clock, Star, Trophy, Heart, Lightbulb, Shuffle, Grid3X3, Flame, MousePointer, Diamond, Sparkles, Volume2, Navigation, Radar, Crosshair, Compass, Dice1, Scissors, Book, Car, Plane, Rocket, Globe, Camera, Fingerprint, Hexagon, Octagon, Square, Box, Palette } from 'lucide-react';
 
 interface Game {
   id: string;
@@ -33,7 +32,7 @@ const all2DGames: Game[] = [
   { id: 'simon-says', title: 'Simon Says', description: 'Follow the sequence pattern', type: 'memory', category: '2d', difficulty: 'easy', estimatedTime: '2 min', xpReward: 20, icon: Music },
   { id: 'memory-cards', title: 'Memory Cards', description: 'Match pairs of cards', type: 'memory', category: '2d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 30, icon: Layers },
   { id: 'quick-math', title: 'Quick Math', description: 'Lightning-fast arithmetic', type: 'math', category: '2d', difficulty: 'easy', estimatedTime: '1 min', xpReward: 15, icon: Calculator },
-  { id: 'color-rush', title: 'Color Rush', description: 'Sort colors at lightning speed', type: 'speed', category: '2d', difficulty: 'medium', estimatedTime: '1 min', xpReward: 25, icon: Palette },
+  { id: 'color-rush', title: 'Color Rush', description: 'Sort colors at lightning speed', type: 'speed', category: '2d', difficulty: 'medium', estimatedTime: '1 min', xpReward: 25, icon: Sparkles },
   { id: 'word-chain', title: 'Word Chain', description: 'Create word chains quickly', type: 'language', category: '2d', difficulty: 'hard', estimatedTime: '2 min', xpReward: 35, icon: Brain },
   { id: 'pattern-flip', title: 'Pattern Flip', description: 'Memorize and recreate patterns', type: 'pattern', category: '2d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 30, icon: Puzzle },
   { id: 'focus-test', title: 'Focus Test', description: 'Maintain concentration under pressure', type: 'attention', category: '2d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 40, icon: Target },
@@ -43,7 +42,7 @@ const all2DGames: Game[] = [
   { id: 'memory-palace', title: 'Memory Palace', description: 'Build and navigate memory palaces', type: 'memory', category: '2d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 55, icon: Brain },
   { id: 'shape-shifter', title: 'Shape Shifter', description: 'Transform shapes to match patterns', type: 'pattern', category: '2d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 30, icon: Puzzle },
   { id: 'number-ninja', title: 'Number Ninja', description: 'Slice through number challenges', type: 'math', category: '2d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 25, icon: Calculator },
-  { id: 'color-harmony', title: 'Color Harmony', description: 'Create perfect color combinations', type: 'visual', category: '2d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 30, icon: Palette },
+  { id: 'color-harmony', title: 'Color Harmony', description: 'Create perfect color combinations', type: 'visual', category: '2d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 30, icon: Sparkles },
   { id: 'word-storm', title: 'Word Storm', description: 'Weather the storm of words', type: 'language', category: '2d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 40, icon: Brain },
   { id: 'pattern-dance', title: 'Pattern Dance', description: 'Dance through visual patterns', type: 'pattern', category: '2d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 25, icon: Puzzle },
   { id: 'attention-storm', title: 'Attention Storm', description: 'Navigate through attention challenges', type: 'attention', category: '2d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 45, icon: Eye },
@@ -54,12 +53,12 @@ const all2DGames: Game[] = [
 ];
 
 const all3DGames: Game[] = [
-  { id: 'spatial-reasoning', title: 'Spatial Reasoning', description: 'Rotate and match 3D objects', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '2 min', xpReward: 40, icon: Cube },
-  { id: 'cube-rotator', title: 'Cube Rotator', description: 'Master 3D cube rotations', type: 'spatial', category: '3d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 30, icon: Cube },
-  { id: '3d-maze', title: '3D Maze Runner', description: 'Navigate through 3D mazes', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 45, icon: Cube },
+  { id: 'spatial-reasoning', title: 'Spatial Reasoning', description: 'Rotate and match 3D objects', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '2 min', xpReward: 40, icon: Box },
+  { id: 'cube-rotator', title: 'Cube Rotator', description: 'Master 3D cube rotations', type: 'spatial', category: '3d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 30, icon: Box },
+  { id: '3d-maze', title: '3D Maze Runner', description: 'Navigate through 3D mazes', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 45, icon: Box },
   { id: 'perspective-shift', title: 'Perspective Shift', description: 'Master changing perspectives', type: 'spatial', category: '3d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 35, icon: Eye },
   { id: 'depth-perception', title: 'Depth Perception', description: 'Test your depth perception skills', type: 'spatial', category: '3d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 30, icon: Eye },
-  { id: 'dimension-jump', title: 'Dimension Jump', description: 'Jump between dimensions', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 50, icon: Cube },
+  { id: 'dimension-jump', title: 'Dimension Jump', description: 'Jump between dimensions', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 50, icon: Box },
   { id: 'crystal-match', title: 'Crystal Match', description: 'Match 3D crystals in space', type: 'spatial', category: '3d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 35, icon: Diamond },
   { id: 'orbital-mechanics', title: 'Orbital Mechanics', description: 'Navigate orbital paths', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 45, icon: Globe },
   { id: 'hologram-puzzle', title: 'Hologram Puzzle', description: 'Solve holographic puzzles', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 50, icon: Sparkles },
@@ -67,7 +66,7 @@ const all3DGames: Game[] = [
   { id: 'space-navigator', title: 'Space Navigator', description: 'Navigate through 3D space', type: 'spatial', category: '3d', difficulty: 'medium', estimatedTime: '2 min', xpReward: 35, icon: Navigation },
   { id: 'molecular-builder', title: 'Molecular Builder', description: 'Build 3D molecular structures', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 55, icon: Hexagon },
   { id: 'vector-master', title: 'Vector Master', description: 'Master 3D vector calculations', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 50, icon: Compass },
-  { id: 'dimension-weaver', title: 'Dimension Weaver', description: 'Weave through dimensions', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 60, icon: Cube },
+  { id: 'dimension-weaver', title: 'Dimension Weaver', description: 'Weave through dimensions', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 60, icon: Box },
   { id: 'spatial-memory', title: 'Spatial Memory', description: 'Remember 3D spatial arrangements', type: 'spatial', category: '3d', difficulty: 'medium', estimatedTime: '3 min', xpReward: 40, icon: Brain },
   { id: 'geometry-master', title: 'Geometry Master', description: 'Master 3D geometry', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 50, icon: Octagon },
   { id: 'rotation-symphony', title: 'Rotation Symphony', description: 'Create symphonies with rotations', type: 'spatial', category: '3d', difficulty: 'medium', estimatedTime: '3 min', xpReward: 35, icon: Music },
@@ -78,10 +77,10 @@ const all3DGames: Game[] = [
   { id: 'matrix-navigator', title: 'Matrix Navigator', description: 'Navigate through data matrices', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 50, icon: Grid3X3 },
   { id: 'cosmic-architect', title: 'Cosmic Architect', description: 'Architect of cosmic structures', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 60, icon: Star },
   { id: 'reality-shifter', title: 'Reality Shifter', description: 'Shift between realities', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 65, icon: Sparkles },
-  { id: 'void-walker', title: 'Void Walker', description: 'Walk through the void', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 55, icon: Cube },
-  { id: 'dimension-builder', title: 'Dimension Builder', description: 'Build your own dimensions', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 60, icon: Cube },
+  { id: 'void-walker', title: 'Void Walker', description: 'Walk through the void', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '3 min', xpReward: 55, icon: Box },
+  { id: 'dimension-builder', title: 'Dimension Builder', description: 'Build your own dimensions', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 60, icon: Box },
   { id: 'space-time-weaver', title: 'Space-Time Weaver', description: 'Weave space and time', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '5 min', xpReward: 70, icon: Clock },
-  { id: 'hypercube-master', title: 'Hypercube Master', description: 'Master hypercube navigation', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 65, icon: Cube },
+  { id: 'hypercube-master', title: 'Hypercube Master', description: 'Master hypercube navigation', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 65, icon: Box },
   { id: 'quantum-entangler', title: 'Quantum Entangler', description: 'Entangle quantum particles', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '4 min', xpReward: 60, icon: Sparkles },
   { id: 'multiverse-explorer', title: 'Multiverse Explorer', description: 'Explore infinite multiverses', type: 'spatial', category: '3d', difficulty: 'hard', estimatedTime: '5 min', xpReward: 75, icon: Globe }
 ];
