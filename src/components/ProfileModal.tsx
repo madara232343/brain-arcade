@@ -1,7 +1,26 @@
 
 import React from 'react';
 import { X, Trophy, Star, Award, Crown, Medal } from 'lucide-react';
-import { UserProgress } from '@/pages/Games';
+
+interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
+}
 
 interface ProfileModalProps {
   userProgress: UserProgress;
@@ -9,12 +28,12 @@ interface ProfileModalProps {
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ userProgress, onClose }) => {
-  const getRankInfo = (rank: number) => {
+  const getRankInfo = (rank: string) => {
     switch (rank) {
-      case 1: return { name: 'Diamond', icon: Crown, color: 'from-blue-400 to-cyan-400', bgColor: 'bg-blue-500/20' };
-      case 2: return { name: 'Platinum', icon: Medal, color: 'from-gray-300 to-gray-400', bgColor: 'bg-gray-500/20' };
-      case 3: return { name: 'Gold', icon: Award, color: 'from-yellow-400 to-yellow-500', bgColor: 'bg-yellow-500/20' };
-      case 4: return { name: 'Silver', icon: Medal, color: 'from-gray-400 to-gray-500', bgColor: 'bg-gray-400/20' };
+      case 'Diamond': return { name: 'Diamond', icon: Crown, color: 'from-blue-400 to-cyan-400', bgColor: 'bg-blue-500/20' };
+      case 'Platinum': return { name: 'Platinum', icon: Medal, color: 'from-gray-300 to-gray-400', bgColor: 'bg-gray-500/20' };
+      case 'Gold': return { name: 'Gold', icon: Award, color: 'from-yellow-400 to-yellow-500', bgColor: 'bg-yellow-500/20' };
+      case 'Silver': return { name: 'Silver', icon: Medal, color: 'from-gray-400 to-gray-500', bgColor: 'bg-gray-400/20' };
       default: return { name: 'Bronze', icon: Trophy, color: 'from-orange-400 to-orange-500', bgColor: 'bg-orange-500/20' };
     }
   };
@@ -37,24 +56,34 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ userProgress, onClos
 
   const nextRankScore = () => {
     switch (userProgress.rank) {
-      case 5: return 5000;
-      case 4: return 10000;
-      case 3: return 25000;
-      case 2: return 50000;
+      case 'Bronze': return 5000;
+      case 'Silver': return 10000;
+      case 'Gold': return 25000;
+      case 'Platinum': return 50000;
       default: return userProgress.totalScore;
     }
   };
 
-  const progressToNextRank = userProgress.rank === 1 
+  const progressToNextRank = userProgress.rank === 'Diamond' 
     ? 100 
     : Math.min((userProgress.totalScore / nextRankScore()) * 100, 100);
 
+  // Achievement definitions with proper display names
+  const achievementNames: { [key: string]: string } = {
+    'first-game': 'First Steps',
+    'streak-master': 'Streak Master',
+    'score-hunter': 'Score Hunter',
+    'level-up': 'Level Up Champion',
+    'time-warrior': 'Time Warrior',
+    'game-explorer': 'Game Explorer'
+  };
+
   const stats = [
-    { label: 'Level', value: userProgress.level, icon: Star },
-    { label: 'Total XP', value: userProgress.xp.toLocaleString(), icon: Star },
-    { label: 'Games Played', value: userProgress.gamesPlayed, icon: Trophy },
+    { label: 'Level', value: userProgress.level || 1, icon: Star },
+    { label: 'Total XP', value: (userProgress.totalXP || userProgress.xp || 0).toLocaleString(), icon: Star },
+    { label: 'Games Played', value: (userProgress.gamesPlayed || userProgress.playedGames || []).length, icon: Trophy },
     { label: 'Total Score', value: userProgress.totalScore.toLocaleString(), icon: Award },
-    { label: 'Current Streak', value: `${userProgress.streak} days`, icon: Star },
+    { label: 'Current Streak', value: `${userProgress.streak || 0} days`, icon: Star },
     { label: 'Achievements', value: userProgress.achievements.length, icon: Medal },
   ];
 
@@ -66,7 +95,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ userProgress, onClos
             <div className="text-4xl">{getAvatarDisplay()}</div>
             <div>
               <h2 className="text-2xl font-bold text-white">Player Profile</h2>
-              <p className="text-white/70">Level {userProgress.level} Brain Trainer</p>
+              <p className="text-white/70">Level {userProgress.level || 1} Brain Trainer</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
@@ -93,7 +122,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ userProgress, onClos
               </div>
             </div>
             
-            {userProgress.rank > 1 && (
+            {userProgress.rank !== 'Diamond' && (
               <div>
                 <div className="flex justify-between text-sm text-white/70 mb-2">
                   <span>Progress to next rank</span>
@@ -134,21 +163,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ userProgress, onClos
           <div className="bg-white/10 rounded-2xl p-6 border border-white/20">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center">
               <Award className="h-6 w-6 mr-2 text-yellow-400" />
-              Recent Achievements
+              Achievements
             </h3>
             {userProgress.achievements.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {userProgress.achievements.slice(-6).map((achievement, index) => (
+                {userProgress.achievements.slice(-6).map((achievementId, index) => (
                   <div key={index} className="bg-white/10 rounded-lg p-3 border border-white/20">
                     <div className="flex items-center space-x-2">
                       <Trophy className="h-5 w-5 text-yellow-400" />
-                      <span className="text-white font-medium">{achievement}</span>
+                      <span className="text-white font-medium">
+                        {achievementNames[achievementId] || achievementId}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-white/70">No achievements yet. Keep playing to unlock them!</p>
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">🏆</div>
+                <p className="text-white/70">No achievements yet. Start playing games to unlock them!</p>
+                <p className="text-white/50 text-sm mt-2">Play your first game to earn "First Steps" achievement</p>
+              </div>
             )}
           </div>
         </div>

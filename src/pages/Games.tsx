@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Gift, ShoppingCart, RotateCcw, User, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -18,19 +17,23 @@ import { powerUpManager } from '@/utils/powerUpManager';
 import { toast } from '@/hooks/use-toast';
 
 export interface UserProgress {
-  xp: number;
-  level: number;
-  streak: number;
-  lastPlayDate: string;
-  gamesPlayed: number;
   totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
   playedGames: string[];
   ownedItems: string[];
-  achievements: string[];
   totalPlayTime: number;
   theme: string;
   avatar: string;
-  rank: number;
 }
 
 export interface GameResult {
@@ -43,19 +46,23 @@ export interface GameResult {
 
 const Games = () => {
   const [userProgress, setUserProgress] = useLocalStorage<UserProgress>('brainArcadeProgress', {
-    xp: 0,
-    level: 1,
-    streak: 0,
-    lastPlayDate: '',
-    gamesPlayed: 0,
     totalScore: 0,
+    totalXP: 0,
+    level: 1,
+    gamesPlayed: [],
+    achievements: [],
+    rank: 'Bronze',
+    streak: 0,
+    purchasedItems: [],
+    activeTheme: 'default',
+    activePowerUps: [],
+    xp: 0,
+    lastPlayDate: '',
     playedGames: [],
     ownedItems: [],
-    achievements: [],
     totalPlayTime: 0,
     theme: 'default',
-    avatar: 'default',
-    rank: 0
+    avatar: 'default'
   });
 
   const [selectedGame, setSelectedGame] = useState<any>(null);
@@ -70,7 +77,7 @@ const Games = () => {
 
   // Achievement definitions
   const achievements = [
-    { id: 'first-game', title: 'Getting Started', description: 'Play your first game', reward: 50, trigger: (progress: UserProgress) => progress.gamesPlayed >= 1 },
+    { id: 'first-game', title: 'Getting Started', description: 'Play your first game', reward: 50, trigger: (progress: UserProgress) => progress.gamesPlayed.length >= 1 },
     { id: 'streak-master', title: 'Streak Master', description: 'Maintain a 7-day streak', reward: 200, trigger: (progress: UserProgress) => progress.streak >= 7 },
     { id: 'score-hunter', title: 'Score Hunter', description: 'Earn 10,000 total points', reward: 300, trigger: (progress: UserProgress) => progress.totalScore >= 10000 },
     { id: 'level-up', title: 'Level Up!', description: 'Reach level 5', reward: 150, trigger: (progress: UserProgress) => progress.level >= 5 },
@@ -90,6 +97,7 @@ const Games = () => {
       setUserProgress(prev => ({
         ...prev,
         achievements: [...prev.achievements, achievement.id],
+        totalXP: prev.totalXP + achievement.reward,
         xp: prev.xp + achievement.reward
       }));
 
@@ -102,11 +110,11 @@ const Games = () => {
   };
 
   const calculateRank = (totalScore: number) => {
-    if (totalScore >= 50000) return 1; // Diamond
-    if (totalScore >= 25000) return 2; // Platinum
-    if (totalScore >= 10000) return 3; // Gold
-    if (totalScore >= 5000) return 4; // Silver
-    return 5; // Bronze
+    if (totalScore >= 50000) return 'Diamond';
+    if (totalScore >= 25000) return 'Platinum';
+    if (totalScore >= 10000) return 'Gold';
+    if (totalScore >= 5000) return 'Silver';
+    return 'Bronze';
   };
 
   const handleGameComplete = (result: GameResult) => {
@@ -119,7 +127,7 @@ const Games = () => {
     }
     
     const finalXP = result.xpEarned * xpMultiplier;
-    const newXP = userProgress.xp + finalXP;
+    const newXP = userProgress.totalXP + finalXP;
     const newLevel = Math.floor(newXP / 100) + 1;
     const newTotalScore = userProgress.totalScore + result.score;
     const newRank = calculateRank(newTotalScore);
@@ -131,6 +139,14 @@ const Games = () => {
     if (!updatedPlayedGames.includes(result.gameId)) {
       updatedPlayedGames.push(result.gameId);
     }
+
+    const updatedGamesPlayed = Array.isArray(userProgress.gamesPlayed) 
+      ? [...userProgress.gamesPlayed] 
+      : [];
+    
+    if (!updatedGamesPlayed.includes(result.gameId)) {
+      updatedGamesPlayed.push(result.gameId);
+    }
     
     setGameStats(prev => [...prev, {
       ...result,
@@ -140,11 +156,12 @@ const Games = () => {
     
     const newProgress = {
       ...userProgress,
+      totalXP: newXP,
       xp: newXP,
       level: newLevel,
       streak: isNewDay ? userProgress.streak + 1 : userProgress.streak,
       lastPlayDate: today,
-      gamesPlayed: userProgress.gamesPlayed + 1,
+      gamesPlayed: updatedGamesPlayed,
       totalScore: newTotalScore,
       playedGames: updatedPlayedGames,
       totalPlayTime: userProgress.totalPlayTime + result.timeSpent,
@@ -170,6 +187,7 @@ const Games = () => {
       setUserProgress(prev => ({
         ...prev,
         totalScore: prev.totalScore - price,
+        purchasedItems: [...(prev.purchasedItems || []), itemId],
         ownedItems: [...(prev.ownedItems || []), itemId]
       }));
       
@@ -183,7 +201,7 @@ const Games = () => {
       } else if (itemId.includes('shield')) {
         powerUpManager.addPowerUp('shield', 'Error Shield', 5);
       } else if (itemId.includes('theme')) {
-        setUserProgress(prev => ({ ...prev, theme: itemId }));
+        setUserProgress(prev => ({ ...prev, activeTheme: itemId, theme: itemId }));
       } else if (itemId.includes('avatar')) {
         setUserProgress(prev => ({ ...prev, avatar: itemId }));
       }
@@ -221,21 +239,26 @@ const Games = () => {
 
   const handleResetProgress = () => {
     if (confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
-      setUserProgress({
-        xp: 0,
-        level: 1,
-        streak: 0,
-        lastPlayDate: '',
-        gamesPlayed: 0,
+      const resetProgress = {
         totalScore: 0,
+        totalXP: 0,
+        level: 1,
+        gamesPlayed: [],
+        achievements: [],
+        rank: 'Bronze',
+        streak: 0,
+        purchasedItems: [],
+        activeTheme: 'default',
+        activePowerUps: [],
+        xp: 0,
+        lastPlayDate: '',
         playedGames: [],
         ownedItems: [],
-        achievements: [],
         totalPlayTime: 0,
         theme: 'default',
-        avatar: 'default',
-        rank: 0
-      });
+        avatar: 'default'
+      };
+      setUserProgress(resetProgress);
       setGameStats([]);
       powerUpManager.clearAllPowerUps();
       audioManager.play('click');
@@ -254,7 +277,7 @@ const Games = () => {
   };
 
   const getThemeClasses = () => {
-    switch (userProgress.theme) {
+    switch (userProgress.activeTheme || userProgress.theme) {
       case 'neon-theme':
         return 'from-cyan-900 via-purple-900 to-pink-900';
       case 'nature-theme':

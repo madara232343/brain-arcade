@@ -32,6 +32,13 @@ export interface UserProgress {
   purchasedItems: string[];
   activeTheme: string;
   activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
 }
 
 export interface Achievement {
@@ -62,11 +69,18 @@ const Index = () => {
       level: 1,
       gamesPlayed: [],
       achievements: [],
-      rank: 'Beginner',
+      rank: 'Bronze',
       streak: 0,
       purchasedItems: [],
       activeTheme: 'default',
-      activePowerUps: []
+      activePowerUps: [],
+      xp: 0,
+      lastPlayDate: '',
+      playedGames: [],
+      ownedItems: [],
+      totalPlayTime: 0,
+      theme: 'default',
+      avatar: 'default'
     };
   });
 
@@ -85,20 +99,28 @@ const Index = () => {
       ? userProgress.gamesPlayed 
       : [...userProgress.gamesPlayed, result.gameId];
 
+    const newPlayedGames = userProgress.playedGames.includes(result.gameId) 
+      ? userProgress.playedGames 
+      : [...userProgress.playedGames, result.gameId];
+
     let newRank = userProgress.rank;
     if (newLevel >= 50) newRank = 'Master';
     else if (newLevel >= 30) newRank = 'Expert';
     else if (newLevel >= 20) newRank = 'Advanced';
     else if (newLevel >= 10) newRank = 'Intermediate';
     else if (newLevel >= 5) newRank = 'Novice';
+    else newRank = 'Bronze';
 
     setUserProgress(prev => ({
       ...prev,
       totalScore: newTotalScore,
       totalXP: newTotalXP,
+      xp: newTotalXP,
       level: newLevel,
       gamesPlayed: newGamesPlayed,
-      rank: newRank
+      playedGames: newPlayedGames,
+      rank: newRank,
+      totalPlayTime: prev.totalPlayTime + result.timeSpent
     }));
 
     // Check for achievements
@@ -160,14 +182,16 @@ const Index = () => {
       setUserProgress(prev => ({
         ...prev,
         totalScore: prev.totalScore - price,
-        purchasedItems: [...prev.purchasedItems, itemId]
+        purchasedItems: [...prev.purchasedItems, itemId],
+        ownedItems: [...prev.ownedItems, itemId]
       }));
 
       // Apply theme if it's a theme item
       if (itemId.includes('theme')) {
         setUserProgress(prev => ({
           ...prev,
-          activeTheme: itemId
+          activeTheme: itemId,
+          theme: itemId
         }));
       }
 
@@ -236,7 +260,7 @@ const Index = () => {
         {/* Game Feed */}
         <GameFeed 
           onPlayGame={setSelectedGame}
-          playedGames={userProgress.gamesPlayed}
+          playedGames={userProgress.playedGames}
         />
 
         {/* Modals */}
