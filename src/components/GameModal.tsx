@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { X, Volume2, VolumeX } from 'lucide-react';
-import { GameResult } from '@/pages/Index';
+import { GameResult } from '@/pages/Games';
 import { MemoryGame } from '@/components/games/MemoryGame';
 import { MathSprintGame } from '@/components/games/MathSprintGame';
 import { ReactionTimeGame } from '@/components/games/ReactionTimeGame';
@@ -21,9 +21,17 @@ interface GameModalProps {
   game: any;
   onComplete: (result: GameResult) => void;
   onClose: () => void;
+  activePowerUps?: Set<string>;
+  onPowerUpUsed?: (type: string) => void;
 }
 
-export const GameModal: React.FC<GameModalProps> = ({ game, onComplete, onClose }) => {
+export const GameModal: React.FC<GameModalProps> = ({ 
+  game, 
+  onComplete, 
+  onClose, 
+  activePowerUps = new Set(), 
+  onPowerUpUsed 
+}) => {
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(!audioManager.isMuted());
 
@@ -45,43 +53,50 @@ export const GameModal: React.FC<GameModalProps> = ({ game, onComplete, onClose 
   };
 
   const renderGame = () => {
+    const gameProps = {
+      onComplete: handleGameComplete,
+      gameId: game.id,
+      activePowerUps,
+      onPowerUpUsed
+    };
+
     switch (game.id) {
       case 'memory-sequence':
-        return <MemoryGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <MemoryGame {...gameProps} />;
       case 'color-memory':
-        return <ColorMemoryGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <ColorMemoryGame {...gameProps} />;
       case 'math-sprint':
-        return <MathSprintGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <MathSprintGame {...gameProps} />;
       case 'reaction-time':
-        return <ReactionTimeGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <ReactionTimeGame {...gameProps} />;
       case 'pattern-match':
-        return <PatternMatchGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <PatternMatchGame {...gameProps} />;
       case 'speed-typing':
-        return <SpeedTypingGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <SpeedTypingGame {...gameProps} />;
       case 'visual-attention':
-        return <VisualAttentionGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <VisualAttentionGame {...gameProps} />;
       case 'word-association':
-        return <WordAssociationGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <WordAssociationGame {...gameProps} />;
       case 'spatial-reasoning':
-        return <SpatialReasoningGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <SpatialReasoningGame {...gameProps} />;
       case 'number-sequence':
-        return <NumberSequenceGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <NumberSequenceGame {...gameProps} />;
       case 'simon-says':
-        return <SimonSaysGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <SimonSaysGame {...gameProps} />;
       case 'memory-cards':
-        return <MemoryCardGame onComplete={handleGameComplete} gameId={game.id} />;
+        return <MemoryCardGame {...gameProps} />;
       default:
         return (
           <div className="text-center py-8">
-            <p className="text-white text-lg mb-4">🚧 Game Coming Soon!</p>
-            <p className="text-white/80 mb-6">This game will be available in the next update.</p>
+            <p className="text-white text-lg mb-4">🚧 Game Available Soon!</p>
+            <p className="text-white/80 mb-6">This {game.category} game is being developed.</p>
             <button
               onClick={() => handleGameComplete({
                 gameId: game.id,
-                score: 100,
-                accuracy: 100,
-                timeSpent: 30,
-                xpEarned: 25
+                score: Math.floor(Math.random() * 500) + 100,
+                accuracy: Math.floor(Math.random() * 30) + 70,
+                timeSpent: Math.floor(Math.random() * 60) + 30,
+                xpEarned: Math.floor(Math.random() * 50) + 25
               })}
               className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold transition-all duration-300 hover:scale-105"
             >

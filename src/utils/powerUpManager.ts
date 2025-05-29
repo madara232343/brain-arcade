@@ -11,15 +11,15 @@ class PowerUpManager {
   private activePowerUps: PowerUp[] = [];
   private listeners: ((powerUps: PowerUp[]) => void)[] = [];
 
-  addPowerUp(powerUpId: string, uses: number = 1) {
-    const existing = this.activePowerUps.find(p => p.id === powerUpId);
+  addPowerUp(type: string, name: string, uses: number = 1) {
+    const existing = this.activePowerUps.find(p => p.type === type);
     if (existing) {
       existing.usesLeft += uses;
     } else {
       this.activePowerUps.push({
-        id: powerUpId,
-        name: this.getPowerUpName(powerUpId),
-        type: this.getPowerUpType(powerUpId),
+        id: Math.random().toString(36).substr(2, 9),
+        name,
+        type: type as PowerUp['type'],
         active: false,
         usesLeft: uses
       });
@@ -45,6 +45,11 @@ class PowerUpManager {
     return this.activePowerUps;
   }
 
+  clearAllPowerUps() {
+    this.activePowerUps = [];
+    this.notifyListeners();
+  }
+
   deactivatePowerUp(powerUpId: string) {
     const powerUp = this.activePowerUps.find(p => p.id === powerUpId);
     if (powerUp) {
@@ -62,26 +67,6 @@ class PowerUpManager {
 
   private notifyListeners() {
     this.listeners.forEach(listener => listener(this.activePowerUps));
-  }
-
-  private getPowerUpName(id: string): string {
-    const names: Record<string, string> = {
-      'time-freeze': 'Time Freeze',
-      'double-xp': 'Double XP',
-      'accuracy-boost': 'Accuracy Boost',
-      'shield': 'Error Shield'
-    };
-    return names[id] || 'Unknown Power-up';
-  }
-
-  private getPowerUpType(id: string): PowerUp['type'] {
-    const types: Record<string, PowerUp['type']> = {
-      'time-freeze': 'timeFreeze',
-      'double-xp': 'doubleXP',
-      'accuracy-boost': 'accuracyBoost',
-      'shield': 'shield'
-    };
-    return types[id] || 'shield';
   }
 }
 
