@@ -111,6 +111,9 @@ const Index = () => {
     else if (newLevel >= 5) newRank = 'Novice';
     else newRank = 'Bronze';
 
+    const today = new Date().toDateString();
+    const isNewDay = userProgress.lastPlayDate !== today;
+
     setUserProgress(prev => ({
       ...prev,
       totalScore: newTotalScore,
@@ -120,7 +123,9 @@ const Index = () => {
       gamesPlayed: newGamesPlayed,
       playedGames: newPlayedGames,
       rank: newRank,
-      totalPlayTime: prev.totalPlayTime + result.timeSpent
+      totalPlayTime: prev.totalPlayTime + result.timeSpent,
+      lastPlayDate: today,
+      streak: isNewDay ? prev.streak + 1 : prev.streak
     }));
 
     // Check for achievements
@@ -182,8 +187,8 @@ const Index = () => {
       setUserProgress(prev => ({
         ...prev,
         totalScore: prev.totalScore - price,
-        purchasedItems: [...prev.purchasedItems, itemId],
-        ownedItems: [...prev.ownedItems, itemId]
+        purchasedItems: [...(prev.purchasedItems || []), itemId],
+        ownedItems: [...(prev.ownedItems || []), itemId]
       }));
 
       // Apply theme if it's a theme item
@@ -204,9 +209,25 @@ const Index = () => {
   };
 
   const handlePowerUpUsed = (type: string) => {
-    if (userProgress.purchasedItems.includes(type)) {
+    if ((userProgress.purchasedItems || []).includes(type)) {
       setActivePowerUps(prev => new Set([...prev, type]));
     }
+  };
+
+  const handleClaimReward = (rewardId: string) => {
+    // Add XP for claimed reward
+    const rewardXP = 50; // Base reward XP
+    setUserProgress(prev => ({
+      ...prev,
+      totalXP: prev.totalXP + rewardXP,
+      xp: prev.xp + rewardXP
+    }));
+
+    toast({
+      title: "🎁 Reward Claimed!",
+      description: `You earned ${rewardXP} XP!`,
+      duration: 3000,
+    });
   };
 
   return (

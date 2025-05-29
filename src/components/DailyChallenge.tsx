@@ -13,6 +13,13 @@ interface UserProgress {
   purchasedItems: string[];
   activeTheme: string;
   activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
 }
 
 interface DailyChallengeProps {
@@ -22,7 +29,7 @@ interface DailyChallengeProps {
 
 const dailyChallenges = [
   {
-    id: 'daily-memory-master',
+    id: 'memory-sequence',
     title: 'Memory Master Challenge',
     description: 'Complete 3 memory games in a row without mistakes',
     type: 'memory',
@@ -32,7 +39,7 @@ const dailyChallenges = [
     icon: Brain
   },
   {
-    id: 'daily-speed-demon',
+    id: 'reaction-time',
     title: 'Speed Demon Challenge',
     description: 'Beat your best reaction time 5 times',
     type: 'speed',
@@ -42,7 +49,7 @@ const dailyChallenges = [
     icon: Zap
   },
   {
-    id: 'daily-math-wizard',
+    id: 'math-sprint',
     title: 'Math Wizard Challenge',
     description: 'Solve 50 math problems with 95% accuracy',
     type: 'math',
@@ -52,7 +59,7 @@ const dailyChallenges = [
     icon: Target
   },
   {
-    id: 'daily-pattern-genius',
+    id: 'pattern-match',
     title: 'Pattern Genius Challenge',
     description: 'Complete pattern matching in under 30 seconds',
     type: 'pattern',
@@ -62,7 +69,7 @@ const dailyChallenges = [
     icon: Star
   },
   {
-    id: 'daily-typing-master',
+    id: 'speed-typing',
     title: 'Typing Master Challenge',
     description: 'Achieve 60+ WPM in speed typing',
     type: 'typing',
@@ -72,7 +79,7 @@ const dailyChallenges = [
     icon: Clock
   },
   {
-    id: 'daily-attention-focus',
+    id: 'visual-attention',
     title: 'Focus Master Challenge',
     description: 'Complete visual attention with 100% accuracy',
     type: 'attention',
@@ -82,7 +89,7 @@ const dailyChallenges = [
     icon: Trophy
   },
   {
-    id: 'daily-word-wizard',
+    id: 'word-association',
     title: 'Word Wizard Challenge',
     description: 'Get 20 correct word associations in a row',
     type: 'language',
@@ -95,8 +102,7 @@ const dailyChallenges = [
 
 export const DailyChallenge: React.FC<DailyChallengeProps> = ({ userProgress, onPlayGame }) => {
   const today = new Date().toDateString();
-  // Since lastPlayDate might not exist, we'll check if they've played today differently
-  const hasPlayedToday = false; // For now, assume they haven't played today
+  const hasPlayedToday = userProgress.lastPlayDate === today;
   
   // Rotate daily challenge based on day of year
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);

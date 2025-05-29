@@ -13,6 +13,13 @@ interface UserProgress {
   purchasedItems: string[];
   activeTheme: string;
   activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
 }
 
 interface Reward {
@@ -37,6 +44,9 @@ interface RewardsModalProps {
 export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClose, onClaimReward }) => {
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'achievement'>('daily');
 
+  const gamesPlayedCount = (userProgress.gamesPlayed || []).length;
+  const totalScore = userProgress.totalScore || 0;
+
   const rewards: Reward[] = [
     // Daily Rewards
     {
@@ -44,10 +54,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Daily Player',
       description: 'Play 5 games today',
       requirement: 'Play 5 games',
-      progress: Math.min(userProgress.gamesPlayed.length % 5, 5),
+      progress: Math.min(gamesPlayedCount % 5, 5),
       maxProgress: 5,
       xpReward: 50,
-      completed: (userProgress.gamesPlayed.length % 5) >= 5,
+      completed: (gamesPlayedCount % 5) >= 5,
       type: 'daily',
       icon: Zap
     },
@@ -56,10 +66,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Score Master',
       description: 'Earn 500 points today',
       requirement: 'Earn 500 points',
-      progress: Math.min(userProgress.totalScore % 500, 500),
+      progress: Math.min(totalScore % 500, 500),
       maxProgress: 500,
       xpReward: 75,
-      completed: (userProgress.totalScore % 500) >= 500,
+      completed: (totalScore % 500) >= 500,
       type: 'daily',
       icon: Target
     },
@@ -81,10 +91,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Consistency Champion',
       description: 'Maintain a 7-day streak',
       requirement: 'Play for 7 consecutive days',
-      progress: Math.min(userProgress.streak, 7),
+      progress: Math.min(userProgress.streak || 0, 7),
       maxProgress: 7,
       xpReward: 200,
-      completed: userProgress.streak >= 7,
+      completed: (userProgress.streak || 0) >= 7,
       type: 'weekly',
       icon: Trophy
     },
@@ -93,10 +103,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Weekly Warrior',
       description: 'Play 50 games this week',
       requirement: 'Play 50 games',
-      progress: Math.min(userProgress.gamesPlayed.length, 50),
+      progress: Math.min(gamesPlayedCount, 50),
       maxProgress: 50,
       xpReward: 300,
-      completed: userProgress.gamesPlayed.length >= 50,
+      completed: gamesPlayedCount >= 50,
       type: 'weekly',
       icon: Clock
     },
@@ -106,10 +116,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Brain Master',
       description: 'Reach level 10',
       requirement: 'Reach level 10',
-      progress: Math.min(userProgress.level, 10),
+      progress: Math.min(userProgress.level || 1, 10),
       maxProgress: 10,
       xpReward: 500,
-      completed: userProgress.level >= 10,
+      completed: (userProgress.level || 1) >= 10,
       type: 'achievement',
       icon: Trophy
     },
@@ -118,10 +128,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       title: 'Dedicated Player',
       description: 'Play 100 games total',
       requirement: 'Play 100 games',
-      progress: Math.min(userProgress.gamesPlayed.length, 100),
+      progress: Math.min(gamesPlayedCount, 100),
       maxProgress: 100,
       xpReward: 1000,
-      completed: userProgress.gamesPlayed.length >= 100,
+      completed: gamesPlayedCount >= 100,
       type: 'achievement',
       icon: Gift
     }
@@ -131,6 +141,10 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
 
   const getProgressPercentage = (reward: Reward) => {
     return Math.min((reward.progress / reward.maxProgress) * 100, 100);
+  };
+
+  const handleClaimReward = (rewardId: string) => {
+    onClaimReward(rewardId);
   };
 
   return (
@@ -195,7 +209,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
                       <div className="text-yellow-400 font-bold">+{reward.xpReward} XP</div>
                       {reward.completed && (
                         <button
-                          onClick={() => onClaimReward(reward.id)}
+                          onClick={() => handleClaimReward(reward.id)}
                           className="mt-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold transition-all"
                         >
                           Claim

@@ -1,7 +1,26 @@
 
 import React, { useState } from 'react';
 import { X, ShoppingCart, Star, Zap, Heart, Shield, Clock, Target, Package, Eye } from 'lucide-react';
-import { UserProgress } from '@/pages/Index';
+
+interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
+}
 
 interface ShopItem {
   id: string;
@@ -32,7 +51,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 100,
       category: 'powerups',
       icon: Zap,
-      owned: userProgress.purchasedItems.includes('doubleXP'),
+      owned: (userProgress.purchasedItems || []).includes('doubleXP'),
       effect: 'Next 5 games give double XP'
     },
     {
@@ -42,7 +61,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 150,
       category: 'powerups',
       icon: Clock,
-      owned: userProgress.purchasedItems.includes('timeFreeze'),
+      owned: (userProgress.purchasedItems || []).includes('timeFreeze'),
       effect: 'Freeze timer for 10 seconds'
     },
     {
@@ -52,7 +71,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 120,
       category: 'powerups',
       icon: Target,
-      owned: userProgress.purchasedItems.includes('accuracyBoost'),
+      owned: (userProgress.purchasedItems || []).includes('accuracyBoost'),
       effect: 'One free hint per game'
     },
     {
@@ -62,7 +81,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 80,
       category: 'powerups',
       icon: Shield,
-      owned: userProgress.purchasedItems.includes('shield'),
+      owned: (userProgress.purchasedItems || []).includes('shield'),
       effect: 'Ignore first mistake'
     },
     // Characters
@@ -73,7 +92,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 500,
       category: 'characters',
       icon: Star,
-      owned: userProgress.purchasedItems.includes('robot-avatar'),
+      owned: (userProgress.purchasedItems || []).includes('robot-avatar'),
       effect: 'Unlocks robot avatar'
     },
     {
@@ -83,7 +102,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 750,
       category: 'characters',
       icon: Star,
-      owned: userProgress.purchasedItems.includes('wizard-avatar'),
+      owned: (userProgress.purchasedItems || []).includes('wizard-avatar'),
       effect: 'Unlocks wizard avatar'
     },
     {
@@ -93,7 +112,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 600,
       category: 'characters',
       icon: Star,
-      owned: userProgress.purchasedItems.includes('scientist-avatar'),
+      owned: (userProgress.purchasedItems || []).includes('scientist-avatar'),
       effect: 'Unlocks scientist avatar'
     },
     // Themes
@@ -104,7 +123,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 300,
       category: 'themes',
       icon: Heart,
-      owned: userProgress.purchasedItems.includes('neon-theme'),
+      owned: (userProgress.purchasedItems || []).includes('neon-theme'),
       effect: 'Changes app theme to neon'
     },
     {
@@ -114,7 +133,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 250,
       category: 'themes',
       icon: Heart,
-      owned: userProgress.purchasedItems.includes('nature-theme'),
+      owned: (userProgress.purchasedItems || []).includes('nature-theme'),
       effect: 'Changes app theme to nature'
     },
     {
@@ -124,7 +143,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 400,
       category: 'themes',
       icon: Heart,
-      owned: userProgress.purchasedItems.includes('space-theme'),
+      owned: (userProgress.purchasedItems || []).includes('space-theme'),
       effect: 'Changes app theme to space'
     },
     {
@@ -134,7 +153,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 350,
       category: 'themes',
       icon: Heart,
-      owned: userProgress.purchasedItems.includes('ocean-theme'),
+      owned: (userProgress.purchasedItems || []).includes('ocean-theme'),
       effect: 'Changes app theme to ocean'
     },
     {
@@ -144,7 +163,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
       price: 380,
       category: 'themes',
       icon: Heart,
-      owned: userProgress.purchasedItems.includes('fire-theme'),
+      owned: (userProgress.purchasedItems || []).includes('fire-theme'),
       effect: 'Changes app theme to fire'
     }
   ];

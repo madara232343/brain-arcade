@@ -78,6 +78,12 @@ export const GameModal: React.FC<GameModalProps> = ({
       case 'word-association':
         return <WordAssociationGame {...gameProps} />;
       case 'spatial-reasoning':
+      case 'puzzle-blocks':
+      case 'shape-rotator':
+      case 'maze-runner':
+      case 'tower-builder':
+      case 'cube-matcher':
+      case 'orbit-navigator':
         return <SpatialReasoningGame {...gameProps} />;
       case 'number-sequence':
         return <NumberSequenceGame {...gameProps} />;
@@ -85,20 +91,7 @@ export const GameModal: React.FC<GameModalProps> = ({
         return <SimonSaysGame {...gameProps} />;
       case 'memory-cards':
         return <MemoryCardGame {...gameProps} />;
-      case 'puzzle-blocks':
-        return <PuzzleBlocksGame {...gameProps} />;
-      case 'shape-rotator':
-        return <ShapeRotatorGame {...gameProps} />;
-      case 'maze-runner':
-        return <MazeRunnerGame {...gameProps} />;
-      case 'tower-builder':
-        return <TowerBuilderGame {...gameProps} />;
-      case 'cube-matcher':
-        return <CubeMatcherGame {...gameProps} />;
-      case 'orbit-navigator':
-        return <OrbitNavigatorGame {...gameProps} />;
       default:
-        // Create a generic demo game for any unhandled cases
         return <GenericDemoGame {...gameProps} game={game} />;
     }
   };
@@ -196,7 +189,7 @@ const GenericDemoGame: React.FC<{
   if (!gameStarted) {
     return (
       <div className="text-center text-white p-4">
-        <h3 className="text-xl md:text-2xl font-bold mb-4">{game.icon} {game.title}</h3>
+        <h3 className="text-xl md:text-2xl font-bold mb-4">{game.title}</h3>
         <p className="mb-6 text-sm md:text-lg">{game.description}</p>
         <button
           onClick={handleStart}
@@ -225,59 +218,4 @@ const GenericDemoGame: React.FC<{
       <p className="text-white/70">Click the button as many times as you can!</p>
     </div>
   );
-};
-
-// New 3D Game Components
-const PuzzleBlocksGame: React.FC<{
-  onComplete: (result: GameResult) => void;
-  gameId: string;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
-}> = ({ onComplete, gameId }) => {
-  return <SpatialReasoningGame onComplete={onComplete} gameId={gameId} />;
-};
-
-const ShapeRotatorGame: React.FC<{
-  onComplete: (result: GameResult) => void;
-  gameId: string;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
-}> = ({ onComplete, gameId }) => {
-  return <SpatialReasoningGame onComplete={onComplete} gameId={gameId} />;
-};
-
-const MazeRunnerGame: React.FC<{
-  onComplete: (result: GameResult) => void;
-  gameId: string;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
-}> = ({ onComplete, gameId }) => {
-  return <SpatialReasoningGame onComplete={onComplete} gameId={gameId} />;
-};
-
-const TowerBuilderGame: React.FC<{
-  onComplete: (result: GameResult) => void;
-  gameId: string;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
-}> = ({ onComplete, gameId }) => {
-  return <SpatialReasoningGame onComplete={onComplete} gameId={gameId} />;
-};
-
-const CubeMatcherGame: React.FC<{
-  onComplete: (result: GameResult) => void;
-  gameId: string;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
-}> = ({ onComplete, gameId }) => {
-  return <SpatialReasoningGame onComplete={onComplete} gameId={gameId} />;
-};
-
-const OrbitNavigatorGame: React.FC<{
-  onComplete: (result: GameResult) => void;
-  gameId: string;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
-}> = ({ onComplete, gameId }) => {
-  return <SpatialReasoningGame onComplete={onComplete} gameId={gameId} />;
 };
