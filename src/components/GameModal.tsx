@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, Volume2, VolumeX } from 'lucide-react';
 import { GameResult } from '@/pages/Games';
@@ -14,6 +13,7 @@ import { SpatialReasoningGame } from '@/components/games/SpatialReasoningGame';
 import { NumberSequenceGame } from '@/components/games/NumberSequenceGame';
 import { SimonSaysGame } from '@/components/games/SimonSaysGame';
 import { MemoryCardGame } from '@/components/games/MemoryCardGame';
+import { Simple3DGame } from '@/components/games/Simple3DGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
 
@@ -60,39 +60,50 @@ export const GameModal: React.FC<GameModalProps> = ({
       onPowerUpUsed
     };
 
-    switch (game.id) {
-      case 'memory-sequence':
-        return <MemoryGame {...gameProps} />;
-      case 'color-memory':
-        return <ColorMemoryGame {...gameProps} />;
-      case 'math-sprint':
-        return <MathSprintGame {...gameProps} />;
-      case 'reaction-time':
-        return <ReactionTimeGame {...gameProps} />;
-      case 'pattern-match':
-        return <PatternMatchGame {...gameProps} />;
-      case 'speed-typing':
-        return <SpeedTypingGame {...gameProps} />;
-      case 'visual-attention':
-        return <VisualAttentionGame {...gameProps} />;
-      case 'word-association':
-        return <WordAssociationGame {...gameProps} />;
-      case 'spatial-reasoning':
-      case 'puzzle-blocks':
-      case 'shape-rotator':
-      case 'maze-runner':
-      case 'tower-builder':
-      case 'cube-matcher':
-      case 'orbit-navigator':
-        return <SpatialReasoningGame {...gameProps} />;
-      case 'number-sequence':
-        return <NumberSequenceGame {...gameProps} />;
-      case 'simon-says':
-        return <SimonSaysGame {...gameProps} />;
-      case 'memory-cards':
-        return <MemoryCardGame {...gameProps} />;
-      default:
-        return <GenericDemoGame {...gameProps} game={game} />;
+    try {
+      switch (game.id) {
+        case 'memory-sequence':
+          return <MemoryGame {...gameProps} />;
+        case 'color-memory':
+          return <ColorMemoryGame {...gameProps} />;
+        case 'math-sprint':
+          return <MathSprintGame {...gameProps} />;
+        case 'reaction-time':
+          return <ReactionTimeGame {...gameProps} />;
+        case 'pattern-match':
+          return <PatternMatchGame {...gameProps} />;
+        case 'speed-typing':
+          return <SpeedTypingGame {...gameProps} />;
+        case 'visual-attention':
+          return <VisualAttentionGame {...gameProps} />;
+        case 'word-association':
+          return <WordAssociationGame {...gameProps} />;
+        case 'number-sequence':
+          return <NumberSequenceGame {...gameProps} />;
+        case 'simon-says':
+          return <SimonSaysGame {...gameProps} />;
+        case 'memory-cards':
+          return <MemoryCardGame {...gameProps} />;
+        case 'spatial-reasoning':
+          return <SpatialReasoningGame {...gameProps} />;
+        case 'puzzle-blocks':
+          return <Simple3DGame {...gameProps} title="🧩 Puzzle Blocks" description="Arrange 3D blocks to solve puzzles" />;
+        case 'shape-rotator':
+          return <Simple3DGame {...gameProps} title="🔄 Shape Rotator" description="Rotate 3D shapes to match targets" />;
+        case 'maze-runner':
+          return <Simple3DGame {...gameProps} title="🏃 Maze Runner" description="Navigate through 3D mazes" />;
+        case 'tower-builder':
+          return <Simple3DGame {...gameProps} title="🏗️ Tower Builder" description="Stack 3D blocks to build towers" />;
+        case 'cube-matcher':
+          return <Simple3DGame {...gameProps} title="🎯 Cube Matcher" description="Match 3D cube patterns" />;
+        case 'orbit-navigator':
+          return <Simple3DGame {...gameProps} title="🌌 Orbit Navigator" description="Navigate objects in 3D space" />;
+        default:
+          return <GenericDemoGame {...gameProps} game={game} />;
+      }
+    } catch (error) {
+      console.error('Error rendering game:', error);
+      return <GenericDemoGame {...gameProps} game={game} />;
     }
   };
 
