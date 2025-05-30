@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { GameResult } from '@/pages/Index';
+import { GameResult } from '@/types/game';
 import { PowerUpBar } from '@/components/PowerUpBar';
 import { audioManager } from '@/utils/audioUtils';
 

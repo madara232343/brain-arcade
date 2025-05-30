@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Trophy, Share2, X, Zap } from 'lucide-react';
-import { GameResult } from '@/pages/Index';
+import { GameResult } from '@/types/game';
 
 interface GameCompleteModalProps {
   result: GameResult;

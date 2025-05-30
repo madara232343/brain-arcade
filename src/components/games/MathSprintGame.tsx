@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { GameResult } from '@/pages/Index';
+import { GameResult } from '@/types/game';
 
 interface MathSprintGameProps {
   onComplete: (result: GameResult) => void;

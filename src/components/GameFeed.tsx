@@ -16,7 +16,7 @@ import {
   RotateCw, 
   Map, 
   Building, 
-  Cube, 
+  Box, 
   Globe,
   Calculator,
   Trophy,
@@ -38,7 +38,7 @@ const games = [
   
   // Puzzle Games
   { id: 'puzzle-blocks', title: 'Puzzle Blocks', description: 'Arrange 3D blocks to solve puzzles', icon: Puzzle, difficulty: 'Medium', category: 'puzzle', estimatedTime: '5-8 min' },
-  { id: 'spatial-reasoning', title: 'Spatial Reasoning', description: 'Rotate and match 3D objects', icon: Cube, difficulty: 'Hard', category: 'puzzle', estimatedTime: '6-10 min' },
+  { id: 'spatial-reasoning', title: 'Spatial Reasoning', description: 'Rotate and match 3D objects', icon: Box, difficulty: 'Hard', category: 'puzzle', estimatedTime: '6-10 min' },
   { id: 'shape-rotator', title: 'Shape Rotator', description: 'Rotate shapes to match targets', icon: RotateCw, difficulty: 'Medium', category: 'puzzle', estimatedTime: '4-7 min' },
   { id: 'pattern-match', title: 'Pattern Match', description: 'Find hidden patterns', icon: Eye, difficulty: 'Hard', category: 'puzzle', estimatedTime: '5-8 min' },
   
@@ -58,7 +58,7 @@ const games = [
   
   // Arcade Games
   { id: 'tower-builder', title: 'Tower Builder 3D', description: 'Build the tallest tower', icon: Building, difficulty: 'Medium', category: 'arcade', estimatedTime: '5-8 min' },
-  { id: 'cube-matcher', title: 'Cube Matcher 3D', description: 'Match 3D cubes in space', icon: Cube, difficulty: 'Hard', category: 'arcade', estimatedTime: '6-10 min' },
+  { id: 'cube-matcher', title: 'Cube Matcher 3D', description: 'Match 3D cubes in space', icon: Box, difficulty: 'Hard', category: 'arcade', estimatedTime: '6-10 min' },
   
   // Strategy Games
   { id: 'iq-test', title: 'IQ Test Challenge', description: 'Comprehensive intelligence assessment', icon: Trophy, difficulty: 'Expert', category: 'strategy', estimatedTime: '15-20 min' }
