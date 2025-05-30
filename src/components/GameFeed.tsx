@@ -1,234 +1,171 @@
 
-import React, { useState } from 'react';
-import { Search, Filter, Clock, Trophy, Box, Gamepad2, Brain, Zap, Target, Palette, Layers, RotateCw, Map, Building, Orbit } from 'lucide-react';
+import React from 'react';
+import { 
+  Brain, 
+  Zap, 
+  Target, 
+  Palette, 
+  Clock, 
+  Type, 
+  Eye, 
+  MessageSquare, 
+  Hash, 
+  MousePointer, 
+  Grid3x3, 
+  Puzzle, 
+  RotateCw, 
+  Map, 
+  Building, 
+  Cube, 
+  Globe,
+  Calculator,
+  Trophy,
+  Star
+} from 'lucide-react';
 
 interface GameFeedProps {
   onPlayGame: (game: any) => void;
   playedGames: string[];
+  selectedCategory?: string;
 }
 
 const games = [
-  // 2D Games
-  { id: 'memory-sequence', title: 'Memory Sequence', description: 'Remember and repeat sequences', icon: Brain, category: '2D', difficulty: 'Easy', estimatedTime: '2-3 min', type: 'memory' },
-  { id: 'color-memory', title: 'Color Memory', description: 'Match colors in sequence', icon: Palette, category: '2D', difficulty: 'Easy', estimatedTime: '2-3 min', type: 'memory' },
-  { id: 'math-sprint', title: 'Math Sprint', description: 'Solve math problems quickly', icon: Zap, category: '2D', difficulty: 'Medium', estimatedTime: '3-5 min', type: 'logic' },
-  { id: 'reaction-time', title: 'Reaction Time', description: 'Test your reflexes', icon: Target, category: '2D', difficulty: 'Easy', estimatedTime: '1-2 min', type: 'speed' },
-  { id: 'pattern-match', title: 'Pattern Match', description: 'Find matching patterns', icon: Layers, category: '2D', difficulty: 'Medium', estimatedTime: '3-4 min', type: 'visual' },
-  { id: 'speed-typing', title: 'Speed Typing', description: 'Type words as fast as you can', icon: Gamepad2, category: '2D', difficulty: 'Medium', estimatedTime: '2-3 min', type: 'speed' },
-  { id: 'visual-attention', title: 'Visual Attention', description: 'Focus on specific visual elements', icon: Target, category: '2D', difficulty: 'Hard', estimatedTime: '4-5 min', type: 'attention' },
-  { id: 'word-association', title: 'Word Association', description: 'Connect related words', icon: Brain, category: '2D', difficulty: 'Medium', estimatedTime: '3-4 min', type: 'language' },
-  { id: 'number-sequence', title: 'Number Sequence', description: 'Complete number patterns', icon: Zap, category: '2D', difficulty: 'Hard', estimatedTime: '4-6 min', type: 'logic' },
-  { id: 'simon-says', title: 'Simon Says', description: 'Follow the sequence of commands', icon: Gamepad2, category: '2D', difficulty: 'Medium', estimatedTime: '3-5 min', type: 'memory' },
-  { id: 'memory-cards', title: 'Memory Cards', description: 'Match pairs of cards', icon: Brain, category: '2D', difficulty: 'Easy', estimatedTime: '2-4 min', type: 'memory' },
-
-  // 3D Games
-  { id: 'spatial-reasoning', title: 'Spatial Reasoning', description: 'Solve 3D spatial puzzles', icon: Box, category: '3D', difficulty: 'Hard', estimatedTime: '5-7 min', type: 'spatial' },
-  { id: 'puzzle-blocks', title: 'Puzzle Blocks', description: 'Arrange 3D blocks to solve puzzles', icon: Box, category: '3D', difficulty: 'Medium', estimatedTime: '4-6 min', type: 'spatial' },
-  { id: 'shape-rotator', title: 'Shape Rotator', description: 'Rotate 3D shapes to match targets', icon: RotateCw, category: '3D', difficulty: 'Medium', estimatedTime: '3-5 min', type: 'spatial' },
-  { id: 'maze-runner', title: 'Maze Runner', description: 'Navigate through 3D mazes', icon: Map, category: '3D', difficulty: 'Hard', estimatedTime: '5-8 min', type: 'navigation' },
-  { id: 'tower-builder', title: 'Tower Builder', description: 'Stack 3D blocks to build towers', icon: Building, category: '3D', difficulty: 'Medium', estimatedTime: '4-6 min', type: 'strategy' },
-  { id: 'cube-matcher', title: 'Cube Matcher', description: 'Match 3D cube patterns', icon: Box, category: '3D', difficulty: 'Hard', estimatedTime: '5-7 min', type: 'pattern' },
-  { id: 'orbit-navigator', title: 'Orbit Navigator', description: 'Navigate objects in 3D space', icon: Orbit, category: '3D', difficulty: 'Hard', estimatedTime: '6-8 min', type: 'spatial' }
+  // Memory Games
+  { id: 'memory-sequence', title: 'Memory Sequence', description: 'Remember and repeat patterns', icon: Brain, difficulty: 'Medium', category: 'memory', estimatedTime: '3-5 min' },
+  { id: 'color-memory', title: 'Color Memory', description: 'Match colors in sequence', icon: Palette, difficulty: 'Easy', category: 'memory', estimatedTime: '2-4 min' },
+  { id: 'simon-says', title: 'Simon Says', description: 'Follow the pattern sequence', icon: Target, difficulty: 'Medium', category: 'memory', estimatedTime: '3-6 min' },
+  { id: 'memory-cards', title: 'Memory Cards', description: 'Find matching pairs', icon: Grid3x3, difficulty: 'Easy', category: 'memory', estimatedTime: '4-7 min' },
+  
+  // Puzzle Games
+  { id: 'puzzle-blocks', title: 'Puzzle Blocks', description: 'Arrange 3D blocks to solve puzzles', icon: Puzzle, difficulty: 'Medium', category: 'puzzle', estimatedTime: '5-8 min' },
+  { id: 'spatial-reasoning', title: 'Spatial Reasoning', description: 'Rotate and match 3D objects', icon: Cube, difficulty: 'Hard', category: 'puzzle', estimatedTime: '6-10 min' },
+  { id: 'shape-rotator', title: 'Shape Rotator', description: 'Rotate shapes to match targets', icon: RotateCw, difficulty: 'Medium', category: 'puzzle', estimatedTime: '4-7 min' },
+  { id: 'pattern-match', title: 'Pattern Match', description: 'Find hidden patterns', icon: Eye, difficulty: 'Hard', category: 'puzzle', estimatedTime: '5-8 min' },
+  
+  // Speed Games
+  { id: 'reaction-time', title: 'Reaction Time', description: 'Test your reflexes', icon: Zap, difficulty: 'Easy', category: 'speed', estimatedTime: '2-3 min' },
+  { id: 'speed-typing', title: 'Speed Typing', description: 'Type as fast as you can', icon: Type, difficulty: 'Medium', category: 'speed', estimatedTime: '3-5 min' },
+  { id: 'math-sprint', title: 'Math Sprint', description: 'Solve equations quickly', icon: Calculator, difficulty: 'Medium', category: 'speed', estimatedTime: '3-5 min' },
+  
+  // Reaction Games
+  { id: 'visual-attention', title: 'Visual Attention', description: 'Spot differences quickly', icon: Eye, difficulty: 'Medium', category: 'reaction', estimatedTime: '4-6 min' },
+  { id: 'word-association', title: 'Word Association', description: 'Connect related words', icon: MessageSquare, difficulty: 'Easy', category: 'reaction', estimatedTime: '3-5 min' },
+  { id: 'number-sequence', title: 'Number Sequence', description: 'Complete number patterns', icon: Hash, difficulty: 'Hard', category: 'reaction', estimatedTime: '4-7 min' },
+  
+  // Racing Games (3D)
+  { id: 'maze-runner', title: 'Maze Runner 3D', description: 'Navigate through 3D mazes', icon: Map, difficulty: 'Medium', category: 'racing', estimatedTime: '5-10 min' },
+  { id: 'orbit-navigator', title: 'Orbit Navigator', description: 'Navigate through space obstacles', icon: Globe, difficulty: 'Hard', category: 'racing', estimatedTime: '6-12 min' },
+  
+  // Arcade Games
+  { id: 'tower-builder', title: 'Tower Builder 3D', description: 'Build the tallest tower', icon: Building, difficulty: 'Medium', category: 'arcade', estimatedTime: '5-8 min' },
+  { id: 'cube-matcher', title: 'Cube Matcher 3D', description: 'Match 3D cubes in space', icon: Cube, difficulty: 'Hard', category: 'arcade', estimatedTime: '6-10 min' },
+  
+  // Strategy Games
+  { id: 'iq-test', title: 'IQ Test Challenge', description: 'Comprehensive intelligence assessment', icon: Trophy, difficulty: 'Expert', category: 'strategy', estimatedTime: '15-20 min' }
 ];
 
-export const GameFeed: React.FC<GameFeedProps> = ({ onPlayGame, playedGames = [] }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('All');
-
-  const categories = ['All', '2D', '3D'];
-  const difficulties = ['All', 'Easy', 'Medium', 'Hard'];
-
-  const filteredGames = games.filter(game => {
-    const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         game.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || game.category === selectedCategory;
-    const matchesDifficulty = selectedDifficulty === 'All' || game.difficulty === selectedDifficulty;
-    
-    return matchesSearch && matchesCategory && matchesDifficulty;
-  });
+export const GameFeed: React.FC<GameFeedProps> = ({ onPlayGame, playedGames, selectedCategory = 'all' }) => {
+  const filteredGames = selectedCategory === 'all' 
+    ? games 
+    : games.filter(game => game.category === selectedCategory);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'Easy': return 'text-green-400 bg-green-400/20';
-      case 'Medium': return 'text-yellow-400 bg-yellow-400/20';
-      case 'Hard': return 'text-red-400 bg-red-400/20';
-      default: return 'text-gray-400 bg-gray-400/20';
+      case 'Easy': return 'text-green-400 bg-green-500/20';
+      case 'Medium': return 'text-yellow-400 bg-yellow-500/20';
+      case 'Hard': return 'text-orange-400 bg-orange-500/20';
+      case 'Expert': return 'text-red-400 bg-red-500/20';
+      default: return 'text-gray-400 bg-gray-500/20';
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case '2D': return 'text-blue-400 bg-blue-400/20';
-      case '3D': return 'text-purple-400 bg-purple-400/20';
-      default: return 'text-gray-400 bg-gray-400/20';
+      case 'memory': return 'from-blue-500 to-cyan-500';
+      case 'puzzle': return 'from-green-500 to-teal-500';
+      case 'speed': return 'from-yellow-500 to-orange-500';
+      case 'reaction': return 'from-red-500 to-pink-500';
+      case 'racing': return 'from-orange-500 to-red-500';
+      case 'arcade': return 'from-purple-500 to-pink-500';
+      case 'strategy': return 'from-indigo-500 to-purple-500';
+      default: return 'from-gray-500 to-gray-600';
     }
   };
 
-  const twoDGames = filteredGames.filter(game => game.category === '2D');
-  const threeDGames = filteredGames.filter(game => game.category === '3D');
-
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">🎮 Game Library</h2>
-          <p className="text-white/70">Choose from {games.length} brain training games</p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/50" />
-            <input
-              type="text"
-              placeholder="Search games..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-white/10 border border-white/30 rounded-lg pl-10 pr-4 py-2 text-white placeholder-white/50 focus:outline-none focus:border-blue-400 focus:bg-white/15 transition-all duration-200 w-full sm:w-48"
-            />
-          </div>
-          
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400 focus:bg-white/15 transition-all duration-200"
-          >
-            {categories.map(category => (
-              <option key={category} value={category} className="bg-gray-800 text-white">
-                {category}
-              </option>
-            ))}
-          </select>
-          
-          <select
-            value={selectedDifficulty}
-            onChange={(e) => setSelectedDifficulty(e.target.value)}
-            className="bg-white/10 border border-white/30 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-400 focus:bg-white/15 transition-all duration-200"
-          >
-            {difficulties.map(difficulty => (
-              <option key={difficulty} value={difficulty} className="bg-gray-800 text-white">
-                {difficulty}
-              </option>
-            ))}
-          </select>
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl md:text-3xl font-bold text-white">
+          {selectedCategory === 'all' ? 'All Games' : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Games`}
+        </h2>
+        <div className="text-white/70 text-sm">
+          {filteredGames.length} game{filteredGames.length !== 1 ? 's' : ''} available
         </div>
       </div>
-
-      {/* 2D Games Section */}
-      {(selectedCategory === 'All' || selectedCategory === '2D') && twoDGames.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-            <Gamepad2 className="h-6 w-6 mr-2 text-blue-400" />
-            2D Games
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {twoDGames.map((game) => {
-              const IconComponent = game.icon;
-              const isPlayed = playedGames.includes(game.id);
-              
-              return (
-                <div
-                  key={game.id}
-                  onClick={() => onPlayGame(game)}
-                  className="bg-white/10 hover:bg-white/20 rounded-xl p-4 border border-white/20 hover:border-white/40 transition-all duration-300 cursor-pointer hover:scale-105 group"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="h-6 w-6 text-white" />
-                    </div>
-                    {isPlayed && (
-                      <Trophy className="h-5 w-5 text-yellow-400" />
-                    )}
-                  </div>
-                  
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-200">
-                    {game.title}
-                  </h3>
-                  <p className="text-white/70 text-sm mb-3 line-clamp-2">{game.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(game.category)}`}>
-                      {game.category}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(game.difficulty)}`}>
-                      {game.difficulty}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <div className="flex items-center">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {game.estimatedTime}
-                    </div>
-                    <span className="capitalize">{game.type}</span>
-                  </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {filteredGames.map((game) => {
+          const IconComponent = game.icon;
+          const isPlayed = playedGames.includes(game.id);
+          const categoryGradient = getCategoryColor(game.category);
+          
+          return (
+            <div
+              key={game.id}
+              className="group bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer game-card animate-fade-in"
+              onClick={() => onPlayGame(game)}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-3 rounded-xl bg-gradient-to-r ${categoryGradient} group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-white" />
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 3D Games Section */}
-      {(selectedCategory === 'All' || selectedCategory === '3D') && threeDGames.length > 0 && (
-        <div>
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-            <Box className="h-6 w-6 mr-2 text-purple-400" />
-            3D Games
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {threeDGames.map((game) => {
-              const IconComponent = game.icon;
-              const isPlayed = playedGames.includes(game.id);
+                {isPlayed && (
+                  <div className="flex items-center space-x-1 bg-green-500/20 rounded-full px-2 py-1">
+                    <Star className="h-3 w-3 text-green-400 fill-green-400" />
+                    <span className="text-green-400 text-xs font-medium">Played</span>
+                  </div>
+                )}
+              </div>
               
-              return (
-                <div
-                  key={game.id}
-                  onClick={() => onPlayGame(game)}
-                  className="bg-white/10 hover:bg-white/20 rounded-xl p-4 border border-white/20 hover:border-white/40 transition-all duration-300 cursor-pointer hover:scale-105 group"
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="h-6 w-6 text-white" />
-                    </div>
-                    {isPlayed && (
-                      <Trophy className="h-5 w-5 text-yellow-400" />
-                    )}
-                  </div>
-                  
-                  <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-300 transition-colors duration-200">
-                    {game.title}
-                  </h3>
-                  <p className="text-white/70 text-sm mb-3 line-clamp-2">{game.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(game.category)}`}>
-                      {game.category}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(game.difficulty)}`}>
-                      {game.difficulty}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-xs text-white/60">
-                    <div className="flex items-center">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {game.estimatedTime}
-                    </div>
-                    <span className="capitalize">{game.type}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">
+                {game.title}
+              </h3>
+              
+              <p className="text-white/70 mb-4 text-sm leading-relaxed">
+                {game.description}
+              </p>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(game.difficulty)}`}>
+                  {game.difficulty}
+                </span>
+                <span className="px-2 py-1 rounded-full text-xs font-medium text-blue-400 bg-blue-500/20">
+                  {game.category}
+                </span>
+                <span className="px-2 py-1 rounded-full text-xs font-medium text-purple-400 bg-purple-500/20">
+                  {game.estimatedTime}
+                </span>
+              </div>
+              
+              <button
+                className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 group-hover:scale-105 ${
+                  isPlayed
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400'
+                    : `bg-gradient-to-r ${categoryGradient} hover:shadow-lg`
+                } text-white`}
+              >
+                {isPlayed ? 'Play Again' : 'Start Game'}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      
       {filteredGames.length === 0 && (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🎮</div>
-          <h3 className="text-xl font-bold text-white mb-2">No games found</h3>
-          <p className="text-white/70">Try adjusting your search criteria</p>
+          <h3 className="text-2xl font-bold text-white mb-2">No Games Found</h3>
+          <p className="text-white/70">Try selecting a different category</p>
         </div>
       )}
     </div>

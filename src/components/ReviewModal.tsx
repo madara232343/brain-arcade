@@ -1,132 +1,157 @@
 
 import React, { useState } from 'react';
-import { X, Star, Send, MessageSquare } from 'lucide-react';
+import { X, Star, Send, MessageCircle } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface ReviewModalProps {
   onClose: () => void;
+  onSubmit: (review: { rating: number; comment: string; name: string }) => void;
 }
 
-export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose }) => {
+export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose, onSubmit }) => {
   const [rating, setRating] = useState(0);
-  const [review, setReview] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [name, setName] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (rating === 0 || !review.trim()) return;
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch('https://formspree.io/f/xzzbzpnr', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          rating,
-          review: review.trim(),
-          timestamp: new Date().toISOString(),
-          game: 'Brain Burst Arcade'
-        }),
+    
+    if (rating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive"
       });
-
-      if (response.ok) {
-        setSubmitted(true);
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Failed to submit review:', error);
-    } finally {
-      setIsSubmitting(false);
+      return;
     }
-  };
 
-  if (submitted) {
-    return (
-      <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-gradient-to-br from-green-900/95 to-emerald-900/95 backdrop-blur-lg rounded-3xl max-w-md w-full border border-green-400/30 shadow-2xl animate-scale-in">
-          <div className="p-8 text-center">
-            <div className="mb-4">
-              <div className="mx-auto w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4">
-                <MessageSquare className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Thank You!</h3>
-              <p className="text-green-200">Your review has been submitted successfully.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    if (comment.trim().length < 10) {
+      toast({
+        title: "Comment Too Short",
+        description: "Please write at least 10 characters in your review.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    onSubmit({
+      rating,
+      comment: comment.trim(),
+      name: name.trim() || 'Anonymous'
+    });
+
+    toast({
+      title: "Review Submitted! 🎉",
+      description: "Thank you for your feedback!",
+    });
+
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-3xl max-w-md w-full border border-white/30 shadow-2xl animate-scale-in">
+      <div className="bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-3xl max-w-2xl w-full max-h-[95vh] overflow-hidden border border-white/30 shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between p-6 border-b border-white/20 bg-white/5">
           <div className="flex items-center space-x-3">
-            <MessageSquare className="h-6 w-6 text-blue-400" />
-            <h2 className="text-xl font-bold text-white">Leave a Review</h2>
+            <MessageCircle className="h-6 w-6 text-purple-400" />
+            <h2 className="text-2xl font-bold text-white">Write a Review</h2>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-            <X className="h-5 w-5 text-white" />
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <X className="h-6 w-6 text-white" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
+          {/* Rating Section */}
           <div className="mb-6">
-            <label className="block text-white font-medium mb-3">Rate your experience:</label>
-            <div className="flex space-x-1">
+            <label className="block text-white font-medium mb-3">
+              Rate your experience:
+            </label>
+            <div className="flex space-x-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
-                  className={`p-1 transition-colors ${
-                    star <= rating ? 'text-yellow-400' : 'text-gray-500'
-                  }`}
+                  onMouseEnter={() => setHoveredRating(star)}
+                  onMouseLeave={() => setHoveredRating(0)}
+                  className="transition-all duration-200 hover:scale-110"
                 >
-                  <Star className="h-8 w-8 fill-current" />
+                  <Star
+                    className={`h-8 w-8 ${
+                      star <= (hoveredRating || rating)
+                        ? 'text-yellow-400 fill-yellow-400'
+                        : 'text-gray-400'
+                    }`}
+                  />
                 </button>
               ))}
             </div>
+            {rating > 0 && (
+              <p className="text-white/70 text-sm mt-2">
+                {rating === 5 ? 'Excellent!' : 
+                 rating === 4 ? 'Good!' : 
+                 rating === 3 ? 'Average' : 
+                 rating === 2 ? 'Below Average' : 'Poor'}
+              </p>
+            )}
           </div>
 
+          {/* Name Section */}
           <div className="mb-6">
-            <label htmlFor="review" className="block text-white font-medium mb-3">
-              Tell us about your experience:
+            <label className="block text-white font-medium mb-2">
+              Your Name (Optional):
             </label>
-            <textarea
-              id="review"
-              value={review}
-              onChange={(e) => setReview(e.target.value)}
-              rows={4}
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none"
-              placeholder="What did you like about Brain Burst Arcade? Any suggestions for improvement?"
-              required
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name..."
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              maxLength={50}
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={rating === 0 || !review.trim() || isSubmitting}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 hover:scale-105 disabled:hover:scale-100 flex items-center justify-center space-x-2"
-          >
-            {isSubmitting ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Submitting...</span>
-              </>
-            ) : (
-              <>
-                <Send className="h-5 w-5" />
-                <span>Submit Review</span>
-              </>
-            )}
-          </button>
+          {/* Comment Section */}
+          <div className="mb-6">
+            <label className="block text-white font-medium mb-2">
+              Your Review:
+            </label>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Tell us about your experience with Brain Burst Arcade..."
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+              rows={4}
+              maxLength={500}
+              required
+            />
+            <div className="text-right text-white/50 text-sm mt-1">
+              {comment.length}/500 characters
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2"
+            >
+              <Send className="h-4 w-4" />
+              <span>Submit Review</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>

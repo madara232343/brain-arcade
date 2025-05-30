@@ -17,11 +17,13 @@ import { MemoryCardGame } from '@/components/games/MemoryCardGame';
 import { PuzzleBlocksGame } from '@/components/games/PuzzleBlocksGame';
 import { ShapeRotatorGame } from '@/components/games/ShapeRotatorGame';
 import { MazeRunnerGame } from '@/components/games/MazeRunnerGame';
-import { TowerBuilderGame } from '@/components/games/TowerBuilderGame';
+import { Enhanced3DTowerBuilder } from '@/components/games/Enhanced3DTowerBuilder';
 import { CubeMatcherGame } from '@/components/games/CubeMatcherGame';
 import { OrbitNavigatorGame } from '@/components/games/OrbitNavigatorGame';
+import { IQTestGame } from '@/components/games/IQTestGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
+import { useSounds } from '@/components/SoundManager';
 
 interface GameModalProps {
   game: any;
@@ -40,9 +42,10 @@ export const GameModal: React.FC<GameModalProps> = ({
 }) => {
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(!audioManager.isMuted());
+  const { playSound } = useSounds();
 
   const handleGameComplete = (result: GameResult) => {
-    audioManager.play('complete');
+    playSound('success');
     setGameResult(result);
   };
 
@@ -55,7 +58,7 @@ export const GameModal: React.FC<GameModalProps> = ({
   const toggleSound = () => {
     const newState = audioManager.toggle();
     setSoundEnabled(newState);
-    audioManager.play('click');
+    playSound('click');
   };
 
   const renderGame = () => {
@@ -99,11 +102,13 @@ export const GameModal: React.FC<GameModalProps> = ({
         case 'maze-runner':
           return <MazeRunnerGame {...gameProps} />;
         case 'tower-builder':
-          return <TowerBuilderGame {...gameProps} />;
+          return <Enhanced3DTowerBuilder {...gameProps} />;
         case 'cube-matcher':
           return <CubeMatcherGame {...gameProps} />;
         case 'orbit-navigator':
           return <OrbitNavigatorGame {...gameProps} />;
+        case 'iq-test':
+          return <IQTestGame {...gameProps} />;
         default:
           return <GenericDemoGame {...gameProps} game={game} />;
       }
@@ -125,7 +130,7 @@ export const GameModal: React.FC<GameModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4 animate-fade-in">
-      <div className="bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-2xl md:rounded-3xl w-full max-w-6xl max-h-[98vh] md:max-h-[95vh] overflow-hidden border border-white/30 shadow-2xl animate-scale-in modal-content">
+      <div className="bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-xl md:rounded-3xl w-full max-w-6xl max-h-[98vh] md:max-h-[95vh] overflow-hidden border border-white/30 shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between p-3 md:p-6 border-b border-white/20 bg-white/5">
           <div className="flex items-center space-x-2 md:space-x-3">
             <div className="p-1.5 md:p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
