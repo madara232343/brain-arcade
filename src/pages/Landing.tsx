@@ -1,290 +1,297 @@
 
 import React, { useState } from 'react';
-import { Brain, Zap, Trophy, Target, Users, Star, Play, BarChart3, MessageSquare, ChevronRight, Award, GamepadIcon, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Brain, Gamepad2, Trophy, Users, Star, ChevronRight, Play, Award, Zap, Shield, Target } from 'lucide-react';
 import { ReviewModal } from '@/components/ReviewModal';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
 
-const Landing = () => {
+export const Landing: React.FC = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviews, setReviews] = useLocalStorage<any[]>('gameReviews', []);
+
+  const testimonials = [
+    {
+      name: "Alex Johnson",
+      rating: 5,
+      comment: "Brain Burst Arcade is amazing! The games are challenging and fun. I've improved my memory and reaction time significantly.",
+      avatar: "🧠"
+    },
+    {
+      name: "Sarah Chen", 
+      rating: 5,
+      comment: "Love the variety of games! The daily challenges keep me coming back. Great way to exercise your brain while having fun.",
+      avatar: "🎯"
+    },
+    {
+      name: "Mike Rodriguez",
+      rating: 4,
+      comment: "Fantastic game collection! The IQ and EQ tests are surprisingly accurate. Perfect for brain training and entertainment.",
+      avatar: "⚡"
+    },
+    {
+      name: "Emma Wilson",
+      rating: 5,
+      comment: "The most comprehensive brain training platform I've used. Games are well-designed and the progression system is motivating.",
+      avatar: "🏆"
+    },
+    {
+      name: "David Kumar",
+      rating: 5,
+      comment: "Incredible variety of cognitive games! The 3D games are stunning and the 2D games are perfectly crafted. Highly recommended!",
+      avatar: "🎮"
+    }
+  ];
 
   const features = [
     {
       icon: Brain,
-      title: "Memory Training",
-      description: "Enhance your working memory with sequence and pattern games",
+      title: "100+ Brain Games",
+      description: "Memory, puzzle, speed, racing, and shooting games designed by cognitive experts",
       color: "from-blue-500 to-cyan-500"
     },
     {
-      icon: Zap,
-      title: "Speed Challenges", 
-      description: "Improve reaction time and processing speed with fast-paced games",
-      color: "from-yellow-500 to-orange-500"
-    },
-    {
-      icon: Target,
-      title: "Focus & Attention",
-      description: "Sharpen your concentration with visual attention tasks",
+      icon: Trophy,
+      title: "IQ & EQ Testing",
+      description: "Accurate intelligence and emotional quotient assessments with detailed analysis",
       color: "from-green-500 to-emerald-500"
     },
     {
+      icon: Zap,
+      title: "Power-ups & Rewards",
+      description: "Earn XP, unlock achievements, and use power-ups to enhance your gameplay",
+      color: "from-yellow-500 to-orange-500"
+    },
+    {
       icon: Users,
-      title: "Social Competition",
-      description: "Compete with friends and climb the global leaderboards",
+      title: "Global Leaderboards",
+      description: "Compete with players worldwide and track your cognitive improvement",
       color: "from-purple-500 to-pink-500"
-    },
-    {
-      icon: GamepadIcon,
-      title: "100+ Games",
-      description: "Racing, shooting, puzzle, arcade and many more game categories",
-      color: "from-red-500 to-rose-500"
-    },
-    {
-      icon: Award,
-      title: "Intelligence Tests",
-      description: "Test your IQ, EQ, and SQ with scientifically designed assessments",
-      color: "from-indigo-500 to-blue-500"
     }
   ];
 
-  const stats = [
-    { number: "100+", label: "Brain Games", icon: Play, delay: "0s" },
-    { number: "50k+", label: "Active Players", icon: Users, delay: "0.2s" },
-    { number: "5M+", label: "Games Played", icon: Trophy, delay: "0.4s" },
-    { number: "99%", label: "User Satisfaction", icon: Star, delay: "0.6s" }
+  const gameCategories = [
+    { name: "Memory Games", icon: "🧠", count: "25+", color: "from-blue-500 to-blue-600" },
+    { name: "Puzzle Games", icon: "🧩", count: "20+", color: "from-green-500 to-green-600" },
+    { name: "Speed Games", icon: "⚡", count: "15+", color: "from-yellow-500 to-yellow-600" },
+    { name: "Racing Games", icon: "🏎️", count: "15+", color: "from-red-500 to-red-600" },
+    { name: "Shooting Games", icon: "🎯", count: "15+", color: "from-purple-500 to-purple-600" },
+    { name: "Strategy Games", icon: "♟️", count: "10+", color: "from-indigo-500 to-indigo-600" }
   ];
 
   const handleReviewSubmit = (review: { rating: number; comment: string; name: string }) => {
-    const newReview = {
-      ...review,
-      id: Date.now(),
-      timestamp: new Date().toISOString()
-    };
-    setReviews(prev => [newReview, ...prev]);
+    console.log('Review submitted:', review);
+    // In a real app, this would send to backend
   };
 
-  const avgRating = reviews.length > 0 
-    ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
-    : "5.0";
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0s' }} />
-        <div className="absolute top-40 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute bottom-20 left-1/4 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '6s' }} />
-      </div>
-
-      {/* Header */}
-      <header className="container mx-auto px-4 py-6 relative z-10">
-        <nav className="flex justify-between items-center">
-          <div className="flex items-center space-x-3 animate-fade-in">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
-              <Brain className="h-8 w-8 text-white" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Brain Burst Arcade
-            </span>
-          </div>
-          <div className="flex items-center space-x-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <button
-              onClick={() => setShowReviewModal(true)}
-              className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span>Review</span>
-            </button>
-            <Link 
-              to="/leaderboard"
-              className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
-            >
-              <BarChart3 className="h-4 w-4" />
-              <span>Leaderboard</span>
-            </Link>
-            <Link 
-              to="/games" 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 px-6 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 flex items-center space-x-2"
-            >
-              <Play className="h-4 w-4" />
-              <span>Play Now</span>
-            </Link>
-          </div>
-        </nav>
-      </header>
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center relative z-10">
-        <div className="max-w-5xl mx-auto">
-          <div className="animate-fade-in">
-            <h1 className="text-6xl md:text-8xl font-bold mb-8 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight">
-              Train Your Brain
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20" />
+        <div className="relative container mx-auto px-4 py-12 md:py-20">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="mb-6 animate-bounce">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4">
+                <Brain className="h-10 w-10 text-white" />
+              </div>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-fade-in">
+              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Brain Burst
+              </span>
+              <br />
+              <span className="text-white">Arcade</span>
             </h1>
-            <div className="flex items-center justify-center space-x-2 mb-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-              <Sparkles className="h-6 w-6 text-yellow-400" />
-              <span className="text-xl text-white/90">The Ultimate Brain Training Experience</span>
-              <Sparkles className="h-6 w-6 text-yellow-400" />
+            
+            <p className="text-xl md:text-2xl text-white/80 mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              Challenge your mind with 100+ cognitive games designed to boost memory, 
+              speed, and problem-solving skills
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <Link
+                to="/games"
+                className="group bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center space-x-2"
+              >
+                <Play className="h-6 w-6" />
+                <span>Start Playing</span>
+                <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              
+              <button
+                onClick={() => setShowReviewModal(true)}
+                className="group bg-white/10 hover:bg-white/20 backdrop-blur-lg text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 border border-white/20 flex items-center space-x-2"
+              >
+                <Star className="h-6 w-6" />
+                <span>Write Review</span>
+              </button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+              {[
+                { label: "Brain Games", value: "100+" },
+                { label: "Active Players", value: "50K+" },
+                { label: "Countries", value: "120+" },
+                { label: "Success Rate", value: "95%" }
+              ].map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
+                  <div className="text-white/70 text-sm">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
-          
-          <p className="text-xl md:text-2xl text-white/80 mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            Challenge your mind with 100+ scientifically designed games across multiple categories.
-            Improve memory, attention, and cognitive abilities through engaging gameplay.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <Link 
-              to="/games" 
-              className="group bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 px-10 py-5 rounded-2xl text-xl font-bold transition-all duration-300 hover:scale-110 flex items-center justify-center space-x-3 shadow-2xl"
-            >
-              <Play className="h-6 w-6 group-hover:animate-pulse" />
-              <span>Start Training</span>
-              <ChevronRight className="h-6 w-6 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link 
-              to="/leaderboard" 
-              className="bg-white/10 hover:bg-white/20 border-2 border-white/30 px-10 py-5 rounded-2xl text-xl font-bold transition-all duration-300 hover:scale-110 flex items-center justify-center space-x-3 backdrop-blur-lg"
-            >
-              <Trophy className="h-6 w-6" />
-              <span>Leaderboard</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="container mx-auto px-4 py-16 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {stats.map((stat, index) => {
-            const IconComponent = stat.icon;
-            return (
-              <div 
-                key={index} 
-                className="text-center bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/10 transition-all duration-300 hover:scale-105 animate-fade-in"
-                style={{ animationDelay: stat.delay }}
-              >
-                <IconComponent className="h-10 w-10 text-blue-400 mx-auto mb-4" />
-                <div className="text-4xl font-bold text-white mb-2">{stat.number}</div>
-                <div className="text-white/70 font-medium">{stat.label}</div>
-              </div>
-            );
-          })}
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-20 relative z-10">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Why Choose Brain Burst?
-          </h2>
-          <p className="text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-            Our platform combines cutting-edge neuroscience research with engaging gameplay 
-            to deliver the most effective brain training experience available.
-          </p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => {
-            const IconComponent = feature.icon;
-            return (
-              <div 
-                key={index} 
-                className="group bg-white/5 backdrop-blur-lg rounded-2xl p-8 border border-white/20 hover:bg-white/10 transition-all duration-500 hover:scale-105 animate-fade-in"
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Why Choose Brain Burst Arcade?
+            </h2>
+            <p className="text-xl text-white/70 max-w-2xl mx-auto">
+              Scientifically designed games that make cognitive training fun and effective
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="group bg-white/5 backdrop-blur-lg rounded-3xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className={`bg-gradient-to-r ${feature.color} w-20 h-20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
-                  <IconComponent className="h-10 w-10 text-white" />
+                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.color} mb-4 group-hover:scale-110 transition-transform`}>
+                  <feature.icon className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4 group-hover:text-blue-300 transition-colors">{feature.title}</h3>
-                <p className="text-white/80 leading-relaxed">{feature.description}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Reviews Section */}
-      <section className="container mx-auto px-4 py-20 relative z-10">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
-            What Players Say
-          </h2>
-          <div className="flex items-center justify-center space-x-2 mb-8">
-            <div className="flex space-x-1">
-              {[1,2,3,4,5].map(star => (
-                <Star key={star} className="h-6 w-6 text-yellow-400 fill-yellow-400" />
-              ))}
-            </div>
-            <span className="text-2xl font-bold text-white">{avgRating}</span>
-            <span className="text-white/70">({reviews.length} reviews)</span>
-          </div>
-        </div>
-
-        {reviews.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {reviews.slice(0, 6).map((review) => (
-              <div key={review.id} className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/20 animate-fade-in">
-                <div className="flex items-center mb-4">
-                  <div className="flex space-x-1 mr-3">
-                    {[1,2,3,4,5].map(star => (
-                      <Star 
-                        key={star} 
-                        className={`h-4 w-4 ${star <= review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'}`} 
-                      />
-                    ))}
-                  </div>
-                  <span className="font-semibold text-white">{review.name}</span>
-                </div>
-                <p className="text-white/80 italic">"{review.comment}"</p>
+                <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                <p className="text-white/70">{feature.description}</p>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="text-center mb-12">
-            <p className="text-white/60 text-lg">Be the first to share your experience!</p>
-          </div>
-        )}
+        </div>
+      </section>
 
-        <div className="text-center">
-          <button
-            onClick={() => setShowReviewModal(true)}
-            className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-400 hover:to-blue-400 px-8 py-4 rounded-2xl text-xl font-bold transition-all duration-300 hover:scale-105 flex items-center space-x-3 mx-auto"
-          >
-            <MessageSquare className="h-6 w-6" />
-            <span>Write a Review</span>
-          </button>
+      {/* Game Categories */}
+      <section className="py-16 md:py-24 bg-black/20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              Explore Game Categories
+            </h2>
+            <p className="text-xl text-white/70">
+              Diverse collection of games targeting different cognitive skills
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {gameCategories.map((category, index) => (
+              <div
+                key={index}
+                className="group bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 text-center animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
+                  {category.icon}
+                </div>
+                <h3 className="font-bold text-white mb-2">{category.name}</h3>
+                <div className={`inline-block px-3 py-1 rounded-full bg-gradient-to-r ${category.color} text-white text-sm font-medium`}>
+                  {category.count}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+              What Players Say
+            </h2>
+            <p className="text-xl text-white/70">
+              Join thousands of satisfied brain training enthusiasts
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div
+                key={index}
+                className="bg-white/5 backdrop-blur-lg rounded-3xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-xl mr-4">
+                    {testimonial.avatar}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-white">{testimonial.name}</h4>
+                    <div className="flex space-x-1">
+                      {Array.from({ length: testimonial.rating }).map((_, i) => (
+                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-white/80">{testimonial.comment}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center relative z-10">
-        <div className="bg-gradient-to-r from-blue-500/20 to-purple-600/20 backdrop-blur-lg rounded-3xl p-16 border border-white/20 animate-fade-in">
-          <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            Ready to Get Started?
+      <section className="py-16 md:py-24 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            Ready to Boost Your Brainpower?
           </h2>
-          <p className="text-2xl text-white/80 mb-10 max-w-3xl mx-auto leading-relaxed">
-            Join hundreds of thousands of players already improving their cognitive abilities. 
-            Start your brain training journey today!
+          <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+            Join our community of cognitive athletes and start your brain training journey today!
           </p>
-          <Link 
-            to="/games" 
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 px-12 py-6 rounded-2xl text-2xl font-bold transition-all duration-300 hover:scale-110 inline-flex items-center space-x-3 shadow-2xl"
-          >
-            <Brain className="h-8 w-8" />
-            <span>Begin Training</span>
-            <ChevronRight className="h-8 w-8" />
-          </Link>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link
+              to="/games"
+              className="group bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center space-x-2"
+            >
+              <Gamepad2 className="h-6 w-6" />
+              <span>Play Now - It's Free!</span>
+              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="container mx-auto px-4 py-12 border-t border-white/20 relative z-10">
-        <div className="text-center text-white/60">
-          <p className="text-lg">&copy; 2025 Brain Burst Arcade. All rights reserved.</p>
-          <p className="mt-2">Enhance your mind, one game at a time.</p>
+      <footer className="py-12 bg-black/40 border-t border-white/10">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="flex items-center justify-center space-x-3 mb-6">
+              <Brain className="h-8 w-8 text-blue-400" />
+              <span className="text-2xl font-bold text-white">Brain Burst Arcade</span>
+            </div>
+            
+            <p className="text-white/70 mb-6">
+              Elevating minds through intelligent gaming since 2025
+            </p>
+            
+            <div className="flex justify-center space-x-8 mb-6">
+              <a href="#" className="text-white/70 hover:text-white transition-colors">Privacy</a>
+              <a href="#" className="text-white/70 hover:text-white transition-colors">Terms</a>
+              <a href="#" className="text-white/70 hover:text-white transition-colors">Support</a>
+              <a href="#" className="text-white/70 hover:text-white transition-colors">Contact</a>
+            </div>
+            
+            <p className="text-white/50 text-sm">
+              © 2025 Brain Burst Arcade. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
 
@@ -298,5 +305,3 @@ const Landing = () => {
     </div>
   );
 };
-
-export default Landing;

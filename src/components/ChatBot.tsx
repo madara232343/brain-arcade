@@ -1,207 +1,285 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { MessageCircle, Send, X, Bot, User, Sparkles, HelpCircle, Gamepad2, Trophy } from 'lucide-react';
 
 interface Message {
-  id: string;
+  id: number;
   text: string;
   isBot: boolean;
   timestamp: Date;
+  quickReplies?: string[];
 }
 
-interface ChatBotProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const botResponses: { [key: string]: string } = {
-  'hello': 'Hello! Welcome to Brain Burst Arcade! How can I help you today?',
-  'hi': 'Hi there! I\'m here to help you with any questions about our games!',
-  'help': 'I can help you with:\n• Game instructions\n• Account questions\n• Technical issues\n• Scoring system\n• Power-ups and shop items',
-  'games': 'We have many exciting games including:\n• Memory games\n• Puzzle challenges\n• 3D adventures\n• Speed tests\n• IQ assessment\n• And much more!',
-  'score': 'Your score is calculated based on:\n• Accuracy (how well you perform)\n• Speed (how quickly you complete tasks)\n• Difficulty level\n• Perfect streaks and bonuses',
-  'shop': 'In the shop you can buy:\n• Power-ups (Double XP, Time Freeze, etc.)\n• Character avatars\n• Themes for the app\n• Special abilities',
-  'powerups': 'Power-ups give you advantages like:\n• Double XP - earn twice the experience\n• Time Freeze - pause timers\n• Accuracy Boost - get hints\n• Error Shield - ignore mistakes',
-  'profile': 'Your profile shows:\n• Total score and XP\n• Current level and rank\n• Achievements earned\n• Games played\n• Playing streak',
-  'mobile': 'Yes! Brain Burst Arcade is fully mobile responsive. You can play all games on your phone or tablet.',
-  'bugs': 'If you encounter any bugs:\n1. Try refreshing the page\n2. Clear your browser cache\n3. Check your internet connection\n4. Contact support if issues persist',
-  'contact': 'You can reach our support team through:\n• The review section on the homepage\n• This chat bot for common questions\n• Email: support@brainburstarcade.com',
-  'thanks': 'You\'re welcome! Is there anything else I can help you with?',
-  'default': 'I understand you\'re asking about that topic. Here are some helpful resources:\n• Try the help section\n• Check the game instructions\n• Visit your profile for statistics\n• Use power-ups for better performance!'
-};
-
-export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Hello! I\'m your Brain Burst Arcade assistant. How can I help you today?',
-      isBot: true,
-      timestamp: new Date()
-    }
-  ]);
-  const [inputText, setInputText] = useState('');
+export const ChatBot: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const quickActions = [
+    { icon: HelpCircle, text: "How to play?", color: "from-blue-500 to-cyan-500" },
+    { icon: Gamepad2, text: "Game rules", color: "from-green-500 to-emerald-500" },
+    { icon: Trophy, text: "How to earn XP?", color: "from-yellow-500 to-orange-500" },
+    { icon: Sparkles, text: "Power-ups guide", color: "from-purple-500 to-pink-500" }
+  ];
+
+  const botResponses = {
+    greeting: {
+      text: "Hi! I'm Brain Burst Assistant! 🧠✨ I'm here to help you master all our games. What would you like to know?",
+      quickReplies: ["How to play games", "Scoring system", "Power-ups", "Account help"]
+    },
+    howToPlay: {
+      text: "Great question! 🎮 Each game has unique controls and objectives:\n\n• Memory games: Watch patterns and repeat them\n• Puzzle games: Solve challenges using logic\n• Speed games: React quickly and accurately\n• Racing games: Navigate obstacles and collect items\n\nWant details about a specific game category?",
+      quickReplies: ["Memory games", "Puzzle games", "Speed games", "Racing games"]
+    },
+    scoring: {
+      text: "Here's how scoring works! 🏆\n\n• Base points for completing games\n• Accuracy bonuses (higher % = more points)\n• Speed bonuses for quick completion\n• Streak multipliers for consecutive wins\n• XP converts to levels and unlocks rewards\n\nYour profile tracks all stats!",
+      quickReplies: ["XP system", "Achievements", "Leaderboards", "Back to main"]
+    },
+    powerUps: {
+      text: "Power-ups give you amazing advantages! ⚡\n\n• 🛡️ Shield: Protects from one mistake\n• ⚡ Speed Boost: Slows down time\n• 🎯 Accuracy Boost: Shows hints\n• 💎 Double XP: 2x experience points\n• ⏱️ Time Freeze: Pauses countdown\n\nEarn them through gameplay or buy in shop!",
+      quickReplies: ["How to earn power-ups", "Shop items", "Using power-ups", "Back to main"]
+    },
+    memoryGames: {
+      text: "Memory games test your recall abilities! 🧠\n\n• Simon Says: Repeat color sequences\n• Memory Cards: Match pairs of cards\n• Number Sequence: Find mathematical patterns\n• Pattern Match: Identify matching shapes\n\nTips: Stay focused, use power-ups wisely, and practice daily!",
+      quickReplies: ["Other game types", "Memory tips", "Back to games"]
+    },
+    puzzleGames: {
+      text: "Puzzle games challenge your problem-solving! 🧩\n\n• Logic puzzles with increasing difficulty\n• Spatial reasoning challenges\n• Pattern recognition tasks\n• Mathematical sequences\n\nTips: Take your time, think step by step, and don't rush!",
+      quickReplies: ["Other game types", "Puzzle strategies", "Back to games"]
+    },
+    account: {
+      text: "Account & Profile Help! 👤\n\n• View stats in your profile\n• Track progress and achievements\n• Customize with shop items\n• Check leaderboard rankings\n• Review game history\n\nYour data is automatically saved!",
+      quickReplies: ["Profile features", "Shop items", "Achievements", "Back to main"]
+    }
   };
+
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      addBotMessage(botResponses.greeting.text, botResponses.greeting.quickReplies);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const getBotResponse = (userInput: string): string => {
-    const input = userInput.toLowerCase().trim();
-    
-    // Check for exact matches first
-    if (botResponses[input]) {
-      return botResponses[input];
-    }
-    
-    // Check for partial matches
-    for (const keyword in botResponses) {
-      if (input.includes(keyword)) {
-        return botResponses[keyword];
-      }
-    }
-    
-    // Default response
-    return botResponses['default'];
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSendMessage = async () => {
-    if (!inputText.trim()) return;
+  const addBotMessage = (text: string, quickReplies?: string[]) => {
+    setIsTyping(true);
+    setTimeout(() => {
+      setMessages(prev => [...prev, {
+        id: Date.now(),
+        text,
+        isBot: true,
+        timestamp: new Date(),
+        quickReplies
+      }]);
+      setIsTyping(false);
+    }, 1000);
+  };
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText.trim(),
+  const addUserMessage = (text: string) => {
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      text,
       isBot: false,
       timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputText('');
-    setIsTyping(true);
-
-    // Simulate bot thinking time
-    setTimeout(() => {
-      const botResponse = getBotResponse(userMessage.text);
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: botResponse,
-        isBot: true,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 1000 + Math.random() * 1000);
+    }]);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  const handleSendMessage = () => {
+    if (!inputValue.trim()) return;
+    
+    addUserMessage(inputValue);
+    const userMessage = inputValue.toLowerCase();
+    
+    // Simple keyword matching for responses
+    if (userMessage.includes('how to play') || userMessage.includes('game rule')) {
+      addBotMessage(botResponses.howToPlay.text, botResponses.howToPlay.quickReplies);
+    } else if (userMessage.includes('scoring') || userMessage.includes('point') || userMessage.includes('xp')) {
+      addBotMessage(botResponses.scoring.text, botResponses.scoring.quickReplies);
+    } else if (userMessage.includes('power') || userMessage.includes('boost')) {
+      addBotMessage(botResponses.powerUps.text, botResponses.powerUps.quickReplies);
+    } else if (userMessage.includes('memory')) {
+      addBotMessage(botResponses.memoryGames.text, botResponses.memoryGames.quickReplies);
+    } else if (userMessage.includes('puzzle')) {
+      addBotMessage(botResponses.puzzleGames.text, botResponses.puzzleGames.quickReplies);
+    } else if (userMessage.includes('account') || userMessage.includes('profile')) {
+      addBotMessage(botResponses.account.text, botResponses.account.quickReplies);
+    } else {
+      // Default helpful response
+      addBotMessage(
+        "I understand you're asking about: \"" + inputValue + "\"\n\nI can help you with:\n• Game instructions and strategies\n• Scoring and XP system\n• Power-ups and shop items\n• Account and profile features\n• Technical support\n\nWhat specific topic interests you?",
+        ["How to play games", "Scoring system", "Power-ups", "Account help"]
+      );
+    }
+    
+    setInputValue('');
+  };
+
+  const handleQuickReply = (reply: string) => {
+    addUserMessage(reply);
+    
+    const replyLower = reply.toLowerCase();
+    if (replyLower.includes('how to play')) {
+      addBotMessage(botResponses.howToPlay.text, botResponses.howToPlay.quickReplies);
+    } else if (replyLower.includes('scoring')) {
+      addBotMessage(botResponses.scoring.text, botResponses.scoring.quickReplies);
+    } else if (replyLower.includes('power')) {
+      addBotMessage(botResponses.powerUps.text, botResponses.powerUps.quickReplies);
+    } else if (replyLower.includes('memory')) {
+      addBotMessage(botResponses.memoryGames.text, botResponses.memoryGames.quickReplies);
+    } else if (replyLower.includes('account')) {
+      addBotMessage(botResponses.account.text, botResponses.account.quickReplies);
+    } else {
+      addBotMessage(botResponses.greeting.text, botResponses.greeting.quickReplies);
     }
   };
 
-  if (!isOpen) return null;
+  const handleQuickAction = (action: string) => {
+    setIsOpen(true);
+    setTimeout(() => {
+      handleQuickReply(action);
+    }, 100);
+  };
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 md:w-96 h-96 bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl z-50 flex flex-col animate-scale-in">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/20 bg-white/5 rounded-t-2xl">
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Bot className="h-6 w-6 text-purple-400" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          </div>
-          <div>
-            <h3 className="text-white font-bold">AI Assistant</h3>
-            <p className="text-white/70 text-xs">Online</p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="p-1 hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <X className="h-5 w-5 text-white" />
-        </button>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex items-start space-x-2 ${
-              message.isBot ? 'justify-start' : 'justify-end'
-            }`}
-          >
-            {message.isBot && (
-              <div className="flex-shrink-0 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                <Bot className="h-3 w-3 text-white" />
-              </div>
-            )}
-            <div
-              className={`max-w-[70%] p-3 rounded-2xl ${
-                message.isBot
-                  ? 'bg-white/10 text-white'
-                  : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
-              }`}
+    <>
+      {/* Quick Action Buttons (when chat is closed) */}
+      {!isOpen && (
+        <div className="fixed bottom-20 right-4 flex flex-col space-y-2 z-40">
+          {quickActions.map((action, index) => (
+            <button
+              key={index}
+              onClick={() => handleQuickAction(action.text)}
+              className={`group bg-gradient-to-r ${action.color} text-white p-3 rounded-full shadow-lg hover:scale-110 transition-all duration-300 animate-bounce`}
+              style={{ animationDelay: `${index * 200}ms` }}
+              title={action.text}
             >
-              <p className="text-sm whitespace-pre-line">{message.text}</p>
-              <p className="text-xs opacity-70 mt-1">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
+              <action.icon className="h-5 w-5" />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Chat Toggle Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-4 right-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-300 z-50"
+      >
+        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+      </button>
+
+      {/* Chat Window */}
+      {isOpen && (
+        <div className="fixed bottom-20 right-4 w-80 md:w-96 h-96 bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 flex flex-col z-50 animate-scale-in">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-white/20">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">
+                <Bot className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold">Brain Burst Assistant</h3>
+                <p className="text-green-400 text-xs flex items-center">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-1 animate-pulse"></div>
+                  Online
+                </p>
+              </div>
             </div>
-            {!message.isBot && (
-              <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                <User className="h-3 w-3 text-white" />
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-white/70 hover:text-white transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
+              >
+                <div className={`max-w-[80%] p-3 rounded-2xl ${
+                  message.isBot
+                    ? 'bg-white/10 text-white'
+                    : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                }`}>
+                  <div className="flex items-start space-x-2">
+                    {message.isBot && (
+                      <Bot className="h-4 w-4 mt-0.5 text-blue-400 flex-shrink-0" />
+                    )}
+                    <p className="text-sm whitespace-pre-line">{message.text}</p>
+                    {!message.isBot && (
+                      <User className="h-4 w-4 mt-0.5 text-white/80 flex-shrink-0" />
+                    )}
+                  </div>
+                  
+                  {/* Quick Replies */}
+                  {message.quickReplies && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {message.quickReplies.map((reply, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleQuickReply(reply)}
+                          className="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full transition-colors"
+                        >
+                          {reply}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="bg-white/10 text-white p-3 rounded-2xl">
+                  <div className="flex items-center space-x-2">
+                    <Bot className="h-4 w-4 text-blue-400" />
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
-        ))}
-        
-        {isTyping && (
-          <div className="flex items-start space-x-2">
-            <div className="flex-shrink-0 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-              <Bot className="h-3 w-3 text-white" />
-            </div>
-            <div className="bg-white/10 p-3 rounded-2xl">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-white/20">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            className="flex-1 px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
-            maxLength={200}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={!inputText.trim() || isTyping}
-            className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-300 hover:scale-105"
-          >
-            <Send className="h-4 w-4 text-white" />
-          </button>
+          {/* Input */}
+          <div className="p-4 border-t border-white/20">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Ask me anything about the games..."
+                className="flex-1 bg-white/10 text-white placeholder-white/50 px-4 py-2 rounded-xl border border-white/20 focus:outline-none focus:border-blue-400 transition-colors"
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!inputValue.trim()}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2 rounded-xl transition-all duration-300"
+              >
+                <Send className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };

@@ -35,6 +35,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose, onSubmit }) =
       return;
     }
 
+    // Submit review but don't display it on the website
+    // Reviews are handled internally for moderation
     onSubmit({
       rating,
       comment: comment.trim(),
@@ -43,7 +45,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose, onSubmit }) =
 
     toast({
       title: "Review Submitted! 🎉",
-      description: "Thank you for your feedback!",
+      description: "Thank you for your feedback! Your review is being processed.",
     });
 
     onClose();
@@ -55,7 +57,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose, onSubmit }) =
         <div className="flex items-center justify-between p-6 border-b border-white/20 bg-white/5">
           <div className="flex items-center space-x-3">
             <MessageCircle className="h-6 w-6 text-purple-400" />
-            <h2 className="text-2xl font-bold text-white">Write a Review</h2>
+            <h2 className="text-2xl font-bold text-white">Share Your Experience</h2>
           </div>
           <button 
             onClick={onClose}
@@ -133,6 +135,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose, onSubmit }) =
             <div className="text-right text-white/50 text-sm mt-1">
               {comment.length}/500 characters
             </div>
+          </div>
+
+          {/* Privacy Notice */}
+          <div className="mb-6 bg-white/5 rounded-xl p-4 border border-white/10">
+            <p className="text-white/80 text-sm">
+              <span className="font-medium">📝 Review Policy:</span> Your feedback helps us improve! 
+              Reviews are processed internally and may be featured as testimonials after moderation.
+            </p>
           </div>
 
           {/* Submit Button */}

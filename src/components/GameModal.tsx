@@ -1,285 +1,176 @@
-
-import React, { useState } from 'react';
-import { X, Volume2, VolumeX } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Trophy, Clock, Target, Star } from 'lucide-react';
+import { TicTacToeGame } from './games/TicTacToeGame';
+import { RockPaperScissorsGame } from './games/RockPaperScissorsGame';
+import { MemoryGame } from './games/MemoryGame';
+import { ReactionTimeGame } from './games/ReactionTimeGame';
+import { PatternMatchGame } from './games/PatternMatchGame';
+import { SimonSaysGame } from './games/SimonSaysGame';
+import { MemoryCardGame } from './games/MemoryCardGame';
+import { NumberSequenceGame } from './games/NumberSequenceGame';
+import { SpaceShooterGame } from './games/SpaceShooterGame';
+import { CarRacingGame } from './games/CarRacingGame';
+import { BubbleShooterGame } from './games/BubbleShooterGame';
+import { PlatformerGame } from './games/PlatformerGame';
+import { SnakeGame } from './games/SnakeGame';
+import { SpeedTypingGame } from './games/SpeedTypingGame';
+import { MathSprintGame } from './games/MathSprintGame';
+import { EnhancedIQTest } from './games/EnhancedIQTest';
+import { EQTest } from './games/EQTest';
+import { BrickBreakerGame } from './games/BrickBreakerGame';
+import { ChessMiniGame } from './games/ChessMiniGame';
 import { GameResult } from '@/types/game';
-import { MemoryGame } from '@/components/games/MemoryGame';
-import { MathSprintGame } from '@/components/games/MathSprintGame';
-import { ReactionTimeGame } from '@/components/games/ReactionTimeGame';
-import { ColorMemoryGame } from '@/components/games/ColorMemoryGame';
-import { PatternMatchGame } from '@/components/games/PatternMatchGame';
-import { SpeedTypingGame } from '@/components/games/SpeedTypingGame';
-import { VisualAttentionGame } from '@/components/games/VisualAttentionGame';
-import { WordAssociationGame } from '@/components/games/WordAssociationGame';
-import { SpatialReasoningGame } from '@/components/games/SpatialReasoningGame';
-import { NumberSequenceGame } from '@/components/games/NumberSequenceGame';
-import { SimonSaysGame } from '@/components/games/SimonSaysGame';
-import { MemoryCardGame } from '@/components/games/MemoryCardGame';
-import { PuzzleBlocksGame } from '@/components/games/PuzzleBlocksGame';
-import { ShapeRotatorGame } from '@/components/games/ShapeRotatorGame';
-import { MazeRunnerGame } from '@/components/games/MazeRunnerGame';
-import { Enhanced3DTowerBuilder } from '@/components/games/Enhanced3DTowerBuilder';
-import { CubeMatcherGame } from '@/components/games/CubeMatcherGame';
-import { OrbitNavigatorGame } from '@/components/games/OrbitNavigatorGame';
-import { EnhancedIQTest } from '@/components/games/EnhancedIQTest';
-import { EQTest } from '@/components/games/EQTest';
-import { TicTacToeGame } from '@/components/games/TicTacToeGame';
-import { RockPaperScissorsGame } from '@/components/games/RockPaperScissorsGame';
-import { SnakeGame } from '@/components/games/SnakeGame';
-import { GameCompleteModal } from '@/components/GameCompleteModal';
-import { audioManager } from '@/utils/audioUtils';
-import { useSounds } from '@/components/SoundManager';
 
-interface GameModalProps {
-  game: any;
-  onComplete: (result: GameResult) => void;
-  onClose: () => void;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
+interface Game {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  icon: string;
+  component?: React.ComponentType<any>;
 }
 
-export const GameModal: React.FC<GameModalProps> = ({ 
-  game, 
-  onComplete, 
-  onClose, 
-  activePowerUps = new Set(), 
-  onPowerUpUsed 
-}) => {
-  const [gameResult, setGameResult] = useState<GameResult | null>(null);
-  const [soundEnabled, setSoundEnabled] = useState(!audioManager.isMuted());
-  const { playSound } = useSounds();
+interface GameModalProps {
+  game: Game | null;
+  onClose: () => void;
+  onComplete: (result: GameResult) => void;
+}
 
-  const handleGameComplete = (result: GameResult) => {
-    playSound('success');
-    setGameResult(result);
+export const GameModal: React.FC<GameModalProps> = ({ game, onClose, onComplete }) => {
+  const [gameStarted, setGameStarted] = useState(false);
+
+  useEffect(() => {
+    setGameStarted(false);
+  }, [game]);
+
+  if (!game) return null;
+
+  const gameComponents: Record<string, React.ComponentType<any>> = {
+    'tic-tac-toe': TicTacToeGame,
+    'rock-paper-scissors': RockPaperScissorsGame,
+    'memory-sequence': MemoryGame,
+    'reaction-time': ReactionTimeGame,
+    'pattern-match': PatternMatchGame,
+    'simon-says': SimonSaysGame,
+    'memory-cards': MemoryCardGame,
+    'number-sequence': NumberSequenceGame,
+    'space-shooter': SpaceShooterGame,
+    'car-racing': CarRacingGame,
+    'bubble-shooter': BubbleShooterGame,
+    'platformer': PlatformerGame,
+    'snake': SnakeGame,
+    'speed-typing': SpeedTypingGame,
+    'math-sprint': MathSprintGame,
+    'iq-test': EnhancedIQTest,
+    'eq-test': EQTest,
+    'brick-breaker': BrickBreakerGame,
+    'chess-mini': ChessMiniGame,
   };
 
-  const handleResultClose = () => {
-    if (gameResult) {
-      onComplete(gameResult);
+  const GameComponent = gameComponents[game.id];
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'easy': return 'text-green-400 bg-green-500/20';
+      case 'medium': return 'text-yellow-400 bg-yellow-500/20';
+      case 'hard': return 'text-orange-400 bg-orange-500/20';
+      case 'expert': return 'text-red-400 bg-red-500/20';
+      default: return 'text-gray-400 bg-gray-500/20';
     }
   };
 
-  const toggleSound = () => {
-    const newState = audioManager.toggle();
-    setSoundEnabled(newState);
-    playSound('click');
-  };
-
-  const renderGame = () => {
-    const gameProps = {
-      onComplete: handleGameComplete,
-      gameId: game.id,
-      activePowerUps,
-      onPowerUpUsed
-    };
-
-    try {
-      switch (game.id) {
-        // Memory Games
-        case 'memory-sequence':
-          return <MemoryGame {...gameProps} />;
-        case 'color-memory':
-          return <ColorMemoryGame {...gameProps} />;
-        case 'simon-says':
-          return <SimonSaysGame {...gameProps} />;
-        case 'memory-cards':
-          return <MemoryCardGame {...gameProps} />;
-        
-        // Puzzle Games
-        case 'puzzle-blocks':
-          return <PuzzleBlocksGame {...gameProps} />;
-        case 'spatial-reasoning':
-          return <SpatialReasoningGame {...gameProps} />;
-        case 'shape-rotator':
-          return <ShapeRotatorGame {...gameProps} />;
-        case 'pattern-match':
-          return <PatternMatchGame {...gameProps} />;
-        
-        // Speed Games
-        case 'reaction-time':
-          return <ReactionTimeGame {...gameProps} />;
-        case 'speed-typing':
-          return <SpeedTypingGame {...gameProps} />;
-        case 'math-sprint':
-          return <MathSprintGame {...gameProps} />;
-        
-        // Racing/Action Games
-        case 'visual-attention':
-          return <VisualAttentionGame {...gameProps} />;
-        case 'word-association':
-          return <WordAssociationGame {...gameProps} />;
-        case 'number-sequence':
-          return <NumberSequenceGame {...gameProps} />;
-        
-        // 3D Games (converted to 2D)
-        case 'maze-runner':
-          return <MazeRunnerGame {...gameProps} />;
-        case 'tower-builder':
-          return <Enhanced3DTowerBuilder {...gameProps} />;
-        case 'cube-matcher':
-          return <CubeMatcherGame {...gameProps} />;
-        case 'orbit-navigator':
-          return <OrbitNavigatorGame {...gameProps} />;
-        
-        // Strategy Games
-        case 'tic-tac-toe':
-          return <TicTacToeGame {...gameProps} />;
-        case 'rock-paper-scissors':
-          return <RockPaperScissorsGame {...gameProps} />;
-        
-        // Arcade Games
-        case 'snake-game':
-          return <SnakeGame {...gameProps} />;
-        
-        // Intelligence Tests
-        case 'enhanced-iq-test':
-        case 'iq-test':
-          return <EnhancedIQTest {...gameProps} />;
-        case 'eq-test':
-          return <EQTest {...gameProps} />;
-        
-        default:
-          return <GenericGame {...gameProps} game={game} />;
-      }
-    } catch (error) {
-      console.error('Error rendering game:', error);
-      return <GenericGame {...gameProps} game={game} />;
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'memory': return 'text-blue-400 bg-blue-500/20';
+      case 'puzzle': return 'text-green-400 bg-green-500/20';
+      case 'speed': return 'text-yellow-400 bg-yellow-500/20';
+      case 'racing': return 'text-orange-400 bg-orange-500/20';
+      case 'shooting': return 'text-red-400 bg-red-500/20';
+      case 'arcade': return 'text-purple-400 bg-purple-500/20';
+      case 'strategy': return 'text-indigo-400 bg-indigo-500/20';
+      case 'intelligence': return 'text-pink-400 bg-pink-500/20';
+      default: return 'text-gray-400 bg-gray-500/20';
     }
   };
-
-  if (gameResult) {
-    return (
-      <GameCompleteModal
-        result={gameResult}
-        game={game}
-        onClose={handleResultClose}
-      />
-    );
-  }
 
   return (
-    <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4 animate-fade-in">
-      <div className="bg-gradient-to-br from-slate-900/95 to-purple-900/95 backdrop-blur-lg rounded-xl md:rounded-3xl w-full max-w-6xl max-h-[98vh] md:max-h-[95vh] overflow-hidden border border-white/30 shadow-2xl animate-scale-in">
-        <div className="flex items-center justify-between p-3 md:p-6 border-b border-white/20 bg-white/5">
-          <div className="flex items-center space-x-2 md:space-x-3">
-            <div className="p-1.5 md:p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-              <game.icon className="h-4 w-4 md:h-6 md:w-6 text-white" />
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-lg rounded-3xl w-full max-w-4xl max-h-[95vh] overflow-hidden border border-white/30 shadow-2xl animate-scale-in">
+        <div className="flex items-center justify-between p-4 md:p-6 border-b border-white/20 bg-white/5">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl text-2xl">
+              {game.icon}
             </div>
             <div>
-              <h2 className="text-lg md:text-2xl font-bold text-white">{game.title}</h2>
-              <p className="text-white/70 text-xs md:text-sm hidden md:block">{game.description}</p>
+              <h2 className="text-xl md:text-2xl font-bold text-white">{game.title}</h2>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getCategoryColor(game.category)}`}>
+                  {game.category}
+                </span>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(game.difficulty)}`}>
+                  {game.difficulty}
+                </span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center space-x-2 md:space-x-3">
-            <button
-              onClick={toggleSound}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors touch-target"
-              title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
-            >
-              {soundEnabled ? (
-                <Volume2 className="h-4 w-4 md:h-5 md:w-5 text-white" />
-              ) : (
-                <VolumeX className="h-4 w-4 md:h-5 md:w-5 text-white/50" />
-              )}
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors touch-target"
-            >
-              <X className="h-5 w-5 md:h-6 md:w-6 text-white" />
-            </button>
-          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+          >
+            <X className="h-6 w-6 text-white" />
+          </button>
         </div>
-        
-        <div className="p-2 md:p-6 overflow-y-auto max-h-[calc(98vh-80px)] md:max-h-[calc(95vh-120px)]">
-          {renderGame()}
+
+        <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(95vh-120px)]">
+          {!gameStarted && GameComponent ? (
+            <div className="text-center space-y-6">
+              <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+                <p className="text-white/80 text-lg leading-relaxed">{game.description}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <Trophy className="h-8 w-8 text-yellow-400 mx-auto mb-2" />
+                  <div className="text-white font-bold text-lg">Score Points</div>
+                  <div className="text-white/70 text-sm">Earn XP and climb leaderboards</div>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <Target className="h-8 w-8 text-green-400 mx-auto mb-2" />
+                  <div className="text-white font-bold text-lg">Track Accuracy</div>
+                  <div className="text-white/70 text-sm">Monitor your performance</div>
+                </div>
+                <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                  <Clock className="h-8 w-8 text-blue-400 mx-auto mb-2" />
+                  <div className="text-white font-bold text-lg">Beat Your Time</div>
+                  <div className="text-white/70 text-sm">Improve your speed</div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setGameStarted(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center space-x-3 mx-auto"
+              >
+                <Star className="h-6 w-6" />
+                <span>Start Game</span>
+              </button>
+            </div>
+          ) : GameComponent ? (
+            <GameComponent
+              onComplete={(result: GameResult) => {
+                onComplete(result);
+                onClose();
+              }}
+              gameId={game.id}
+            />
+          ) : (
+            <div className="text-center text-white p-8">
+              <div className="text-6xl mb-4">🚧</div>
+              <h3 className="text-xl font-bold mb-2">Coming Soon!</h3>
+              <p className="text-white/70">This game is under development. Check back soon!</p>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Enhanced Generic Game Component
-const GenericGame: React.FC<{
-  onComplete: (result: GameResult) => void;
-  gameId: string;
-  game: any;
-}> = ({ onComplete, gameId, game }) => {
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [clicks, setClicks] = useState(0);
-
-  const handleStart = () => {
-    setGameStarted(true);
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          const accuracy = Math.min(100, Math.round((clicks / 60) * 100));
-          onComplete({
-            gameId,
-            score,
-            accuracy,
-            timeSpent: 60,
-            xpEarned: Math.max(25, Math.floor(score / 4))
-          });
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
-  const handleClick = () => {
-    if (gameStarted && timeLeft > 0) {
-      setScore(prev => prev + 15);
-      setClicks(prev => prev + 1);
-    }
-  };
-
-  if (!gameStarted) {
-    return (
-      <div className="text-center text-white p-4">
-        <div className="mb-6">
-          <game.icon className="h-16 w-16 mx-auto mb-4 text-blue-400" />
-          <h3 className="text-xl md:text-2xl font-bold mb-4">{game.title}</h3>
-          <p className="mb-6 text-sm md:text-lg text-white/80">{game.description}</p>
-        </div>
-        <button
-          onClick={handleStart}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-lg transition-all duration-300 hover:scale-105"
-        >
-          Start Game
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="text-center text-white p-4">
-      <div className="mb-6">
-        <div className="text-lg md:text-xl mb-2">Time: {timeLeft}s</div>
-        <div className="text-lg md:text-xl mb-2">Score: {score}</div>
-        <div className="text-sm md:text-lg mb-4 text-white/70">Clicks: {clicks}</div>
-      </div>
-      
-      <div className="bg-white/5 rounded-2xl p-8 mb-6 border border-white/20">
-        <button
-          onClick={handleClick}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-8 py-6 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-lg"
-        >
-          Click Me! 🎯
-        </button>
-      </div>
-      
-      <p className="text-white/70">Click the button as many times as you can!</p>
-      
-      <div className="mt-4 bg-white/10 rounded-full h-2">
-        <div 
-          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-          style={{ width: `${((60 - timeLeft) / 60) * 100}%` }}
-        />
       </div>
     </div>
   );
