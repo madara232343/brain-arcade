@@ -19,9 +19,12 @@ export interface GameResult {
 export interface UserProgress {
   level: number;
   xp: number;
-  gamesPlayed: number;
+  gamesPlayed: string[];
   totalScore: number;
   achievements: string[];
+  totalXP: number;
+  playedGames: string[];
+  totalPlayTime: number;
 }
 
 const Games = () => {
@@ -31,13 +34,11 @@ const Games = () => {
 
   const handleGameComplete = (result: GameResult) => {
     console.log('Game completed:', result);
-    // Handle game completion logic here
     setSelectedGame(null);
   };
 
   const handlePowerUpUsed = (type: string) => {
     console.log('Power-up used:', type);
-    // Handle power-up usage logic here
   };
 
   return (
