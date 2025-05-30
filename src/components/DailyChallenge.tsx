@@ -1,197 +1,214 @@
 
-import React, { useState, useEffect } from 'react';
-import { Calendar, Trophy, Clock, Star, Zap, Gift } from 'lucide-react';
+import React from 'react';
+import { Calendar, Play, Flame, Star, Trophy, Gift, Target, Zap, Clock, Brain } from 'lucide-react';
 
-export const DailyChallenge: React.FC = () => {
-  const [currentChallenge, setCurrentChallenge] = useState<any>(null);
-  const [timeLeft, setTimeLeft] = useState<string>('');
-  const [streak, setStreak] = useState(3);
-  const [completed, setCompleted] = useState(false);
+interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
+}
 
-  const challenges = [
-    {
-      id: 1,
-      title: "Memory Master",
-      description: "Complete 3 memory games with 80%+ accuracy",
-      reward: "250 XP + Memory Badge",
-      difficulty: "Medium",
-      icon: "🧠",
-      progress: 2,
-      total: 3
-    },
-    {
-      id: 2,
-      title: "Speed Demon",
-      description: "Finish 5 speed games under 30 seconds each",
-      reward: "300 XP + Speed Badge",
-      difficulty: "Hard",
-      icon: "⚡",
-      progress: 1,
-      total: 5
-    },
-    {
-      id: 3,
-      title: "Perfect Score",
-      description: "Get 100% accuracy in any puzzle game",
-      reward: "400 XP + Perfect Badge",
-      difficulty: "Expert",
-      icon: "🎯",
-      progress: 0,
-      total: 1
-    }
-  ];
+interface DailyChallengeProps {
+  userProgress: UserProgress;
+  onPlayGame: (game: any) => void;
+}
 
-  useEffect(() => {
-    // Set random daily challenge
-    const today = new Date().getDate();
-    const challengeIndex = today % challenges.length;
-    setCurrentChallenge(challenges[challengeIndex]);
+const dailyChallenges = [
+  {
+    id: 'memory-sequence',
+    title: 'Memory Master Challenge',
+    description: 'Complete 3 memory games in a row without mistakes',
+    type: 'memory',
+    difficulty: 'hard',
+    xpReward: 100,
+    bonusReward: 'Memory Champion Badge',
+    icon: Brain
+  },
+  {
+    id: 'reaction-time',
+    title: 'Speed Demon Challenge',
+    description: 'Beat your best reaction time 5 times',
+    type: 'speed',
+    difficulty: 'medium',
+    xpReward: 75,
+    bonusReward: 'Lightning Badge',
+    icon: Zap
+  },
+  {
+    id: 'math-sprint',
+    title: 'Math Wizard Challenge',
+    description: 'Solve 50 math problems with 95% accuracy',
+    type: 'math',
+    difficulty: 'hard',
+    xpReward: 120,
+    bonusReward: 'Calculator Master Badge',
+    icon: Target
+  },
+  {
+    id: 'pattern-match',
+    title: 'Pattern Genius Challenge',
+    description: 'Complete pattern matching in under 30 seconds',
+    type: 'pattern',
+    difficulty: 'medium',
+    xpReward: 80,
+    bonusReward: 'Pattern Expert Badge',
+    icon: Star
+  },
+  {
+    id: 'speed-typing',
+    title: 'Typing Master Challenge',
+    description: 'Achieve 60+ WPM in speed typing',
+    type: 'typing',
+    difficulty: 'medium',
+    xpReward: 90,
+    bonusReward: 'Speed Typer Badge',
+    icon: Clock
+  },
+  {
+    id: 'visual-attention',
+    title: 'Focus Master Challenge',
+    description: 'Complete visual attention with 100% accuracy',
+    type: 'attention',
+    difficulty: 'hard',
+    xpReward: 110,
+    bonusReward: 'Eagle Eye Badge',
+    icon: Trophy
+  },
+  {
+    id: 'word-association',
+    title: 'Word Wizard Challenge',
+    description: 'Get 20 correct word associations in a row',
+    type: 'language',
+    difficulty: 'medium',
+    xpReward: 85,
+    bonusReward: 'Word Master Badge',
+    icon: Gift
+  }
+];
 
-    // Calculate time until next challenge (midnight)
-    const now = new Date();
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0);
-    
-    const updateTimer = () => {
-      const timeRemaining = tomorrow.getTime() - new Date().getTime();
-      const hours = Math.floor(timeRemaining / (1000 * 60 * 60));
-      const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-      setTimeLeft(`${hours}h ${minutes}m`);
-    };
+export const DailyChallenge: React.FC<DailyChallengeProps> = ({ userProgress, onPlayGame }) => {
+  const today = new Date().toDateString();
+  const hasPlayedToday = userProgress.lastPlayDate === today;
+  
+  // Rotate daily challenge based on day of year
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const todaysChallenge = dailyChallenges[dayOfYear % dailyChallenges.length];
 
-    updateTimer();
-    const timer = setInterval(updateTimer, 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Easy': return 'text-green-400';
-      case 'Medium': return 'text-yellow-400';
-      case 'Hard': return 'text-orange-400';
-      case 'Expert': return 'text-red-400';
-      default: return 'text-gray-400';
-    }
+  const getStreakColor = () => {
+    if (userProgress.streak >= 30) return 'from-purple-500 to-pink-500';
+    if (userProgress.streak >= 14) return 'from-yellow-500 to-orange-500';
+    if (userProgress.streak >= 7) return 'from-green-500 to-blue-500';
+    return 'from-orange-500 to-pink-500';
   };
 
-  const getDifficultyBg = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Easy': return 'bg-green-500/20';
-      case 'Medium': return 'bg-yellow-500/20';
-      case 'Hard': return 'bg-orange-500/20';
-      case 'Expert': return 'bg-red-500/20';
-      default: return 'bg-gray-500/20';
-    }
+  const getStreakEmoji = () => {
+    if (userProgress.streak >= 30) return '🏆';
+    if (userProgress.streak >= 14) return '⭐';
+    if (userProgress.streak >= 7) return '🔥';
+    return '✨';
   };
 
-  if (!currentChallenge) return null;
+  const dailyGame = {
+    ...todaysChallenge,
+    isDailyChallenge: true
+  };
+
+  const IconComponent = todaysChallenge.icon;
 
   return (
-    <div className="bg-gradient-to-br from-purple-900/40 to-blue-900/40 backdrop-blur-lg rounded-3xl p-4 md:p-6 border border-white/20 shadow-2xl">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6">
-        <div className="flex items-center space-x-3 mb-3 md:mb-0">
-          <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
-            <Calendar className="h-5 w-5 md:h-6 md:w-6 text-white" />
+    <div className={`bg-gradient-to-r ${getStreakColor()} rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-2xl animate-fade-in hover:scale-[1.02] transition-all duration-300`}>
+      {/* Animated background elements */}
+      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16 animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-bounce" style={{ animationDelay: '2s' }} />
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <Calendar className="h-8 w-8 animate-pulse" />
+            <div>
+              <h2 className="text-3xl font-bold">Daily Challenge</h2>
+              <p className="text-white/90 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg md:text-xl font-bold text-white">Daily Challenge</h3>
-            <p className="text-white/70 text-xs md:text-sm">Resets in {timeLeft}</p>
+          <div className="flex items-center space-x-4">
+            <div className="text-center">
+              <div className="flex items-center space-x-2 bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm">
+                <Flame className="h-6 w-6 animate-pulse" />
+                <span className="font-bold text-xl">{userProgress.streak}</span>
+              </div>
+              <p className="text-xs mt-1 opacity-90">day streak</p>
+            </div>
+            <div className="text-4xl animate-bounce">
+              {getStreakEmoji()}
+            </div>
           </div>
         </div>
-        
-        <div className="flex items-center space-x-2 md:space-x-4">
-          <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-3 py-1">
-            <Zap className="h-4 w-4 text-yellow-400" />
-            <span className="text-white text-sm font-bold">{streak} day streak</span>
-          </div>
-          <div className="p-2 bg-white/10 rounded-lg">
-            <Trophy className="h-4 w-4 md:h-5 md:w-5 text-yellow-400" />
-          </div>
-        </div>
-      </div>
 
-      {/* Challenge Card */}
-      <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-white/10 hover:border-white/20 transition-all duration-300">
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-          <div className="flex-1">
-            <div className="flex items-center space-x-3 mb-3">
-              <span className="text-2xl md:text-3xl">{currentChallenge.icon}</span>
-              <div>
-                <h4 className="text-lg md:text-xl font-bold text-white">{currentChallenge.title}</h4>
-                <div className={`inline-block px-2 py-1 rounded-lg text-xs font-medium ${getDifficultyBg(currentChallenge.difficulty)} ${getDifficultyColor(currentChallenge.difficulty)}`}>
-                  {currentChallenge.difficulty}
-                </div>
-              </div>
+        <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 mb-6">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="p-2 bg-white/20 rounded-xl">
+              <IconComponent className="h-6 w-6 text-white" />
             </div>
-            
-            <p className="text-white/80 mb-4 text-sm md:text-base">{currentChallenge.description}</p>
-            
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-white/70 text-sm">Progress</span>
-                <span className="text-white font-bold text-sm">
-                  {currentChallenge.progress}/{currentChallenge.total}
-                </span>
-              </div>
-              <div className="w-full bg-white/10 rounded-full h-2">
-                <div 
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-500"
-                  style={{ width: `${(currentChallenge.progress / currentChallenge.total) * 100}%` }}
-                />
-              </div>
+            <h3 className="text-xl font-bold">{todaysChallenge.title}</h3>
+          </div>
+          <p className="text-lg mb-4 opacity-95">
+            {todaysChallenge.description}
+          </p>
+          <div className="flex items-center space-x-4 flex-wrap gap-2">
+            <div className="flex items-center space-x-2 bg-white/20 rounded-lg px-3 py-2">
+              <Star className="h-4 w-4" />
+              <span className="text-sm font-medium">{todaysChallenge.difficulty}</span>
             </div>
-            
-            {/* Reward */}
-            <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl p-3">
-              <Gift className="h-4 w-4 md:h-5 md:w-5 text-yellow-400" />
-              <span className="text-white font-medium text-sm md:text-base">{currentChallenge.reward}</span>
+            <div className="flex items-center space-x-2 bg-white/20 rounded-lg px-3 py-2">
+              <Gift className="h-4 w-4" />
+              <span className="text-sm font-medium">+{todaysChallenge.xpReward} XP</span>
             </div>
+            <div className="bg-yellow-500/20 rounded-lg px-3 py-2">
+              <span className="text-sm font-medium text-yellow-200">{todaysChallenge.bonusReward}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-lg font-semibold opacity-95">
+              Keep your streak alive! 🚀
+            </p>
+            <p className="text-sm opacity-80">
+              Complete daily challenges to earn bonus rewards and maintain your streak.
+            </p>
           </div>
           
-          {/* Action Button */}
-          <div className="mt-4 md:mt-0 md:ml-6">
-            {currentChallenge.progress >= currentChallenge.total ? (
-              <button 
-                className="w-full md:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2"
-                onClick={() => setCompleted(true)}
-              >
-                <Trophy className="h-4 w-4" />
-                <span>Claim Reward</span>
-              </button>
-            ) : (
-              <button className="w-full md:w-auto bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2">
-                <Star className="h-4 w-4" />
-                <span>Start Challenge</span>
-              </button>
-            )}
-          </div>
+          <button
+            onClick={() => onPlayGame(dailyGame)}
+            className={`flex items-center space-x-3 px-8 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
+              hasPlayedToday
+                ? 'bg-white/20 text-white/70 cursor-not-allowed'
+                : 'bg-white text-purple-600 hover:bg-purple-50 shadow-lg hover:shadow-xl'
+            }`}
+            disabled={hasPlayedToday}
+          >
+            <Play className={`h-6 w-6 ${hasPlayedToday ? '' : 'animate-pulse'}`} />
+            <span className="text-lg">
+              {hasPlayedToday ? 'Completed! ✓' : 'Start Challenge'}
+            </span>
+          </button>
         </div>
-      </div>
-
-      {/* Weekly Preview */}
-      <div className="mt-4 md:mt-6 grid grid-cols-7 gap-1 md:gap-2">
-        {Array.from({ length: 7 }).map((_, index) => {
-          const isToday = index === new Date().getDay();
-          const isCompleted = index < new Date().getDay();
-          
-          return (
-            <div
-              key={index}
-              className={`aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 ${
-                isToday 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white scale-110' 
-                  : isCompleted 
-                    ? 'bg-green-500/30 text-green-400' 
-                    : 'bg-white/10 text-white/50'
-              }`}
-            >
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'][index]}
-            </div>
-          );
-        })}
       </div>
     </div>
   );
