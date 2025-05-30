@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { X, Volume2, VolumeX } from 'lucide-react';
-import { GameResult } from '@/pages/Games';
+import { GameResult } from '@/types/game';
 import { MemoryGame } from '@/components/games/MemoryGame';
 import { MathSprintGame } from '@/components/games/MathSprintGame';
 import { ReactionTimeGame } from '@/components/games/ReactionTimeGame';
@@ -20,7 +20,11 @@ import { MazeRunnerGame } from '@/components/games/MazeRunnerGame';
 import { Enhanced3DTowerBuilder } from '@/components/games/Enhanced3DTowerBuilder';
 import { CubeMatcherGame } from '@/components/games/CubeMatcherGame';
 import { OrbitNavigatorGame } from '@/components/games/OrbitNavigatorGame';
-import { IQTestGame } from '@/components/games/IQTestGame';
+import { EnhancedIQTest } from '@/components/games/EnhancedIQTest';
+import { EQTest } from '@/components/games/EQTest';
+import { TicTacToeGame } from '@/components/games/TicTacToeGame';
+import { RockPaperScissorsGame } from '@/components/games/RockPaperScissorsGame';
+import { SnakeGame } from '@/components/games/SnakeGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
 import { useSounds } from '@/components/SoundManager';
@@ -71,34 +75,43 @@ export const GameModal: React.FC<GameModalProps> = ({
 
     try {
       switch (game.id) {
+        // Memory Games
         case 'memory-sequence':
           return <MemoryGame {...gameProps} />;
         case 'color-memory':
           return <ColorMemoryGame {...gameProps} />;
-        case 'math-sprint':
-          return <MathSprintGame {...gameProps} />;
-        case 'reaction-time':
-          return <ReactionTimeGame {...gameProps} />;
+        case 'simon-says':
+          return <SimonSaysGame {...gameProps} />;
+        case 'memory-cards':
+          return <MemoryCardGame {...gameProps} />;
+        
+        // Puzzle Games
+        case 'puzzle-blocks':
+          return <PuzzleBlocksGame {...gameProps} />;
+        case 'spatial-reasoning':
+          return <SpatialReasoningGame {...gameProps} />;
+        case 'shape-rotator':
+          return <ShapeRotatorGame {...gameProps} />;
         case 'pattern-match':
           return <PatternMatchGame {...gameProps} />;
+        
+        // Speed Games
+        case 'reaction-time':
+          return <ReactionTimeGame {...gameProps} />;
         case 'speed-typing':
           return <SpeedTypingGame {...gameProps} />;
+        case 'math-sprint':
+          return <MathSprintGame {...gameProps} />;
+        
+        // Racing/Action Games
         case 'visual-attention':
           return <VisualAttentionGame {...gameProps} />;
         case 'word-association':
           return <WordAssociationGame {...gameProps} />;
         case 'number-sequence':
           return <NumberSequenceGame {...gameProps} />;
-        case 'simon-says':
-          return <SimonSaysGame {...gameProps} />;
-        case 'memory-cards':
-          return <MemoryCardGame {...gameProps} />;
-        case 'spatial-reasoning':
-          return <SpatialReasoningGame {...gameProps} />;
-        case 'puzzle-blocks':
-          return <PuzzleBlocksGame {...gameProps} />;
-        case 'shape-rotator':
-          return <ShapeRotatorGame {...gameProps} />;
+        
+        // 3D Games (converted to 2D)
         case 'maze-runner':
           return <MazeRunnerGame {...gameProps} />;
         case 'tower-builder':
@@ -107,14 +120,30 @@ export const GameModal: React.FC<GameModalProps> = ({
           return <CubeMatcherGame {...gameProps} />;
         case 'orbit-navigator':
           return <OrbitNavigatorGame {...gameProps} />;
+        
+        // Strategy Games
+        case 'tic-tac-toe':
+          return <TicTacToeGame {...gameProps} />;
+        case 'rock-paper-scissors':
+          return <RockPaperScissorsGame {...gameProps} />;
+        
+        // Arcade Games
+        case 'snake-game':
+          return <SnakeGame {...gameProps} />;
+        
+        // Intelligence Tests
+        case 'enhanced-iq-test':
         case 'iq-test':
-          return <IQTestGame {...gameProps} />;
+          return <EnhancedIQTest {...gameProps} />;
+        case 'eq-test':
+          return <EQTest {...gameProps} />;
+        
         default:
-          return <GenericDemoGame {...gameProps} game={game} />;
+          return <GenericGame {...gameProps} game={game} />;
       }
     } catch (error) {
       console.error('Error rendering game:', error);
-      return <GenericDemoGame {...gameProps} game={game} />;
+      return <GenericGame {...gameProps} game={game} />;
     }
   };
 
@@ -129,8 +158,8 @@ export const GameModal: React.FC<GameModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4 animate-fade-in">
-      <div className="bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-xl md:rounded-3xl w-full max-w-6xl max-h-[98vh] md:max-h-[95vh] overflow-hidden border border-white/30 shadow-2xl animate-scale-in">
+    <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4 animate-fade-in">
+      <div className="bg-gradient-to-br from-slate-900/95 to-purple-900/95 backdrop-blur-lg rounded-xl md:rounded-3xl w-full max-w-6xl max-h-[98vh] md:max-h-[95vh] overflow-hidden border border-white/30 shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between p-3 md:p-6 border-b border-white/20 bg-white/5">
           <div className="flex items-center space-x-2 md:space-x-3">
             <div className="p-1.5 md:p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
@@ -170,17 +199,16 @@ export const GameModal: React.FC<GameModalProps> = ({
   );
 };
 
-// Generic Demo Game Component for fallback
-const GenericDemoGame: React.FC<{
+// Enhanced Generic Game Component
+const GenericGame: React.FC<{
   onComplete: (result: GameResult) => void;
   gameId: string;
   game: any;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
 }> = ({ onComplete, gameId, game }) => {
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(60);
   const [gameStarted, setGameStarted] = useState(false);
+  const [clicks, setClicks] = useState(0);
 
   const handleStart = () => {
     setGameStarted(true);
@@ -188,11 +216,12 @@ const GenericDemoGame: React.FC<{
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
+          const accuracy = Math.min(100, Math.round((clicks / 60) * 100));
           onComplete({
             gameId,
             score,
-            accuracy: 85 + Math.random() * 15,
-            timeSpent: 30,
+            accuracy,
+            timeSpent: 60,
             xpEarned: Math.max(25, Math.floor(score / 4))
           });
           return 0;
@@ -204,18 +233,22 @@ const GenericDemoGame: React.FC<{
 
   const handleClick = () => {
     if (gameStarted && timeLeft > 0) {
-      setScore(prev => prev + 10);
+      setScore(prev => prev + 15);
+      setClicks(prev => prev + 1);
     }
   };
 
   if (!gameStarted) {
     return (
       <div className="text-center text-white p-4">
-        <h3 className="text-xl md:text-2xl font-bold mb-4">{game.title}</h3>
-        <p className="mb-6 text-sm md:text-lg">{game.description}</p>
+        <div className="mb-6">
+          <game.icon className="h-16 w-16 mx-auto mb-4 text-blue-400" />
+          <h3 className="text-xl md:text-2xl font-bold mb-4">{game.title}</h3>
+          <p className="mb-6 text-sm md:text-lg text-white/80">{game.description}</p>
+        </div>
         <button
           onClick={handleStart}
-          className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-lg transition-all duration-300 hover:scale-105"
+          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-lg transition-all duration-300 hover:scale-105"
         >
           Start Game
         </button>
@@ -225,19 +258,29 @@ const GenericDemoGame: React.FC<{
 
   return (
     <div className="text-center text-white p-4">
-      <div className="mb-4">
+      <div className="mb-6">
         <div className="text-lg md:text-xl mb-2">Time: {timeLeft}s</div>
-        <div className="text-lg md:text-xl mb-4">Score: {score}</div>
+        <div className="text-lg md:text-xl mb-2">Score: {score}</div>
+        <div className="text-sm md:text-lg mb-4 text-white/70">Clicks: {clicks}</div>
       </div>
-      <div className="bg-white/10 rounded-xl p-8 mb-4">
+      
+      <div className="bg-white/5 rounded-2xl p-8 mb-6 border border-white/20">
         <button
           onClick={handleClick}
-          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"
+          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-8 py-6 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-lg"
         >
           Click Me! 🎯
         </button>
       </div>
+      
       <p className="text-white/70">Click the button as many times as you can!</p>
+      
+      <div className="mt-4 bg-white/10 rounded-full h-2">
+        <div 
+          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+          style={{ width: `${((60 - timeLeft) / 60) * 100}%` }}
+        />
+      </div>
     </div>
   );
 };
