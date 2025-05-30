@@ -1,307 +1,206 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, Gamepad2, Trophy, Users, Star, ChevronRight, Play, Award, Zap, Shield, Target } from 'lucide-react';
-import { ReviewModal } from '@/components/ReviewModal';
+import { Brain, Gamepad2, Trophy, Users, Star, ChevronRight, Play, Zap, Target } from 'lucide-react';
 
-export const Landing: React.FC = () => {
-  const [showReviewModal, setShowReviewModal] = useState(false);
+const Landing = () => {
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   const testimonials = [
     {
       name: "Alex Johnson",
       rating: 5,
-      comment: "Brain Burst Arcade is amazing! The games are challenging and fun. I've improved my memory and reaction time significantly.",
-      avatar: "🧠"
+      comment: "Amazing brain training games! I've improved my memory and reaction time significantly.",
+      avatar: "👨‍💻"
     },
     {
-      name: "Sarah Chen", 
+      name: "Sarah Chen",
       rating: 5,
-      comment: "Love the variety of games! The daily challenges keep me coming back. Great way to exercise your brain while having fun.",
-      avatar: "🎯"
+      comment: "The variety of games is incredible. Each one challenges different cognitive skills.",
+      avatar: "👩‍🎓"
     },
     {
       name: "Mike Rodriguez",
-      rating: 4,
-      comment: "Fantastic game collection! The IQ and EQ tests are surprisingly accurate. Perfect for brain training and entertainment.",
-      avatar: "⚡"
+      rating: 5,
+      comment: "Perfect for daily brain exercise. The progress tracking keeps me motivated!",
+      avatar: "🧑‍🔬"
     },
     {
       name: "Emma Wilson",
       rating: 5,
-      comment: "The most comprehensive brain training platform I've used. Games are well-designed and the progression system is motivating.",
-      avatar: "🏆"
-    },
-    {
-      name: "David Kumar",
-      rating: 5,
-      comment: "Incredible variety of cognitive games! The 3D games are stunning and the 2D games are perfectly crafted. Highly recommended!",
-      avatar: "🎮"
+      comment: "Love the clean interface and smooth gameplay. Highly recommended!",
+      avatar: "👩‍🎨"
     }
   ];
 
   const features = [
     {
-      icon: Brain,
+      icon: <Brain className="h-8 w-8" />,
       title: "100+ Brain Games",
-      description: "Memory, puzzle, speed, racing, and shooting games designed by cognitive experts",
-      color: "from-blue-500 to-cyan-500"
+      description: "Diverse collection of cognitive training games"
     },
     {
-      icon: Trophy,
-      title: "IQ & EQ Testing",
-      description: "Accurate intelligence and emotional quotient assessments with detailed analysis",
-      color: "from-green-500 to-emerald-500"
+      icon: <Target className="h-8 w-8" />,
+      title: "Skill Assessment",
+      description: "Track your IQ, EQ, and cognitive abilities"
     },
     {
-      icon: Zap,
-      title: "Power-ups & Rewards",
-      description: "Earn XP, unlock achievements, and use power-ups to enhance your gameplay",
-      color: "from-yellow-500 to-orange-500"
+      icon: <Trophy className="h-8 w-8" />,
+      title: "Achievement System",
+      description: "Unlock rewards and track your progress"
     },
     {
-      icon: Users,
-      title: "Global Leaderboards",
-      description: "Compete with players worldwide and track your cognitive improvement",
-      color: "from-purple-500 to-pink-500"
+      icon: <Zap className="h-8 w-8" />,
+      title: "Daily Challenges",
+      description: "Fresh challenges every day to keep you engaged"
     }
   ];
 
-  const gameCategories = [
-    { name: "Memory Games", icon: "🧠", count: "25+", color: "from-blue-500 to-blue-600" },
-    { name: "Puzzle Games", icon: "🧩", count: "20+", color: "from-green-500 to-green-600" },
-    { name: "Speed Games", icon: "⚡", count: "15+", color: "from-yellow-500 to-yellow-600" },
-    { name: "Racing Games", icon: "🏎️", count: "15+", color: "from-red-500 to-red-600" },
-    { name: "Shooting Games", icon: "🎯", count: "15+", color: "from-purple-500 to-purple-600" },
-    { name: "Strategy Games", icon: "♟️", count: "10+", color: "from-indigo-500 to-indigo-600" }
-  ];
-
-  const handleReviewSubmit = (review: { rating: number; comment: string; name: string }) => {
-    console.log('Review submitted:', review);
-    // In a real app, this would send to backend
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20" />
-        <div className="relative container mx-auto px-4 py-12 md:py-20">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="mb-6 animate-bounce">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full mb-4">
-                <Brain className="h-10 w-10 text-white" />
-              </div>
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative container mx-auto px-4 py-20">
+          <div className="text-center">
+            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-2 mb-8 animate-pulse">
+              <Gamepad2 className="h-5 w-5 text-yellow-400" />
+              <span className="text-white font-medium">100+ Games Available</span>
             </div>
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-fade-in">
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Brain Burst
+            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in-up">
+              Brain Burst
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+                Arcade
               </span>
-              <br />
-              <span className="text-white">Arcade</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-white/80 mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              Challenge your mind with 100+ cognitive games designed to boost memory, 
-              speed, and problem-solving skills
+            <p className="text-xl md:text-2xl text-white/80 mb-8 max-w-3xl mx-auto animate-fade-in-up delay-200">
+              Challenge your mind with our collection of brain-training games. 
+              Improve memory, reaction time, and cognitive skills while having fun!
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-400">
               <Link
                 to="/games"
-                className="group bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center space-x-2"
+                className="group bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 flex items-center justify-center space-x-2"
               >
-                <Play className="h-6 w-6" />
+                <Play className="h-5 w-5" />
                 <span>Start Playing</span>
                 <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               
-              <button
-                onClick={() => setShowReviewModal(true)}
-                className="group bg-white/10 hover:bg-white/20 backdrop-blur-lg text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 border border-white/20 flex items-center space-x-2"
+              <Link
+                to="/profile"
+                className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"
               >
-                <Star className="h-6 w-6" />
-                <span>Write Review</span>
-              </button>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-              {[
-                { label: "Brain Games", value: "100+" },
-                { label: "Active Players", value: "50K+" },
-                { label: "Countries", value: "120+" },
-                { label: "Success Rate", value: "95%" }
-              ].map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
-                  <div className="text-white/70 text-sm">{stat.label}</div>
-                </div>
-              ))}
+                View Profile
+              </Link>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Features Section */}
-      <section className="py-16 md:py-24">
+      <div className="py-20 bg-black/20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Why Choose Brain Burst Arcade?
-            </h2>
-            <p className="text-xl text-white/70 max-w-2xl mx-auto">
-              Scientifically designed games that make cognitive training fun and effective
-            </p>
-          </div>
-
+          <h2 className="text-4xl font-bold text-white text-center mb-16">
+            Why Choose Brain Burst Arcade?
+          </h2>
+          
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <div
+              <div 
                 key={index}
-                className="group bg-white/5 backdrop-blur-lg rounded-3xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center hover:bg-white/20 transition-all duration-300 hover:scale-105 animate-fade-in-up"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${feature.color} mb-4 group-hover:scale-110 transition-transform`}>
-                  <feature.icon className="h-8 w-8 text-white" />
+                <div className="text-cyan-400 mb-4 flex justify-center">
+                  {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
                 <p className="text-white/70">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Game Categories */}
-      <section className="py-16 md:py-24 bg-black/20">
+      {/* Testimonials Section */}
+      <div className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Explore Game Categories
-            </h2>
-            <p className="text-xl text-white/70">
-              Diverse collection of games targeting different cognitive skills
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {gameCategories.map((category, index) => (
-              <div
-                key={index}
-                className="group bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 text-center animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
-                  {category.icon}
-                </div>
-                <h3 className="font-bold text-white mb-2">{category.name}</h3>
-                <div className={`inline-block px-3 py-1 rounded-full bg-gradient-to-r ${category.color} text-white text-sm font-medium`}>
-                  {category.count}
-                </div>
+          <h2 className="text-4xl font-bold text-white text-center mb-16">
+            What Players Say
+          </h2>
+          
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 text-center">
+              <div className="text-6xl mb-4">{testimonials[currentTestimonial].avatar}</div>
+              
+              <div className="flex justify-center mb-4">
+                {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                  <Star key={i} className="h-6 w-6 text-yellow-400 fill-yellow-400" />
+                ))}
               </div>
-            ))}
+              
+              <p className="text-xl text-white/90 mb-6 italic">
+                "{testimonials[currentTestimonial].comment}"
+              </p>
+              
+              <h4 className="text-lg font-bold text-white">
+                {testimonials[currentTestimonial].name}
+              </h4>
+            </div>
+            
+            <div className="flex justify-center mt-6 space-x-2">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentTestimonial(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index === currentTestimonial ? 'bg-cyan-400' : 'bg-white/30'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              What Players Say
-            </h2>
-            <p className="text-xl text-white/70">
-              Join thousands of satisfied brain training enthusiasts
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                className="bg-white/5 backdrop-blur-lg rounded-3xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-xl mr-4">
-                    {testimonial.avatar}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white">{testimonial.name}</h4>
-                    <div className="flex space-x-1">
-                      {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <p className="text-white/80">{testimonial.comment}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      </div>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
+      <div className="py-20 bg-gradient-to-r from-cyan-500/20 to-purple-500/20">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-            Ready to Boost Your Brainpower?
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Ready to Challenge Your Mind?
           </h2>
           <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
-            Join our community of cognitive athletes and start your brain training journey today!
+            Join thousands of players improving their cognitive abilities every day
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              to="/games"
-              className="group bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl flex items-center space-x-2"
-            >
-              <Gamepad2 className="h-6 w-6" />
-              <span>Play Now - It's Free!</span>
-              <ChevronRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+          <Link
+            to="/games"
+            className="inline-flex items-center space-x-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-10 py-5 rounded-xl font-bold text-xl transition-all duration-300 hover:scale-105"
+          >
+            <Gamepad2 className="h-6 w-6" />
+            <span>Play Now</span>
+          </Link>
         </div>
-      </section>
+      </div>
 
       {/* Footer */}
-      <footer className="py-12 bg-black/40 border-t border-white/10">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <Brain className="h-8 w-8 text-blue-400" />
-              <span className="text-2xl font-bold text-white">Brain Burst Arcade</span>
-            </div>
-            
-            <p className="text-white/70 mb-6">
-              Elevating minds through intelligent gaming since 2025
-            </p>
-            
-            <div className="flex justify-center space-x-8 mb-6">
-              <a href="#" className="text-white/70 hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="text-white/70 hover:text-white transition-colors">Terms</a>
-              <a href="#" className="text-white/70 hover:text-white transition-colors">Support</a>
-              <a href="#" className="text-white/70 hover:text-white transition-colors">Contact</a>
-            </div>
-            
-            <p className="text-white/50 text-sm">
-              © 2025 Brain Burst Arcade. All rights reserved.
-            </p>
+      <footer className="bg-black/40 backdrop-blur-sm py-8">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex justify-center items-center space-x-2 mb-4">
+            <Brain className="h-6 w-6 text-cyan-400" />
+            <span className="text-white font-bold text-lg">Brain Burst Arcade</span>
           </div>
+          <p className="text-white/60">
+            © 2025 Brain Burst Arcade. All rights reserved.
+          </p>
         </div>
       </footer>
-
-      {/* Review Modal */}
-      {showReviewModal && (
-        <ReviewModal
-          onClose={() => setShowReviewModal(false)}
-          onSubmit={handleReviewSubmit}
-        />
-      )}
     </div>
   );
 };
+
+export default Landing;
