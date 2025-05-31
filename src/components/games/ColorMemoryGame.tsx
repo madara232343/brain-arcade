@@ -1,234 +1,169 @@
 
 import React, { useState, useEffect } from 'react';
 import { GameResult } from '@/types/game';
-import { audioManager } from '@/utils/audioUtils';
 
 interface ColorMemoryGameProps {
   onComplete: (result: GameResult) => void;
   gameId: string;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
 }
 
-const colors = [
-  { name: 'red', bg: 'bg-red-500', glow: 'shadow-red-500/50' },
-  { name: 'blue', bg: 'bg-blue-500', glow: 'shadow-blue-500/50' },
-  { name: 'green', bg: 'bg-green-500', glow: 'shadow-green-500/50' },
-  { name: 'yellow', bg: 'bg-yellow-500', glow: 'shadow-yellow-500/50' },
-  { name: 'purple', bg: 'bg-purple-500', glow: 'shadow-purple-500/50' },
-  { name: 'orange', bg: 'bg-orange-500', glow: 'shadow-orange-500/50' },
-  { name: 'pink', bg: 'bg-pink-500', glow: 'shadow-pink-500/50' },
-  { name: 'cyan', bg: 'bg-cyan-500', glow: 'shadow-cyan-500/50' }
-];
-
-export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ 
-  onComplete, 
-  gameId, 
-  activePowerUps = new Set(),
-  onPowerUpUsed 
-}) => {
-  const [gridSize, setGridSize] = useState(3);
-  const [targetColors, setTargetColors] = useState<number[]>([]);
-  const [displayedColors, setDisplayedColors] = useState<number[]>([]);
-  const [userClicks, setUserClicks] = useState<number[]>([]);
-  const [isShowingColors, setIsShowingColors] = useState(false);
+export const ColorMemoryGame: React.FC<ColorMemoryGameProps> = ({ onComplete, gameId }) => {
   const [gameStarted, setGameStarted] = useState(false);
-  const [gamePhase, setGamePhase] = useState<'memorize' | 'recall' | 'result'>('memorize');
+  const [showColors, setShowColors] = useState(true);
+  const [colorSequence, setColorSequence] = useState<string[]>([]);
+  const [userSequence, setUserSequence] = useState<string[]>([]);
   const [score, setScore] = useState(0);
   const [round, setRound] = useState(1);
-  const [timeLeft, setTimeLeft] = useState(45);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
-  const generateColorPattern = () => {
-    const numColors = Math.min(2 + round, gridSize * gridSize - 1);
-    const pattern: number[] = [];
-    const usedPositions = new Set<number>();
+  const colors = [
+    { name: 'red', bg: 'bg-red-500', hover: 'hover:bg-red-400' },
+    { name: 'blue', bg: 'bg-blue-500', hover: 'hover:bg-blue-400' },
+    { name: 'green', bg: 'bg-green-500', hover: 'hover:bg-green-400' },
+    { name: 'yellow', bg: 'bg-yellow-500', hover: 'hover:bg-yellow-400' },
+    { name: 'purple', bg: 'bg-purple-500', hover: 'hover:bg-purple-400' },
+    { name: 'orange', bg: 'bg-orange-500', hover: 'hover:bg-orange-400' }
+  ];
+
+  const generateColorSequence = () => {
+    const sequence = [];
+    const sequenceLength = Math.min(3 + round, 8);
     
-    for (let i = 0; i < numColors; i++) {
-      let position;
-      do {
-        position = Math.floor(Math.random() * (gridSize * gridSize));
-      } while (usedPositions.has(position));
-      
-      usedPositions.add(position);
-      pattern.push(position);
+    for (let i = 0; i < sequenceLength; i++) {
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      sequence.push(randomColor.name);
     }
     
-    return pattern.sort((a, b) => a - b);
+    setColorSequence(sequence);
+    setUserSequence([]);
+    setShowColors(true);
+    
+    setTimeout(() => {
+      setShowColors(false);
+    }, sequence.length * 800 + 1000);
   };
 
   const startGame = () => {
     setGameStarted(true);
-    startRound();
+    generateColorSequence();
   };
 
-  const startRound = () => {
-    const pattern = generateColorPattern();
-    setTargetColors(pattern);
-    setDisplayedColors(pattern);
-    setUserClicks([]);
-    setGamePhase('memorize');
-    setIsShowingColors(true);
-
-    // Show colors for a few seconds
-    setTimeout(() => {
-      setIsShowingColors(false);
-      setGamePhase('recall');
-    }, 2000 + round * 500);
-  };
-
-  useEffect(() => {
-    if (gameStarted && timeLeft > 0) {
-      const timer = setTimeout(() => {
-        if (!activePowerUps.has('timeFreeze')) {
-          setTimeLeft(prev => prev - 1);
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      endGame();
-    }
-  }, [timeLeft, gameStarted, activePowerUps]);
-
-  const handleCellClick = (position: number) => {
-    if (gamePhase !== 'recall' || isShowingColors) return;
-
-    const newUserClicks = [...userClicks, position];
-    setUserClicks(newUserClicks);
-    audioManager.play('click');
-
-    // Check if this click is correct
-    const isCorrect = targetColors[newUserClicks.length - 1] === position;
+  const handleColorClick = (colorName: string) => {
+    if (showColors || gameOver) return;
     
-    if (!isCorrect) {
-      if (activePowerUps.has('shield') && onPowerUpUsed) {
-        onPowerUpUsed('shield');
-        return; // Shield protects from wrong answer
-      }
-      // Wrong answer - end game
+    const newUserSequence = [...userSequence, colorName];
+    setUserSequence(newUserSequence);
+    
+    if (newUserSequence[newUserSequence.length - 1] !== colorSequence[newUserSequence.length - 1]) {
+      setGameOver(true);
       endGame();
       return;
     }
-
-    // Check if pattern is complete
-    if (newUserClicks.length === targetColors.length) {
-      setCorrectAnswers(prev => prev + 1);
-      const roundScore = targetColors.length * 10 * (activePowerUps.has('doubleXP') ? 2 : 1);
-      setScore(prev => prev + roundScore);
-      
-      setTimeout(() => {
-        if (round < 8) {
-          setRound(prev => prev + 1);
-          if (round % 2 === 0 && gridSize < 5) {
-            setGridSize(prev => prev + 1);
-          }
-          startRound();
-        } else {
-          endGame();
-        }
-      }, 1000);
+    
+    if (newUserSequence.length === colorSequence.length) {
+      setScore(prev => prev + round * 15);
+      setRound(prev => prev + 1);
+      setTimeout(generateColorSequence, 1500);
     }
   };
 
   const endGame = () => {
-    const accuracy = Math.round((correctAnswers / round) * 100);
-    const xpEarned = Math.round(score / 4);
-
+    const accuracy = colorSequence.length > 0 ? Math.round((round / colorSequence.length) * 100) : 0;
     onComplete({
       gameId,
       score,
-      accuracy,
-      timeSpent: 45 - timeLeft,
-      xpEarned
+      accuracy: Math.min(accuracy, 100),
+      timeSpent: round * 6,
+      xpEarned: Math.round(score / 2)
     });
   };
 
   if (!gameStarted) {
     return (
       <div className="text-center text-white p-4">
-        <h3 className="text-xl md:text-2xl font-bold mb-4">🎨 Color Memory</h3>
-        <p className="mb-6 text-sm md:text-lg">Remember the highlighted colors and click them in order!</p>
-        <div className="mb-6">
-          <div className="inline-block bg-white/20 rounded-lg p-3 md:p-4">
-            <p className="text-xs md:text-sm mb-2">• Watch the colors that light up</p>
-            <p className="text-xs md:text-sm mb-2">• Click them back in the same order</p>
-            <p className="text-xs md:text-sm">• Each round adds more colors</p>
-          </div>
-        </div>
+        <h3 className="text-xl md:text-2xl font-bold mb-4">Color Memory Challenge</h3>
+        <p className="mb-6 text-sm md:text-base">Memorize the color sequence and repeat it back!</p>
         <button
           onClick={startGame}
-          className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-sm md:text-lg transition-all duration-300 hover:scale-105"
+          className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white px-6 py-3 rounded-lg font-bold transition-all duration-300 hover:scale-105"
         >
-          Start Game
+          Start Color Memory
         </button>
       </div>
     );
   }
 
-  if (timeLeft === 0 || (gamePhase === 'result')) {
+  if (gameOver) {
     return (
       <div className="text-center text-white p-4">
-        <h3 className="text-xl md:text-2xl font-bold mb-4">🏆 Great Memory!</h3>
-        <div className="space-y-2 md:space-y-3 text-sm md:text-lg">
-          <p>Round Reached: <span className="text-purple-400 font-bold">{round}</span></p>
-          <p>Score: <span className="text-yellow-400 font-bold">{score}</span></p>
-          <p>Accuracy: <span className="text-green-400 font-bold">{Math.round((correctAnswers / round) * 100)}%</span></p>
-        </div>
+        <h3 className="text-xl font-bold mb-4">Game Complete!</h3>
+        <p className="text-lg mb-2">Round Reached: {round}</p>
+        <p className="text-lg mb-4">Final Score: {score}</p>
+        <p className="mb-6">You remembered {colorSequence.length} colors!</p>
+        <button
+          onClick={endGame}
+          className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold"
+        >
+          Complete Game
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="text-center text-white p-2 md:p-4">
-      <div className="flex flex-wrap justify-between mb-4 md:mb-6 text-sm md:text-lg gap-2">
-        <div>Time: <span className={`font-bold ${timeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-blue-400'}`}>{timeLeft}s</span></div>
-        <div>Round: <span className="font-bold text-purple-400">{round}</span></div>
-        <div>Score: <span className="font-bold text-yellow-400">{score}</span></div>
+    <div className="text-center text-white p-4">
+      <div className="mb-6">
+        <div className="flex justify-between text-base md:text-lg mb-4">
+          <span>Round: {round}</span>
+          <span>Score: {score}</span>
+        </div>
       </div>
 
-      {gamePhase === 'memorize' && (
-        <div className="mb-4 text-lg md:text-xl font-bold animate-pulse text-blue-400">
-          🧠 Memorize the colors...
+      {showColors && (
+        <div className="mb-6">
+          <p className="text-lg md:text-xl text-yellow-400 mb-4">Memorize these colors:</p>
+          <div className="flex flex-wrap justify-center gap-3 md:gap-4 mb-4">
+            {colorSequence.map((colorName, index) => {
+              const color = colors.find(c => c.name === colorName);
+              return (
+                <div
+                  key={index}
+                  className={`w-12 h-12 md:w-16 md:h-16 rounded-lg ${color?.bg} animate-pulse border-2 border-white/30`}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {gamePhase === 'recall' && (
-        <div className="mb-4 text-lg md:text-xl font-bold text-green-400">
-          🎯 Click the colors in order! ({userClicks.length}/{targetColors.length})
-        </div>
-      )}
-
-      <div 
-        className={`grid gap-2 md:gap-3 max-w-sm mx-auto`}
-        style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}
-      >
-        {Array.from({ length: gridSize * gridSize }).map((_, index) => {
-          const isTarget = targetColors.includes(index);
-          const isClicked = userClicks.includes(index);
-          const shouldGlow = isShowingColors && isTarget;
+      {!showColors && (
+        <>
+          <p className="text-base md:text-lg text-green-400 mb-4">
+            Click the colors in order ({userSequence.length}/{colorSequence.length}):
+          </p>
+          <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-sm mx-auto mb-6">
+            {colors.map((color) => (
+              <button
+                key={color.name}
+                onClick={() => handleColorClick(color.name)}
+                className={`w-16 h-16 md:w-20 md:h-20 rounded-lg ${color.bg} ${color.hover} transition-all duration-200 hover:scale-105 border-2 border-white/20`}
+              />
+            ))}
+          </div>
           
-          return (
-            <button
-              key={index}
-              onClick={() => handleCellClick(index)}
-              className={`aspect-square rounded-lg transition-all duration-300 border-2 touch-target ${
-                shouldGlow
-                  ? `${colors[index % colors.length].bg} ${colors[index % colors.length].glow} shadow-2xl scale-110 border-white`
-                  : isClicked
-                  ? `${colors[index % colors.length].bg} border-green-400 scale-105`
-                  : 'bg-gray-600 border-gray-500 hover:border-gray-400 hover:scale-105'
-              }`}
-              disabled={gamePhase !== 'recall' || isShowingColors}
-            >
-              {isClicked && <div className="text-white font-bold">✓</div>}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-4 text-xs md:text-sm text-white/70">
-        Click the highlighted colors in the order they appeared
-      </div>
+          <div className="flex justify-center space-x-2 mb-4">
+            {userSequence.map((colorName, index) => {
+              const color = colors.find(c => c.name === colorName);
+              return (
+                <div
+                  key={index}
+                  className={`w-8 h-8 md:w-10 md:h-10 rounded ${color?.bg} border border-white/50`}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 };
