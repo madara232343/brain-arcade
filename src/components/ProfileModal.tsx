@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { X, Trophy, Star, Award, Crown, Medal, Clock, Target, Gamepad2 } from 'lucide-react';
+import { X, Trophy, Star, Award, Crown, Medal, Clock, Target, Gamepad2, Package } from 'lucide-react';
 import { calculateAccurateStats, formatPlayTime, getNextRankRequirement } from '@/utils/profileUtils';
 
 interface UserProgress {
