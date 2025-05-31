@@ -36,6 +36,15 @@ export const getRank = (xp: number): string => {
   return 'Master';
 };
 
+export const formatPlayTime = (minutes: number): string => {
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h ${remainingMinutes}m`;
+};
+
 export const calculateAccurateStats = (progress: UserProgress) => {
   const level = calculateLevel(progress.totalXP);
   const currentLevelXP = level > 1 ? ((level - 1) * (level - 1)) * 100 : 0;
@@ -49,11 +58,18 @@ export const calculateAccurateStats = (progress: UserProgress) => {
     xpNeeded,
     rank: getRank(progress.totalXP),
     accuracy: progress.gamesPlayed.length > 0 ? 85 : 0,
-    winRate: progress.gamesPlayed.length > 0 ? 72 : 0
+    winRate: progress.gamesPlayed.length > 0 ? 72 : 0,
+    totalXP: progress.totalXP,
+    totalScore: progress.totalScore,
+    totalGamesPlayed: progress.gamesPlayed.length,
+    currentStreak: progress.streak,
+    averageAccuracy: progress.gamesPlayed.length > 0 ? 85 : 0,
+    achievements: progress.achievements.length,
+    totalPlayTime: progress.totalPlayTime
   };
 };
 
-export const getNextRankRequirement = (currentRank: string): { rank: string; xpNeeded: number } => {
+export const getNextRankRequirement = (currentRank: string): { nextRank: string; pointsNeeded: number } => {
   const ranks = [
     { rank: 'Bronze', xp: 0 },
     { rank: 'Silver', xp: 500 },
@@ -65,9 +81,9 @@ export const getNextRankRequirement = (currentRank: string): { rank: string; xpN
   
   const currentIndex = ranks.findIndex(r => r.rank === currentRank);
   if (currentIndex === -1 || currentIndex === ranks.length - 1) {
-    return { rank: 'Master', xpNeeded: 0 };
+    return { nextRank: 'Master', pointsNeeded: 0 };
   }
   
   const nextRank = ranks[currentIndex + 1];
-  return { rank: nextRank.rank, xpNeeded: nextRank.xp };
+  return { nextRank: nextRank.rank, pointsNeeded: nextRank.xp };
 };

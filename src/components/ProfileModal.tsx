@@ -34,12 +34,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   onClose,
   gameStats = []
 }) => {
-  const stats = calculateAccurateStats(userProgress, gameStats);
-  const nextRank = getNextRankRequirement(stats.totalScore);
+  const stats = calculateAccurateStats(userProgress);
+  const nextRank = getNextRankRequirement(stats.rank);
 
   const getRankInfo = (rank: string) => {
     const rankMap: { [key: string]: any } = {
-      'Legendary': { name: 'Legendary', icon: Crown, color: 'from-yellow-400 to-orange-400', bgColor: 'bg-yellow-500/20', emoji: '👑' },
+      'Master': { name: 'Master', icon: Crown, color: 'from-yellow-400 to-orange-400', bgColor: 'bg-yellow-500/20', emoji: '👑' },
       'Diamond': { name: 'Diamond', icon: Crown, color: 'from-blue-400 to-cyan-400', bgColor: 'bg-blue-500/20', emoji: '💎' },
       'Platinum': { name: 'Platinum', icon: Medal, color: 'from-gray-300 to-gray-400', bgColor: 'bg-gray-500/20', emoji: '🥈' },
       'Gold': { name: 'Gold', icon: Award, color: 'from-yellow-400 to-yellow-500', bgColor: 'bg-yellow-500/20', emoji: '🥇' },
