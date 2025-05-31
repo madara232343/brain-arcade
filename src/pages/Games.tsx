@@ -99,7 +99,29 @@ const GamesContent = () => {
     { id: 'score-hunter', title: 'Score Hunter', description: 'Earn 10,000 total points', reward: 300, trigger: (progress: UserProgress) => progress.totalScore >= 10000 },
     { id: 'level-up', title: 'Level Up!', description: 'Reach level 5', reward: 150, trigger: (progress: UserProgress) => progress.level >= 5 },
     { id: 'time-warrior', title: 'Time Warrior', description: 'Play for 60 minutes total', reward: 100, trigger: (progress: UserProgress) => progress.totalPlayTime >= 3600 },
-    { id: 'game-explorer', title: 'Game Explorer', description: 'Try 10 different games', reward: 400, trigger: (progress: UserProgress) => progress.playedGames.length >= 10 }
+    { id: 'game-explorer', title: 'Game Explorer', description: 'Try 10 different games', reward: 400, trigger: (progress: UserProgress) => progress.playedGames.length >= 10 },
+    { id: 'memory-master', title: 'Memory Master', description: 'Complete 5 memory games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => id.includes('memory')).length >= 5 },
+    { id: 'puzzle-solver', title: 'Puzzle Solver', description: 'Complete 5 puzzle games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => ['puzzle-blocks', 'sudoku', 'tetris', 'brain-teaser'].includes(id)).length >= 5 },
+    { id: 'speed-demon', title: 'Speed Demon', description: 'Complete 5 speed games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => ['reaction-time', 'speed-typing', 'math-sprint'].includes(id)).length >= 5 },
+    { id: 'strategist', title: 'Master Strategist', description: 'Complete chess and checkers', reward: 350, trigger: (progress: UserProgress) => progress.playedGames.includes('chess') && progress.playedGames.includes('checkers') },
+    { id: 'high-scorer', title: 'High Scorer', description: 'Score 50,000 points', reward: 500, trigger: (progress: UserProgress) => progress.totalScore >= 50000 },
+    { id: 'perfectionist', title: 'Perfectionist', description: 'Get 100% accuracy in any game', reward: 400, trigger: (progress: UserProgress) => progress.achievements.includes('perfect-game') },
+    { id: 'marathon-runner', title: 'Marathon Runner', description: 'Play for 3 hours total', reward: 300, trigger: (progress: UserProgress) => progress.totalPlayTime >= 10800 },
+    { id: 'daily-player', title: 'Daily Player', description: 'Play games 5 days in a row', reward: 250, trigger: (progress: UserProgress) => progress.streak >= 5 },
+    { id: 'category-master', title: 'Category Master', description: 'Play games from all categories', reward: 600, trigger: (progress: UserProgress) => {
+      const categories = ['memory', 'puzzle', 'speed', 'racing', 'shooting', 'arcade', 'strategy'];
+      return categories.every(cat => progress.playedGames.some(game => game.includes(cat)));
+    }},
+    { id: 'collector', title: 'Collector', description: 'Own 10 shop items', reward: 300, trigger: (progress: UserProgress) => (progress.ownedItems || []).length >= 10 },
+    { id: 'xp-master', title: 'XP Master', description: 'Earn 5,000 XP', reward: 200, trigger: (progress: UserProgress) => progress.totalXP >= 5000 },
+    { id: 'game-addict', title: 'Game Addict', description: 'Play 50 games total', reward: 800, trigger: (progress: UserProgress) => progress.gamesPlayed.length >= 50 },
+    { id: 'bronze-champion', title: 'Bronze Champion', description: 'Reach Bronze rank', reward: 100, trigger: (progress: UserProgress) => ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'silver-champion', title: 'Silver Champion', description: 'Reach Silver rank', reward: 200, trigger: (progress: UserProgress) => ['Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'gold-champion', title: 'Gold Champion', description: 'Reach Gold rank', reward: 300, trigger: (progress: UserProgress) => ['Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'platinum-champion', title: 'Platinum Champion', description: 'Reach Platinum rank', reward: 500, trigger: (progress: UserProgress) => ['Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'diamond-champion', title: 'Diamond Champion', description: 'Reach Diamond rank', reward: 750, trigger: (progress: UserProgress) => ['Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'master-champion', title: 'Master Champion', description: 'Reach Master rank', reward: 1000, trigger: (progress: UserProgress) => ['Master', 'Legendary'].includes(progress.rank) },
+    { id: 'legendary-champion', title: 'Legendary Champion', description: 'Reach Legendary rank', reward: 1500, trigger: (progress: UserProgress) => progress.rank === 'Legendary' }
   ];
 
   const checkAchievements = (newProgress: UserProgress) => {
@@ -128,11 +150,13 @@ const GamesContent = () => {
   };
 
   const calculateRank = (totalScore: number) => {
-    if (totalScore >= 100000) return 'Legendary';
-    if (totalScore >= 50000) return 'Diamond';
-    if (totalScore >= 25000) return 'Platinum';
-    if (totalScore >= 10000) return 'Gold';
-    if (totalScore >= 5000) return 'Silver';
+    if (totalScore >= 500000) return 'Legendary';
+    if (totalScore >= 250000) return 'Master';
+    if (totalScore >= 100000) return 'Diamond';
+    if (totalScore >= 50000) return 'Platinum';
+    if (totalScore >= 25000) return 'Gold';
+    if (totalScore >= 10000) return 'Silver';
+    if (totalScore >= 5000) return 'Bronze';
     return 'Bronze';
   };
 

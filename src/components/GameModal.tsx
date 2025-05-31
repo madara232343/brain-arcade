@@ -32,6 +32,11 @@ import { QuickMathGame } from '@/components/games/QuickMathGame';
 import { WordScrambleGame } from '@/components/games/WordScrambleGame';
 import { NumberPuzzleGame } from '@/components/games/NumberPuzzleGame';
 import { ColorBlendGame } from '@/components/games/ColorBlendGame';
+import { BubbleShooterGame } from '@/components/games/BubbleShooterGame';
+import { SpaceRacerGame } from '@/components/games/SpaceRacerGame';
+import { SudokuGame } from '@/components/games/SudokuGame';
+import { TetrisGame } from '@/components/games/TetrisGame';
+import { ChessGame } from '@/components/games/ChessGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
 import { useSounds } from '@/components/SoundManager';
@@ -91,14 +96,16 @@ export const GameModal: React.FC<GameModalProps> = ({
           return <SimonSaysGame {...gameProps} />;
         case 'memory-cards':
           return <MemoryCardGame {...gameProps} />;
-        
-        // Math Games
-        case 'math-sprint':
-          return <MathSprintGame {...gameProps} />;
-        case 'quick-math':
-          return <QuickMathGame {...gameProps} />;
-        case 'number-puzzle':
-          return <NumberPuzzleGame {...gameProps} />;
+        case 'number-memory':
+          return <NumberSequenceGame {...gameProps} />;
+        case 'word-memory':
+          return <WordAssociationGame {...gameProps} />;
+        case 'face-memory':
+          return <PatternMatchGame {...gameProps} />;
+        case 'spatial-memory':
+          return <SpatialReasoningGame {...gameProps} />;
+        case 'visual-memory':
+          return <VisualAttentionGame {...gameProps} />;
         
         // Puzzle Games
         case 'puzzle-blocks':
@@ -109,52 +116,53 @@ export const GameModal: React.FC<GameModalProps> = ({
           return <ShapeRotatorGame {...gameProps} />;
         case 'pattern-match':
           return <PatternMatchGame {...gameProps} />;
+        case 'sudoku':
+          return <SudokuGame {...gameProps} />;
+        case 'maze-solver':
+          return <MazeRunnerGame {...gameProps} />;
         case 'brain-teaser':
           return <BrainTeaserGame {...gameProps} />;
         case 'logic-puzzle':
           return <LogicPuzzleGame {...gameProps} />;
-        
-        // Word Games
-        case 'word-association':
-          return <WordAssociationGame {...gameProps} />;
-        case 'word-chain':
-          return <WordChainGame {...gameProps} />;
-        case 'speed-typing':
-          return <SpeedTypingGame {...gameProps} />;
-        case 'word-scramble':
-          return <WordScrambleGame {...gameProps} />;
+        case 'number-puzzle':
+          return <NumberPuzzleGame {...gameProps} />;
         
         // Speed Games
         case 'reaction-time':
           return <ReactionTimeGame {...gameProps} />;
-        case 'visual-attention':
-          return <VisualAttentionGame {...gameProps} />;
-        case 'number-sequence':
-          return <NumberSequenceGame {...gameProps} />;
+        case 'speed-typing':
+          return <SpeedTypingGame {...gameProps} />;
+        case 'math-sprint':
+          return <MathSprintGame {...gameProps} />;
+        case 'quick-math':
+          return <QuickMathGame {...gameProps} />;
+        case 'word-scramble':
+          return <WordScrambleGame {...gameProps} />;
         
-        // Creative Games
-        case 'color-blend':
-          return <ColorBlendGame {...gameProps} />;
+        // Racing Games
+        case 'car-race':
+        case 'bike-race':
+        case 'space-race':
+          return <SpaceRacerGame {...gameProps} />;
         
-        // 3D Games
-        case 'maze-runner':
-          return <MazeRunnerGame {...gameProps} />;
-        case 'tower-builder':
-          return <Enhanced3DTowerBuilder {...gameProps} />;
-        case 'cube-matcher':
-          return <CubeMatcherGame {...gameProps} />;
-        case 'orbit-navigator':
-          return <OrbitNavigatorGame {...gameProps} />;
-        
-        // Strategy Games
-        case 'tic-tac-toe':
-          return <TicTacToeGame {...gameProps} />;
-        case 'rock-paper-scissors':
-          return <RockPaperScissorsGame {...gameProps} />;
+        // Shooting Games
+        case 'target-shooter':
+        case 'bubble-shooter':
+          return <BubbleShooterGame {...gameProps} />;
         
         // Arcade Games
         case 'snake-game':
           return <SnakeGame {...gameProps} />;
+        case 'tetris':
+          return <TetrisGame {...gameProps} />;
+        
+        // Strategy Games
+        case 'chess':
+          return <ChessGame {...gameProps} />;
+        case 'tic-tac-toe':
+          return <TicTacToeGame {...gameProps} />;
+        case 'rock-paper-scissors':
+          return <RockPaperScissorsGame {...gameProps} />;
         
         // Intelligence Tests
         case 'enhanced-iq-test':
@@ -162,6 +170,22 @@ export const GameModal: React.FC<GameModalProps> = ({
           return <EnhancedIQTest {...gameProps} />;
         case 'eq-test':
           return <EQTest {...gameProps} />;
+        
+        // Creative Games
+        case 'color-blend':
+          return <ColorBlendGame {...gameProps} />;
+        
+        // Word Games
+        case 'word-chain':
+          return <WordChainGame {...gameProps} />;
+        
+        // 3D Games
+        case 'tower-builder':
+          return <Enhanced3DTowerBuilder {...gameProps} />;
+        case 'cube-matcher':
+          return <CubeMatcherGame {...gameProps} />;
+        case 'orbit-navigator':
+          return <OrbitNavigatorGame {...gameProps} />;
         
         default:
           return <GenericGame {...gameProps} game={game} />;
