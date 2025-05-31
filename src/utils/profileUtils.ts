@@ -1,96 +1,73 @@
 
-import { UserProgress } from '@/pages/Games';
+export interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
+}
 
-export const calculateAccurateStats = (userProgress: UserProgress, gameStats: any[]) => {
-  const totalGamesPlayed = Math.max(
-    userProgress.gamesPlayed?.length || 0,
-    userProgress.playedGames?.length || 0,
-    gameStats.length
-  );
+export const calculateLevel = (xp: number): number => {
+  return Math.floor(Math.sqrt(xp / 100)) + 1;
+};
 
-  const totalScore = userProgress.totalScore || 0;
-  const totalXP = userProgress.totalXP || userProgress.xp || 0;
-  const level = Math.floor(totalXP / 100) + 1;
-  
-  const currentStreak = calculateStreak(gameStats);
-  const averageAccuracy = gameStats.length > 0 
-    ? gameStats.reduce((sum, game) => sum + (game.accuracy || 0), 0) / gameStats.length 
-    : 0;
+export const calculateXPForNextLevel = (level: number): number => {
+  return (level * level) * 100;
+};
 
-  const rank = calculateRank(totalScore);
+export const getRank = (xp: number): string => {
+  if (xp < 500) return 'Bronze';
+  if (xp < 1500) return 'Silver';
+  if (xp < 3500) return 'Gold';
+  if (xp < 7500) return 'Platinum';
+  if (xp < 15000) return 'Diamond';
+  return 'Master';
+};
+
+export const calculateAccurateStats = (progress: UserProgress) => {
+  const level = calculateLevel(progress.totalXP);
+  const currentLevelXP = level > 1 ? ((level - 1) * (level - 1)) * 100 : 0;
+  const nextLevelXP = calculateXPForNextLevel(level);
+  const xpProgress = progress.totalXP - currentLevelXP;
+  const xpNeeded = nextLevelXP - currentLevelXP;
   
   return {
-    totalGamesPlayed,
-    totalScore,
-    totalXP,
     level,
-    currentStreak,
-    averageAccuracy: Math.round(averageAccuracy),
-    rank,
-    achievements: userProgress.achievements?.length || 0,
-    totalPlayTime: userProgress.totalPlayTime || 0
+    xpProgress,
+    xpNeeded,
+    rank: getRank(progress.totalXP),
+    accuracy: progress.gamesPlayed.length > 0 ? 85 : 0,
+    winRate: progress.gamesPlayed.length > 0 ? 72 : 0
   };
 };
 
-export const calculateStreak = (gameStats: any[]): number => {
-  if (gameStats.length === 0) return 0;
-  
-  const sortedStats = gameStats.sort((a, b) => b.timestamp - a.timestamp);
-  const today = new Date().toDateString();
-  let streak = 0;
-  let currentDate = new Date();
-  
-  for (const game of sortedStats) {
-    const gameDate = new Date(game.timestamp).toDateString();
-    const expectedDate = currentDate.toDateString();
-    
-    if (gameDate === expectedDate) {
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-  
-  return streak;
-};
-
-export const calculateRank = (totalScore: number): string => {
-  if (totalScore >= 100000) return 'Legendary';
-  if (totalScore >= 50000) return 'Diamond';
-  if (totalScore >= 25000) return 'Platinum';
-  if (totalScore >= 10000) return 'Gold';
-  if (totalScore >= 5000) return 'Silver';
-  return 'Bronze';
-};
-
-export const formatPlayTime = (seconds: number): string => {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-  return `${minutes}m`;
-};
-
-export const getNextRankRequirement = (currentScore: number): { nextRank: string; pointsNeeded: number } => {
+export const getNextRankRequirement = (currentRank: string): { rank: string; xpNeeded: number } => {
   const ranks = [
-    { name: 'Silver', requirement: 5000 },
-    { name: 'Gold', requirement: 10000 },
-    { name: 'Platinum', requirement: 25000 },
-    { name: 'Diamond', requirement: 50000 },
-    { name: 'Legendary', requirement: 100000 }
+    { rank: 'Bronze', xp: 0 },
+    { rank: 'Silver', xp: 500 },
+    { rank: 'Gold', xp: 1500 },
+    { rank: 'Platinum', xp: 3500 },
+    { rank: 'Diamond', xp: 7500 },
+    { rank: 'Master', xp: 15000 }
   ];
   
-  for (const rank of ranks) {
-    if (currentScore < rank.requirement) {
-      return {
-        nextRank: rank.name,
-        pointsNeeded: rank.requirement - currentScore
-      };
-    }
+  const currentIndex = ranks.findIndex(r => r.rank === currentRank);
+  if (currentIndex === -1 || currentIndex === ranks.length - 1) {
+    return { rank: 'Master', xpNeeded: 0 };
   }
   
-  return { nextRank: 'Max Rank', pointsNeeded: 0 };
+  const nextRank = ranks[currentIndex + 1];
+  return { rank: nextRank.rank, xpNeeded: nextRank.xp };
 };

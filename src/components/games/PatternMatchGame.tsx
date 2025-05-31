@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { GameResult } from '@/types/game';
 
@@ -6,112 +7,81 @@ interface PatternMatchGameProps {
   gameId: string;
 }
 
-interface Pattern {
-  id: number;
-  shape: string;
-  color: string;
-  size: string;
-}
-
-const shapes = ['●', '■', '▲', '♦', '★', '♠', '♥', '♣'];
-const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
-const sizes = ['text-xl', 'text-2xl', 'text-3xl'];
-
 export const PatternMatchGame: React.FC<PatternMatchGameProps> = ({ onComplete, gameId }) => {
-  const [patterns, setPatterns] = useState<Pattern[]>([]);
-  const [targetPattern, setTargetPattern] = useState<Pattern | null>(null);
+  const [pattern, setPattern] = useState<number[]>([]);
+  const [userInput, setUserInput] = useState<number[]>([]);
+  const [currentLevel, setCurrentLevel] = useState(1);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
   const [gameStarted, setGameStarted] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [streak, setStreak] = useState(0);
-  const [startTime, setStartTime] = useState(0);
+  const [showingPattern, setShowingPattern] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(60);
 
-  const generatePattern = (): Pattern => ({
-    id: Math.random(),
-    shape: shapes[Math.floor(Math.random() * shapes.length)],
-    color: colors[Math.floor(Math.random() * colors.length)],
-    size: sizes[Math.floor(Math.random() * sizes.length)]
-  });
+  const generatePattern = (level: number) => {
+    const patternLength = Math.min(3 + level, 8);
+    const newPattern = Array.from({ length: patternLength }, () => Math.floor(Math.random() * 9));
+    setPattern(newPattern);
+    setUserInput([]);
+    showPattern(newPattern);
+  };
 
-  const generatePatterns = () => {
-    const newTarget = generatePattern();
-    const newPatterns = [newTarget];
-    
-    // Add similar patterns as distractors
-    for (let i = 0; i < 8; i++) {
-      newPatterns.push(generatePattern());
-    }
-    
-    // Shuffle the patterns
-    const shuffled = newPatterns.sort(() => Math.random() - 0.5);
-    setPatterns(shuffled);
-    setTargetPattern(newTarget);
+  const showPattern = (pat: number[]) => {
+    setShowingPattern(true);
+    setTimeout(() => {
+      setShowingPattern(false);
+    }, pat.length * 800 + 1000);
   };
 
   const startGame = () => {
     setGameStarted(true);
-    setStartTime(Date.now());
-    generatePatterns();
+    generatePattern(1);
   };
 
   useEffect(() => {
-    if (gameStarted && timeLeft > 0 && !gameOver) {
+    if (gameStarted && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
       endGame();
     }
-  }, [timeLeft, gameStarted, gameOver]);
+  }, [timeLeft, gameStarted]);
 
-  const handlePatternClick = (pattern: Pattern) => {
-    if (!targetPattern || gameOver) return;
+  const handleNumberClick = (num: number) => {
+    if (showingPattern) return;
 
-    const isMatch = pattern.shape === targetPattern.shape && 
-                   pattern.color === targetPattern.color && 
-                   pattern.size === targetPattern.size;
+    const newInput = [...userInput, num];
+    setUserInput(newInput);
 
-    if (isMatch) {
-      setScore(prev => prev + (10 + streak * 2));
-      setStreak(prev => prev + 1);
-      generatePatterns();
-    } else {
-      setStreak(0);
-      setScore(prev => Math.max(0, prev - 5));
+    if (newInput[newInput.length - 1] !== pattern[newInput.length - 1]) {
+      endGame();
+      return;
+    }
+
+    if (newInput.length === pattern.length) {
+      setScore(score + currentLevel * 20);
+      setCurrentLevel(currentLevel + 1);
+      setTimeout(() => generatePattern(currentLevel + 1), 1000);
     }
   };
 
   const endGame = () => {
-    setGameOver(true);
-    const timeSpent = 30;
-    const accuracy = Math.round((score / Math.max(1, score + streak)) * 100);
-    const xpEarned = Math.round(score / 2);
-
+    const accuracy = Math.round((score / (currentLevel * 20)) * 100);
     onComplete({
       gameId,
       score,
-      accuracy,
-      timeSpent,
-      xpEarned
+      accuracy: Math.min(accuracy, 100),
+      timeSpent: 60 - timeLeft,
+      xpEarned: Math.round(score / 3)
     });
   };
 
   if (!gameStarted) {
     return (
-      <div className="text-center text-white">
-        <h3 className="text-2xl font-bold mb-4">🎯 Pattern Match</h3>
-        <p className="mb-6 text-lg">Find the exact match for the target pattern!</p>
-        <div className="mb-6">
-          <div className="inline-block bg-white/20 rounded-lg p-4">
-            <p className="text-sm">• Look at the target pattern</p>
-            <p className="text-sm">• Find the exact match (shape, color, size)</p>
-            <p className="text-sm">• Work quickly for bonus points</p>
-            <p className="text-sm">• Build streaks for multipliers</p>
-          </div>
-        </div>
+      <div className="text-center text-white p-4">
+        <h3 className="text-2xl font-bold mb-4">Pattern Match</h3>
+        <p className="mb-6">Memorize the pattern and repeat it!</p>
         <button
           onClick={startGame}
-          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-400 hover:to-purple-400 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"
+          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-bold"
         >
           Start Game
         </button>
@@ -119,57 +89,60 @@ export const PatternMatchGame: React.FC<PatternMatchGameProps> = ({ onComplete, 
     );
   }
 
-  if (gameOver) {
-    return (
-      <div className="text-center text-white">
-        <h3 className="text-2xl font-bold mb-4">🏆 Pattern Master!</h3>
-        <div className="space-y-2 text-lg">
-          <p>Final Score: {score} points</p>
-          <p>Best Streak: {streak}</p>
-          <p>Great pattern recognition skills!</p>
+  return (
+    <div className="text-center text-white p-4">
+      <div className="mb-6">
+        <div className="flex justify-between text-lg mb-4">
+          <span>Level: {currentLevel}</span>
+          <span>Score: {score}</span>
+          <span>Time: {timeLeft}s</span>
         </div>
       </div>
-    );
-  }
 
-  return (
-    <div className="text-center text-white">
-      <div className="flex justify-between mb-6 text-lg">
-        <div>Time: {timeLeft}s</div>
-        <div>Score: {score}</div>
-        <div>Streak: {streak}</div>
-      </div>
-
-      {targetPattern && (
+      {showingPattern && (
         <div className="mb-6">
-          <p className="text-lg mb-2">Find this pattern:</p>
-          <div className="bg-white/20 rounded-xl p-6 inline-block">
-            <div 
-              className={`${targetPattern.size} font-bold animate-pulse`}
-              style={{ color: targetPattern.color }}
-            >
-              {targetPattern.shape}
-            </div>
+          <p className="text-xl text-yellow-400 mb-4">Memorize this pattern:</p>
+          <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+            {pattern.map((num, index) => (
+              <div
+                key={index}
+                className="w-16 h-16 bg-blue-500 rounded-lg flex items-center justify-center text-2xl font-bold animate-pulse"
+              >
+                {num}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
-        {patterns.map((pattern, index) => (
-          <button
-            key={index}
-            onClick={() => handlePatternClick(pattern)}
-            className="bg-white/10 hover:bg-white/20 rounded-xl p-4 transition-all duration-200 hover:scale-105 border border-white/30 hover:border-white/60"
-          >
-            <div 
-              className={`${pattern.size} font-bold`}
-              style={{ color: pattern.color }}
-            >
-              {pattern.shape}
-            </div>
-          </button>
-        ))}
-      </div>
+      {!showingPattern && pattern.length > 0 && (
+        <>
+          <p className="text-lg text-green-400 mb-4">
+            Enter the pattern ({userInput.length}/{pattern.length}):
+          </p>
+          <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+              <button
+                key={num}
+                onClick={() => handleNumberClick(num)}
+                className="w-16 h-16 bg-gray-600 hover:bg-gray-500 rounded-lg text-xl font-bold transition-colors"
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-center space-x-2 mb-4">
+            {userInput.map((num, index) => (
+              <div
+                key={index}
+                className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-lg font-bold"
+              >
+                {num}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };

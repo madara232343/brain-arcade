@@ -1,55 +1,31 @@
 
-import React, { useState, useEffect } from 'react';
-import { Zap, Clock, Target, Shield } from 'lucide-react';
-import { PowerUp, powerUpManager } from '@/utils/powerUpManager';
+import React from 'react';
+import { Zap, Shield, Clock, Star } from 'lucide-react';
 
 interface PowerUpBarProps {
   onPowerUpUsed: (type: string) => void;
 }
 
 export const PowerUpBar: React.FC<PowerUpBarProps> = ({ onPowerUpUsed }) => {
-  const [powerUps, setPowerUps] = useState<PowerUp[]>([]);
-
-  useEffect(() => {
-    const unsubscribe = powerUpManager.subscribe(setPowerUps);
-    setPowerUps(powerUpManager.getActivePowerUps());
-    return unsubscribe;
-  }, []);
-
-  const handleUsePowerUp = (powerUpId: string, type: string) => {
-    if (powerUpManager.usePowerUp(powerUpId)) {
-      onPowerUpUsed(type);
-    }
-  };
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'timeFreeze': return Clock;
-      case 'doubleXP': return Zap;
-      case 'accuracyBoost': return Target;
-      case 'shield': return Shield;
-      default: return Zap;
-    }
-  };
-
-  if (powerUps.length === 0) return null;
+  const powerUps = [
+    { id: 'doubleXP', icon: Star, name: 'Double XP', color: 'bg-yellow-500' },
+    { id: 'timeFreeze', icon: Clock, name: 'Time Freeze', color: 'bg-blue-500' },
+    { id: 'accuracyBoost', icon: Zap, name: 'Accuracy Boost', color: 'bg-green-500' },
+    { id: 'shield', icon: Shield, name: 'Error Shield', color: 'bg-purple-500' }
+  ];
 
   return (
-    <div className="flex flex-wrap gap-2 mb-4 p-3 bg-white/10 rounded-lg backdrop-blur-sm">
-      <span className="text-white/70 text-sm font-medium mr-2">Power-ups:</span>
+    <div className="flex justify-center space-x-2 mb-4">
       {powerUps.map((powerUp) => {
-        const IconComponent = getIcon(powerUp.type);
+        const IconComponent = powerUp.icon;
         return (
           <button
             key={powerUp.id}
-            onClick={() => handleUsePowerUp(powerUp.id, powerUp.type)}
-            className="flex items-center space-x-1 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95"
+            onClick={() => onPowerUpUsed(powerUp.id)}
+            className={`${powerUp.color} hover:opacity-80 text-white p-2 rounded-lg transition-all duration-200 hover:scale-110`}
+            title={powerUp.name}
           >
             <IconComponent className="h-4 w-4" />
-            <span>{powerUp.name}</span>
-            <span className="bg-white/20 rounded-full px-2 py-0.5 text-xs">
-              {powerUp.usesLeft}
-            </span>
           </button>
         );
       })}

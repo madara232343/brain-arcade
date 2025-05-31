@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { GameResult } from '@/types/game';
 
@@ -6,83 +7,75 @@ interface MemoryGameProps {
   gameId: string;
 }
 
-const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange'];
-
 export const MemoryGame: React.FC<MemoryGameProps> = ({ onComplete, gameId }) => {
   const [sequence, setSequence] = useState<number[]>([]);
-  const [playerSequence, setPlayerSequence] = useState<number[]>([]);
-  const [showingSequence, setShowingSequence] = useState(false);
+  const [userSequence, setUserSequence] = useState<number[]>([]);
+  const [isShowing, setIsShowing] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
-  const [round, setRound] = useState(1);
   const [score, setScore] = useState(0);
-  const [gameOver, setGameOver] = useState(false);
-  const [startTime, setStartTime] = useState<number>(0);
+  const [round, setRound] = useState(1);
+  const [activeButton, setActiveButton] = useState<number | null>(null);
+
+  const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500'];
 
   const startGame = () => {
     setGameStarted(true);
-    setStartTime(Date.now());
-    generateNewSequence();
+    generateSequence();
   };
 
-  const generateNewSequence = () => {
-    const newColor = Math.floor(Math.random() * colors.length);
-    const newSequence = [...sequence, newColor];
+  const generateSequence = () => {
+    const newNumber = Math.floor(Math.random() * 4);
+    const newSequence = [...sequence, newNumber];
     setSequence(newSequence);
-    setPlayerSequence([]);
+    setUserSequence([]);
     showSequence(newSequence);
   };
 
-  const showSequence = async (seq: number[]) => {
-    setShowingSequence(true);
-    
-    for (let i = 0; i < seq.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 600));
-      // Flash the color
-    }
-    
-    setShowingSequence(false);
+  const showSequence = (seq: number[]) => {
+    setIsShowing(true);
+    seq.forEach((num, index) => {
+      setTimeout(() => {
+        setActiveButton(num);
+        setTimeout(() => setActiveButton(null), 500);
+      }, (index + 1) * 800);
+    });
+    setTimeout(() => setIsShowing(false), seq.length * 800 + 500);
   };
 
-  const handleColorClick = (colorIndex: number) => {
-    if (showingSequence || gameOver) return;
+  const handleButtonClick = (buttonIndex: number) => {
+    if (isShowing) return;
 
-    const newPlayerSequence = [...playerSequence, colorIndex];
-    setPlayerSequence(newPlayerSequence);
+    const newUserSequence = [...userSequence, buttonIndex];
+    setUserSequence(newUserSequence);
 
-    if (newPlayerSequence[newPlayerSequence.length - 1] !== sequence[newPlayerSequence.length - 1]) {
-      // Wrong color clicked
+    if (newUserSequence[newUserSequence.length - 1] !== sequence[newUserSequence.length - 1]) {
       endGame();
       return;
     }
 
-    if (newPlayerSequence.length === sequence.length) {
-      // Round completed successfully
+    if (newUserSequence.length === sequence.length) {
       setScore(score + round * 10);
       setRound(round + 1);
-      setTimeout(() => generateNewSequence(), 1000);
+      setTimeout(generateSequence, 1000);
     }
   };
 
   const endGame = () => {
-    setGameOver(true);
-    const timeSpent = Math.round((Date.now() - startTime) / 1000);
-    const accuracy = Math.round((score / (round * 10)) * 100) || 0;
-    const xpEarned = Math.round(score / 4);
-
+    const accuracy = sequence.length > 0 ? Math.round((userSequence.length / sequence.length) * 100) : 0;
     onComplete({
       gameId,
       score,
       accuracy,
-      timeSpent,
-      xpEarned
+      timeSpent: round * 5,
+      xpEarned: Math.round(score / 2)
     });
   };
 
   if (!gameStarted) {
     return (
-      <div className="text-center text-white">
-        <h3 className="text-xl font-bold mb-4">Memory Sequence</h3>
-        <p className="mb-6">Watch the sequence of colors and repeat it back in the same order.</p>
+      <div className="text-center text-white p-4">
+        <h3 className="text-2xl font-bold mb-4">Memory Sequence</h3>
+        <p className="mb-6">Remember and repeat the sequence!</p>
         <button
           onClick={startGame}
           className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold"
@@ -94,41 +87,32 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({ onComplete, gameId }) =>
   }
 
   return (
-    <div className="text-center text-white">
-      <div className="flex justify-between mb-6">
-        <div>Round: {round}</div>
-        <div>Score: {score}</div>
+    <div className="text-center text-white p-4">
+      <div className="mb-6">
+        <div className="text-lg mb-2">Round: {round}</div>
+        <div className="text-lg mb-4">Score: {score}</div>
       </div>
 
-      {showingSequence && (
-        <div className="mb-4 text-lg">Watch the sequence...</div>
-      )}
-
-      {!showingSequence && !gameOver && (
-        <div className="mb-4 text-lg">Repeat the sequence!</div>
-      )}
-
-      <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto mb-6">
+      <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto mb-6">
         {colors.map((color, index) => (
           <button
             key={index}
-            onClick={() => handleColorClick(index)}
-            className={`w-20 h-20 rounded-lg transition-all duration-200 ${
-              showingSequence && sequence[playerSequence.length] === index
-                ? 'scale-110 brightness-150'
-                : ''
+            onClick={() => handleButtonClick(index)}
+            className={`w-24 h-24 rounded-lg transition-all duration-200 ${color} ${
+              activeButton === index ? 'scale-110 brightness-150' : 'hover:scale-105'
             }`}
-            style={{ backgroundColor: color }}
-            disabled={showingSequence || gameOver}
+            disabled={isShowing}
           />
         ))}
       </div>
 
-      {gameOver && (
-        <div className="text-center">
-          <h3 className="text-xl font-bold mb-2">Game Over!</h3>
-          <p>You reached round {round} with a score of {score}!</p>
-        </div>
+      {isShowing && (
+        <p className="text-lg text-yellow-400">Watch the sequence...</p>
+      )}
+      {!isShowing && sequence.length > 0 && (
+        <p className="text-lg text-green-400">
+          Repeat the sequence ({userSequence.length}/{sequence.length})
+        </p>
       )}
     </div>
   );
