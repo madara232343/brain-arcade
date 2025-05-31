@@ -56,7 +56,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       'scientist-avatar': '👨‍🔬',
       'default': '👤'
     };
-    return avatarMap[userProgress.avatar] || avatarMap['default'];
+    
+    // Check if user owns the avatar they're trying to display
+    const currentAvatar = userProgress.avatar || 'default';
+    const ownedItems = userProgress.purchasedItems || [];
+    
+    if (currentAvatar !== 'default' && !ownedItems.includes(currentAvatar)) {
+      return avatarMap['default'];
+    }
+    
+    return avatarMap[currentAvatar] || avatarMap['default'];
   };
 
   const rankInfo = getRankInfo(stats.rank);
@@ -95,6 +104,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-white">Player Profile</h2>
               <p className="text-white/70 text-sm md:text-base">Level {stats.level} Brain Trainer</p>
+              {userProgress.avatar && userProgress.avatar !== 'default' && (
+                <p className="text-purple-400 text-xs md:text-sm">Using: {userProgress.avatar.replace('-', ' ')}</p>
+              )}
             </div>
           </div>
           <button 
@@ -161,6 +173,36 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
               );
             })}
           </div>
+
+          {/* Purchased Items Display */}
+          {userProgress.purchasedItems && userProgress.purchasedItems.length > 0 && (
+            <div className="bg-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/20 mb-4 md:mb-6">
+              <h3 className="text-lg md:text-xl font-bold text-white mb-4 flex items-center">
+                <Package className="h-5 w-5 md:h-6 md:w-6 mr-2 text-blue-400" />
+                Owned Items
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {userProgress.purchasedItems.map((item, index) => (
+                  <div key={index} className="bg-white/10 rounded-lg p-3 border border-white/20">
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">
+                        {item.includes('avatar') ? 
+                          (item === 'robot-avatar' ? '🤖' : 
+                           item === 'wizard-avatar' ? '🧙‍♂️' : 
+                           item === 'scientist-avatar' ? '👨‍🔬' : '🎁') : '🎁'}
+                      </div>
+                      <span className="text-white font-medium text-sm">
+                        {item.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                      {item === userProgress.avatar && (
+                        <div className="text-green-400 text-xs mt-1">Active</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Achievements */}
           <div className="bg-white/10 rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/20">

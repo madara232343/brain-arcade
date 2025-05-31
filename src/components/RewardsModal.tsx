@@ -43,6 +43,7 @@ interface RewardsModalProps {
 
 export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClose, onClaimReward }) => {
   const [activeTab, setActiveTab] = useState<'daily' | 'weekly' | 'achievement'>('daily');
+  const [claimedRewards, setClaimedRewards] = useState<Set<string>>(new Set());
 
   const gamesPlayedCount = (userProgress.gamesPlayed || []).length;
   const totalScore = userProgress.totalScore || 0;
@@ -57,7 +58,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       progress: Math.min(gamesPlayedCount % 5, 5),
       maxProgress: 5,
       xpReward: 50,
-      completed: (gamesPlayedCount % 5) >= 5,
+      completed: (gamesPlayedCount % 5) >= 5 && !claimedRewards.has('daily-games-5'),
       type: 'daily',
       icon: Zap
     },
@@ -69,7 +70,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       progress: Math.min(totalScore % 500, 500),
       maxProgress: 500,
       xpReward: 75,
-      completed: (totalScore % 500) >= 500,
+      completed: (totalScore % 500) >= 500 && !claimedRewards.has('daily-score-500'),
       type: 'daily',
       icon: Target
     },
@@ -94,7 +95,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       progress: Math.min(userProgress.streak || 0, 7),
       maxProgress: 7,
       xpReward: 200,
-      completed: (userProgress.streak || 0) >= 7,
+      completed: (userProgress.streak || 0) >= 7 && !claimedRewards.has('weekly-streak-7'),
       type: 'weekly',
       icon: Trophy
     },
@@ -106,7 +107,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       progress: Math.min(gamesPlayedCount, 50),
       maxProgress: 50,
       xpReward: 300,
-      completed: gamesPlayedCount >= 50,
+      completed: gamesPlayedCount >= 50 && !claimedRewards.has('weekly-games-50'),
       type: 'weekly',
       icon: Clock
     },
@@ -119,7 +120,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       progress: Math.min(userProgress.level || 1, 10),
       maxProgress: 10,
       xpReward: 500,
-      completed: (userProgress.level || 1) >= 10,
+      completed: (userProgress.level || 1) >= 10 && !claimedRewards.has('achievement-level-10'),
       type: 'achievement',
       icon: Trophy
     },
@@ -131,7 +132,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
       progress: Math.min(gamesPlayedCount, 100),
       maxProgress: 100,
       xpReward: 1000,
-      completed: gamesPlayedCount >= 100,
+      completed: gamesPlayedCount >= 100 && !claimedRewards.has('achievement-games-100'),
       type: 'achievement',
       icon: Gift
     }
@@ -144,6 +145,7 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
   };
 
   const handleClaimReward = (rewardId: string) => {
+    setClaimedRewards(prev => new Set([...prev, rewardId]));
     onClaimReward(rewardId);
   };
 
@@ -183,20 +185,25 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
             {filteredRewards.map((reward) => {
               const IconComponent = reward.icon;
               const progressPercentage = getProgressPercentage(reward);
+              const isAlreadyClaimed = claimedRewards.has(reward.id);
 
               return (
                 <div
                   key={reward.id}
                   className={`bg-white/10 rounded-xl p-6 border transition-all ${
-                    reward.completed
+                    reward.completed && !isAlreadyClaimed
                       ? 'border-green-400/50 bg-green-400/10'
+                      : isAlreadyClaimed
+                      ? 'border-gray-400/50 bg-gray-400/10'
                       : 'border-white/20 hover:border-white/30'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
                       <div className={`p-3 rounded-xl ${
-                        reward.completed ? 'bg-green-500' : 'bg-gradient-to-br from-blue-500 to-purple-600'
+                        reward.completed && !isAlreadyClaimed ? 'bg-green-500' : 
+                        isAlreadyClaimed ? 'bg-gray-500' :
+                        'bg-gradient-to-br from-blue-500 to-purple-600'
                       }`}>
                         <IconComponent className="h-6 w-6 text-white" />
                       </div>
@@ -207,14 +214,18 @@ export const RewardsModal: React.FC<RewardsModalProps> = ({ userProgress, onClos
                     </div>
                     <div className="text-right">
                       <div className="text-yellow-400 font-bold">+{reward.xpReward} XP</div>
-                      {reward.completed && (
+                      {isAlreadyClaimed ? (
+                        <span className="mt-2 bg-gray-500 text-white px-4 py-2 rounded-lg font-bold">
+                          ✓ Claimed
+                        </span>
+                      ) : reward.completed ? (
                         <button
                           onClick={() => handleClaimReward(reward.id)}
                           className="mt-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold transition-all"
                         >
                           Claim
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
 

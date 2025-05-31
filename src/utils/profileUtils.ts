@@ -27,12 +27,12 @@ export const calculateXPForNextLevel = (level: number): number => {
   return (level * level) * 100;
 };
 
-export const getRank = (xp: number): string => {
-  if (xp < 500) return 'Bronze';
-  if (xp < 1500) return 'Silver';
-  if (xp < 3500) return 'Gold';
-  if (xp < 7500) return 'Platinum';
-  if (xp < 15000) return 'Diamond';
+export const getRank = (totalScore: number): string => {
+  if (totalScore < 1000) return 'Bronze';
+  if (totalScore < 5000) return 'Silver';
+  if (totalScore < 15000) return 'Gold';
+  if (totalScore < 35000) return 'Platinum';
+  if (totalScore < 75000) return 'Diamond';
   return 'Master';
 };
 
@@ -51,12 +51,13 @@ export const calculateAccurateStats = (progress: UserProgress) => {
   const nextLevelXP = calculateXPForNextLevel(level);
   const xpProgress = progress.totalXP - currentLevelXP;
   const xpNeeded = nextLevelXP - currentLevelXP;
+  const rank = getRank(progress.totalScore);
   
   return {
     level,
     xpProgress,
     xpNeeded,
-    rank: getRank(progress.totalXP),
+    rank,
     accuracy: progress.gamesPlayed.length > 0 ? 85 : 0,
     winRate: progress.gamesPlayed.length > 0 ? 72 : 0,
     totalXP: progress.totalXP,
@@ -71,12 +72,12 @@ export const calculateAccurateStats = (progress: UserProgress) => {
 
 export const getNextRankRequirement = (currentRank: string): { nextRank: string; pointsNeeded: number } => {
   const ranks = [
-    { rank: 'Bronze', xp: 0 },
-    { rank: 'Silver', xp: 500 },
-    { rank: 'Gold', xp: 1500 },
-    { rank: 'Platinum', xp: 3500 },
-    { rank: 'Diamond', xp: 7500 },
-    { rank: 'Master', xp: 15000 }
+    { rank: 'Bronze', score: 0 },
+    { rank: 'Silver', score: 1000 },
+    { rank: 'Gold', score: 5000 },
+    { rank: 'Platinum', score: 15000 },
+    { rank: 'Diamond', score: 35000 },
+    { rank: 'Master', score: 75000 }
   ];
   
   const currentIndex = ranks.findIndex(r => r.rank === currentRank);
@@ -85,5 +86,5 @@ export const getNextRankRequirement = (currentRank: string): { nextRank: string;
   }
   
   const nextRank = ranks[currentIndex + 1];
-  return { nextRank: nextRank.rank, pointsNeeded: nextRank.xp };
+  return { nextRank: nextRank.rank, pointsNeeded: nextRank.score };
 };

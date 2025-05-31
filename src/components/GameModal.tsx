@@ -25,6 +25,10 @@ import { EQTest } from '@/components/games/EQTest';
 import { TicTacToeGame } from '@/components/games/TicTacToeGame';
 import { RockPaperScissorsGame } from '@/components/games/RockPaperScissorsGame';
 import { SnakeGame } from '@/components/games/SnakeGame';
+import { BrainTeaserGame } from '@/components/games/BrainTeaserGame';
+import { LogicPuzzleGame } from '@/components/games/LogicPuzzleGame';
+import { WordChainGame } from '@/components/games/WordChainGame';
+import { QuickMathGame } from '@/components/games/QuickMathGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
 import { useSounds } from '@/components/SoundManager';
@@ -85,6 +89,12 @@ export const GameModal: React.FC<GameModalProps> = ({
         case 'memory-cards':
           return <MemoryCardGame {...gameProps} />;
         
+        // Math Games
+        case 'math-sprint':
+          return <MathSprintGame {...gameProps} />;
+        case 'quick-math':
+          return <QuickMathGame {...gameProps} />;
+        
         // Puzzle Games
         case 'puzzle-blocks':
           return <PuzzleBlocksGame {...gameProps} />;
@@ -94,24 +104,28 @@ export const GameModal: React.FC<GameModalProps> = ({
           return <ShapeRotatorGame {...gameProps} />;
         case 'pattern-match':
           return <PatternMatchGame {...gameProps} />;
+        case 'brain-teaser':
+          return <BrainTeaserGame {...gameProps} />;
+        case 'logic-puzzle':
+          return <LogicPuzzleGame {...gameProps} />;
+        
+        // Word Games
+        case 'word-association':
+          return <WordAssociationGame {...gameProps} />;
+        case 'word-chain':
+          return <WordChainGame {...gameProps} />;
+        case 'speed-typing':
+          return <SpeedTypingGame {...gameProps} />;
         
         // Speed Games
         case 'reaction-time':
           return <ReactionTimeGame {...gameProps} />;
-        case 'speed-typing':
-          return <SpeedTypingGame {...gameProps} />;
-        case 'math-sprint':
-          return <MathSprintGame {...gameProps} />;
-        
-        // Racing/Action Games
         case 'visual-attention':
           return <VisualAttentionGame {...gameProps} />;
-        case 'word-association':
-          return <WordAssociationGame {...gameProps} />;
         case 'number-sequence':
           return <NumberSequenceGame {...gameProps} />;
         
-        // 3D Games (converted to 2D)
+        // 3D Games
         case 'maze-runner':
           return <MazeRunnerGame {...gameProps} />;
         case 'tower-builder':
@@ -199,7 +213,7 @@ export const GameModal: React.FC<GameModalProps> = ({
   );
 };
 
-// Enhanced Generic Game Component
+// Enhanced Generic Game Component with unique mechanics
 const GenericGame: React.FC<{
   onComplete: (result: GameResult) => void;
   gameId: string;
@@ -208,15 +222,33 @@ const GenericGame: React.FC<{
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
   const [gameStarted, setGameStarted] = useState(false);
-  const [clicks, setClicks] = useState(0);
+  const [targets, setTargets] = useState<{x: number, y: number, id: number}[]>([]);
+  const [nextId, setNextId] = useState(1);
+
+  const generateTarget = () => {
+    const newTarget = {
+      x: Math.random() * 80 + 10,
+      y: Math.random() * 60 + 20,
+      id: nextId
+    };
+    setTargets(prev => [...prev, newTarget]);
+    setNextId(prev => prev + 1);
+
+    setTimeout(() => {
+      setTargets(prev => prev.filter(t => t.id !== newTarget.id));
+    }, 2000);
+  };
 
   const handleStart = () => {
     setGameStarted(true);
+    const targetInterval = setInterval(generateTarget, 1500);
+    
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          const accuracy = Math.min(100, Math.round((clicks / 60) * 100));
+          clearInterval(targetInterval);
+          const accuracy = Math.min(100, Math.round((score / 60) * 100));
           onComplete({
             gameId,
             score,
@@ -231,11 +263,9 @@ const GenericGame: React.FC<{
     }, 1000);
   };
 
-  const handleClick = () => {
-    if (gameStarted && timeLeft > 0) {
-      setScore(prev => prev + 15);
-      setClicks(prev => prev + 1);
-    }
+  const handleTargetClick = (targetId: number) => {
+    setScore(prev => prev + 25);
+    setTargets(prev => prev.filter(t => t.id !== targetId));
   };
 
   if (!gameStarted) {
@@ -261,19 +291,31 @@ const GenericGame: React.FC<{
       <div className="mb-6">
         <div className="text-lg md:text-xl mb-2">Time: {timeLeft}s</div>
         <div className="text-lg md:text-xl mb-2">Score: {score}</div>
-        <div className="text-sm md:text-lg mb-4 text-white/70">Clicks: {clicks}</div>
+        <div className="text-sm md:text-lg mb-4 text-white/70">Click the targets!</div>
       </div>
       
-      <div className="bg-white/5 rounded-2xl p-8 mb-6 border border-white/20">
-        <button
-          onClick={handleClick}
-          className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-400 hover:to-purple-500 text-white px-8 py-6 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-lg"
-        >
-          Click Me! 🎯
-        </button>
+      <div className="relative bg-gradient-to-br from-blue-900/50 to-purple-900/50 rounded-2xl h-64 md:h-96 mb-6 border border-white/20 overflow-hidden">
+        {targets.map(target => (
+          <button
+            key={target.id}
+            onClick={() => handleTargetClick(target.id)}
+            className="absolute w-8 h-8 md:w-12 md:h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full shadow-lg hover:scale-110 transition-all duration-200 animate-pulse"
+            style={{
+              left: `${target.x}%`,
+              top: `${target.y}%`,
+              transform: 'translate(-50%, -50%)'
+            }}
+          >
+            🎯
+          </button>
+        ))}
+        
+        {targets.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center text-white/50">
+            <span className="text-lg">Wait for targets...</span>
+          </div>
+        )}
       </div>
-      
-      <p className="text-white/70">Click the button as many times as you can!</p>
       
       <div className="mt-4 bg-white/10 rounded-full h-2">
         <div 

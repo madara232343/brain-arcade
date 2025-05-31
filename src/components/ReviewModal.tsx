@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { X, Star, Send, MessageCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { reviewStorage } from '@/utils/reviewStorage';
 
 interface ReviewModalProps {
   onClose: () => void;
@@ -35,15 +36,20 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({ onClose, onSubmit }) =
       return;
     }
 
-    onSubmit({
+    const reviewData = {
       rating,
       comment: comment.trim(),
       name: name.trim() || 'Anonymous'
-    });
+    };
+
+    // Store review (hidden by default)
+    reviewStorage.addReview(reviewData);
+    
+    onSubmit(reviewData);
 
     toast({
       title: "Review Submitted! 🎉",
-      description: "Thank you for your feedback!",
+      description: "Thank you for your feedback! Your review has been saved.",
     });
 
     onClose();
