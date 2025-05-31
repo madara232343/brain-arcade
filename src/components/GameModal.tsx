@@ -29,6 +29,9 @@ import { BrainTeaserGame } from '@/components/games/BrainTeaserGame';
 import { LogicPuzzleGame } from '@/components/games/LogicPuzzleGame';
 import { WordChainGame } from '@/components/games/WordChainGame';
 import { QuickMathGame } from '@/components/games/QuickMathGame';
+import { WordScrambleGame } from '@/components/games/WordScrambleGame';
+import { NumberPuzzleGame } from '@/components/games/NumberPuzzleGame';
+import { ColorBlendGame } from '@/components/games/ColorBlendGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
 import { useSounds } from '@/components/SoundManager';
@@ -94,6 +97,8 @@ export const GameModal: React.FC<GameModalProps> = ({
           return <MathSprintGame {...gameProps} />;
         case 'quick-math':
           return <QuickMathGame {...gameProps} />;
+        case 'number-puzzle':
+          return <NumberPuzzleGame {...gameProps} />;
         
         // Puzzle Games
         case 'puzzle-blocks':
@@ -116,6 +121,8 @@ export const GameModal: React.FC<GameModalProps> = ({
           return <WordChainGame {...gameProps} />;
         case 'speed-typing':
           return <SpeedTypingGame {...gameProps} />;
+        case 'word-scramble':
+          return <WordScrambleGame {...gameProps} />;
         
         // Speed Games
         case 'reaction-time':
@@ -124,6 +131,10 @@ export const GameModal: React.FC<GameModalProps> = ({
           return <VisualAttentionGame {...gameProps} />;
         case 'number-sequence':
           return <NumberSequenceGame {...gameProps} />;
+        
+        // Creative Games
+        case 'color-blend':
+          return <ColorBlendGame {...gameProps} />;
         
         // 3D Games
         case 'maze-runner':
@@ -213,7 +224,7 @@ export const GameModal: React.FC<GameModalProps> = ({
   );
 };
 
-// Enhanced Generic Game Component with unique mechanics
+// Enhanced Generic Game Component
 const GenericGame: React.FC<{
   onComplete: (result: GameResult) => void;
   gameId: string;
