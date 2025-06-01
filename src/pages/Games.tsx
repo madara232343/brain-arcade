@@ -346,7 +346,10 @@ export default function Games() {
 
       {/* ChatBot */}
       {showChatBot && (
-        <ChatBot onClose={() => setShowChatBot(false)} />
+        <ChatBot 
+          isOpen={showChatBot}
+          onClose={() => setShowChatBot(false)} 
+        />
       )}
     </MobileOptimizedLayout>
   );

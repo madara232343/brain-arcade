@@ -13,40 +13,43 @@ import {
 } from 'lucide-react';
 
 interface CategoryFilterProps {
+  categories: string[];
   selectedCategory: string;
-  onCategoryChange: (category: string) => void;
+  onCategorySelect: (category: string) => void;
 }
 
-const categories = [
-  { id: 'all', name: 'All Games', icon: Gamepad2, color: 'from-gray-500 to-gray-600', count: 105 },
-  { id: 'memory', name: 'Memory', icon: Brain, color: 'from-blue-500 to-cyan-500', count: 15 },
-  { id: 'puzzle', name: 'Puzzle', icon: Puzzle, color: 'from-green-500 to-teal-500', count: 20 },
-  { id: 'speed', name: 'Speed', icon: Zap, color: 'from-yellow-500 to-orange-500', count: 15 },
-  { id: 'racing', name: 'Racing', icon: Car, color: 'from-orange-500 to-red-500', count: 15 },
-  { id: 'shooting', name: 'Shooting', icon: Target, color: 'from-red-500 to-pink-500', count: 15 },
-  { id: 'arcade', name: 'Arcade', icon: Gamepad2, color: 'from-purple-500 to-pink-500', count: 10 },
-  { id: 'strategy', name: 'Strategy', icon: Crown, color: 'from-indigo-500 to-purple-500', count: 10 },
-  { id: 'intelligence', name: 'Intelligence', icon: Users, color: 'from-violet-500 to-purple-600', count: 5 }
+const categoryDetails = [
+  { id: 'All', name: 'All Games', icon: Gamepad2, color: 'from-gray-500 to-gray-600', count: 105 },
+  { id: 'Memory', name: 'Memory', icon: Brain, color: 'from-blue-500 to-cyan-500', count: 15 },
+  { id: 'Puzzle', name: 'Puzzle', icon: Puzzle, color: 'from-green-500 to-teal-500', count: 20 },
+  { id: 'Speed', name: 'Speed', icon: Zap, color: 'from-yellow-500 to-orange-500', count: 15 },
+  { id: 'Racing', name: 'Racing', icon: Car, color: 'from-orange-500 to-red-500', count: 15 },
+  { id: 'Strategy', name: 'Strategy', icon: Crown, color: 'from-indigo-500 to-purple-500', count: 10 },
+  { id: 'Intelligence', name: 'Intelligence', icon: Users, color: 'from-violet-500 to-purple-600', count: 5 },
+  { id: '3D', name: '3D Games', icon: Target, color: 'from-purple-500 to-pink-500', count: 10 }
 ];
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({ 
+  categories,
   selectedCategory, 
-  onCategoryChange 
+  onCategorySelect 
 }) => {
+  const filteredCategories = categoryDetails.filter(cat => categories.includes(cat.id));
+
   return (
     <div className="mb-8">
       <h3 className="text-xl font-bold text-white mb-4">Game Categories</h3>
       
       {/* Desktop View */}
       <div className="hidden md:grid grid-cols-3 lg:grid-cols-5 gap-4">
-        {categories.map((category) => {
+        {filteredCategories.map((category) => {
           const IconComponent = category.icon;
           const isSelected = selectedCategory === category.id;
           
           return (
             <button
               key={category.id}
-              onClick={() => onCategoryChange(category.id)}
+              onClick={() => onCategorySelect(category.id)}
               className={`group relative p-4 rounded-2xl border transition-all duration-300 hover:scale-105 ${
                 isSelected 
                   ? 'bg-white/20 border-white/40 shadow-lg' 
@@ -77,14 +80,14 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       {/* Mobile View */}
       <div className="md:hidden">
         <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
-          {categories.map((category) => {
+          {filteredCategories.map((category) => {
             const IconComponent = category.icon;
             const isSelected = selectedCategory === category.id;
             
             return (
               <button
                 key={category.id}
-                onClick={() => onCategoryChange(category.id)}
+                onClick={() => onCategorySelect(category.id)}
                 className={`flex-shrink-0 flex flex-col items-center p-3 rounded-xl transition-all duration-300 ${
                   isSelected 
                     ? 'bg-white/20 border border-white/40' 
