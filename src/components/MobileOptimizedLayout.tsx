@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Gamepad2, Trophy, MessageCircle } from 'lucide-react';
+import { Home, Gamepad2, Trophy, User, MessageCircle } from 'lucide-react';
 
 interface MobileOptimizedLayoutProps {
   children: React.ReactNode;
@@ -25,7 +25,7 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-lg border-t border-white/20 z-40 safe-area-inset-bottom">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-lg border-t border-white/20 z-40 safe-area-inset-bottom">
         <div className="grid grid-cols-4 h-16">
           <button
             onClick={() => onNavigate('/')}

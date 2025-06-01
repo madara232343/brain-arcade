@@ -1,321 +1,512 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { BarChart3, Gift, ShoppingCart, RotateCcw, User, Home, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { GameFeed } from '@/components/GameFeed';
+import { DailyChallenge } from '@/components/DailyChallenge';
+import { ProgressHeader } from '@/components/ProgressHeader';
 import { GameModal } from '@/components/GameModal';
-import { Brain, Zap, Timer, Car, Target, Gamepad, Crown, Lightbulb, Search, Filter } from 'lucide-react';
-import { GameResult } from '@/types/game';
+import { StatsModal } from '@/components/StatsModal';
+import { RewardsModal } from '@/components/RewardsModal';
+import { ShopModal } from '@/components/ShopModal';
+import { ProfileModal } from '@/components/ProfileModal';
+import { CategoryFilter } from '@/components/CategoryFilter';
+import { AchievementNotification } from '@/components/AchievementNotification';
+import { PowerUpBar } from '@/components/PowerUpBar';
+import { ChatBot } from '@/components/ChatBot';
+import { MobileOptimizedLayout } from '@/components/MobileOptimizedLayout';
+import { SoundProvider, useSounds } from '@/components/SoundManager';
+import { ThemeProvider, useTheme } from '@/components/ThemeManager';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { audioManager } from '@/utils/audioUtils';
+import { powerUpManager } from '@/utils/powerUpManager';
+import { calculateAccurateStats } from '@/utils/profileUtils';
+import { toast } from '@/hooks/use-toast';
 
-// Game categories with improved mobile-responsive design
-const gameCategories = [
-  {
-    id: 'memory',
-    name: 'Memory',
-    icon: Brain,
-    color: 'from-purple-500 to-pink-500',
-    description: 'Test and improve your memory',
-    games: [
-      { id: 'memory-sequence', title: 'Memory Sequence', description: 'Remember color patterns', icon: Brain, difficulty: 'Medium' },
-      { id: 'color-memory', title: 'Color Memory', description: 'Advanced pattern recognition', icon: Brain, difficulty: 'Hard' },
-      { id: 'simon-says', title: 'Simon Says', description: 'Follow the sequence', icon: Brain, difficulty: 'Easy' },
-      { id: 'memory-cards', title: 'Memory Cards', description: 'Match pairs of cards', icon: Brain, difficulty: 'Medium' },
-      { id: 'number-memory', title: 'Number Memory', description: 'Remember number sequences', icon: Brain, difficulty: 'Hard' },
-      { id: 'word-memory', title: 'Word Memory', description: 'Associate and recall words', icon: Brain, difficulty: 'Medium' },
-      { id: 'face-memory', title: 'Face Memory', description: 'Remember faces and patterns', icon: Brain, difficulty: 'Hard' },
-      { id: 'spatial-memory', title: 'Spatial Memory', description: 'Remember locations', icon: Brain, difficulty: 'Medium' },
-      { id: 'visual-memory', title: 'Visual Memory', description: 'Visual attention tasks', icon: Brain, difficulty: 'Easy' }
-    ]
-  },
-  {
-    id: 'puzzle',
-    name: 'Puzzle',
-    icon: Lightbulb,
-    color: 'from-blue-500 to-indigo-500',
-    description: 'Challenge your problem-solving',
-    games: [
-      { id: 'puzzle-blocks', title: 'Puzzle Blocks', description: 'Arrange blocks strategically', icon: Lightbulb, difficulty: 'Medium' },
-      { id: 'spatial-reasoning', title: 'Spatial Reasoning', description: '3D thinking challenges', icon: Lightbulb, difficulty: 'Hard' },
-      { id: 'shape-rotator', title: 'Shape Rotator', description: 'Rotate shapes to match', icon: Lightbulb, difficulty: 'Medium' },
-      { id: 'pattern-match', title: 'Pattern Match', description: 'Find matching patterns', icon: Lightbulb, difficulty: 'Easy' },
-      { id: 'sudoku', title: 'Sudoku', description: '4x4 number puzzle game', icon: Lightbulb, difficulty: 'Hard' },
-      { id: 'maze-solver', title: 'Maze Runner', description: 'Navigate through mazes', icon: Lightbulb, difficulty: 'Medium' },
-      { id: 'brain-teaser', title: 'Brain Teaser', description: 'Logic and reasoning', icon: Lightbulb, difficulty: 'Hard' },
-      { id: 'logic-puzzle', title: 'Logic Puzzle', description: 'Solve logical problems', icon: Lightbulb, difficulty: 'Hard' },
-      { id: 'number-puzzle', title: 'Number Puzzle', description: 'Mathematical sequences', icon: Lightbulb, difficulty: 'Medium' }
-    ]
-  },
-  {
-    id: 'speed',
-    name: 'Speed',
-    icon: Zap,
-    color: 'from-yellow-500 to-orange-500',
-    description: 'Test your reaction time',
-    games: [
-      { id: 'reaction-time', title: 'Reaction Time', description: 'Test your reflexes', icon: Zap, difficulty: 'Easy' },
-      { id: 'speed-typing', title: 'Speed Typing', description: 'Type as fast as possible', icon: Zap, difficulty: 'Medium' },
-      { id: 'math-sprint', title: 'Math Sprint', description: 'Quick math calculations', icon: Zap, difficulty: 'Medium' },
-      { id: 'quick-math', title: 'Quick Math', description: 'Rapid arithmetic', icon: Zap, difficulty: 'Easy' },
-      { id: 'word-scramble', title: 'Word Scramble', description: 'Unscramble words quickly', icon: Zap, difficulty: 'Medium' }
-    ]
-  },
-  {
-    id: 'racing',
-    name: 'Racing',
-    icon: Car,
-    color: 'from-green-500 to-teal-500',
-    description: 'High-speed challenges',
-    games: [
-      { id: 'space-race', title: 'Space Racer', description: 'Navigate through space obstacles', icon: Car, difficulty: 'Medium' }
-    ]
-  },
-  {
-    id: 'shooting',
-    name: 'Shooting',
-    icon: Target,
-    color: 'from-red-500 to-pink-500',
-    description: 'Aim and shoot games',
-    games: [
-      { id: 'bubble-shooter', title: 'Bubble Shooter', description: 'Match colored bubbles', icon: Target, difficulty: 'Easy' }
-    ]
-  },
-  {
-    id: 'arcade',
-    name: 'Arcade',
-    icon: Gamepad,
-    color: 'from-indigo-500 to-purple-500',
-    description: 'Classic arcade games',
-    games: [
-      { id: 'snake-game', title: 'Snake Game', description: 'Classic snake gameplay', icon: Gamepad, difficulty: 'Medium' },
-      { id: 'tetris', title: 'Tetris', description: 'Block stacking puzzle', icon: Gamepad, difficulty: 'Hard' }
-    ]
-  },
-  {
-    id: 'strategy',
-    name: 'Strategy',
-    icon: Crown,
-    color: 'from-gray-500 to-slate-600',
-    description: 'Strategic thinking games',
-    games: [
-      { id: 'chess', title: 'Chess', description: 'Classic strategy game', icon: Crown, difficulty: 'Hard' },
-      { id: 'tic-tac-toe', title: 'Tic Tac Toe', description: 'Strategic placement', icon: Crown, difficulty: 'Easy' }
-    ]
-  },
-  {
-    id: 'intelligence',
-    name: 'Intelligence',
-    icon: Brain,
-    color: 'from-cyan-500 to-blue-500',
-    description: 'IQ and cognitive tests',
-    games: [
-      { id: 'iq-test', title: 'IQ Test', description: 'Comprehensive intelligence test', icon: Brain, difficulty: 'Expert' },
-      { id: 'eq-test', title: 'EQ Test', description: 'Emotional intelligence test', icon: Brain, difficulty: 'Medium' }
-    ]
-  }
-];
+export interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
+}
 
-const Games: React.FC = () => {
-  const [selectedGame, setSelectedGame] = useState<any>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [userProgress, setUserProgress] = useLocalStorage('userProgress', {
+export interface GameResult {
+  gameId: string;
+  score: number;
+  accuracy: number;
+  timeSpent: number;
+  xpEarned: number;
+}
+
+const GamesContent = () => {
+  const [userProgress, setUserProgress] = useLocalStorage<UserProgress>('brainArcadeProgress', {
     totalScore: 0,
     totalXP: 0,
     level: 1,
     gamesPlayed: [],
     achievements: [],
-    rank: 'Beginner',
+    rank: 'Bronze',
     streak: 0,
     purchasedItems: [],
-    activePowerUps: []
+    activeTheme: 'default',
+    activePowerUps: [],
+    xp: 0,
+    lastPlayDate: '',
+    playedGames: [],
+    ownedItems: [],
+    totalPlayTime: 0,
+    theme: 'default',
+    avatar: 'default'
   });
 
-  // Get all games from all categories
-  const allGames = gameCategories.flatMap(category => 
-    category.games.map(game => ({ ...game, category: category.id }))
-  );
+  const [selectedGame, setSelectedGame] = useState<any>(null);
+  const [showGameModal, setShowGameModal] = useState(false);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+  const [showRewardsModal, setShowRewardsModal] = useState(false);
+  const [showShopModal, setShowShopModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showChatBot, setShowChatBot] = useState(false);
+  const [gameStats, setGameStats] = useState<any[]>([]);
+  const [currentAchievement, setCurrentAchievement] = useState<any>(null);
+  const [activePowerUps, setActivePowerUps] = useState<Set<string>>(new Set());
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Filter games based on category and search
-  const filteredCategories = gameCategories.filter(category => {
-    const matchesCategory = selectedCategory === 'all' || category.id === selectedCategory;
-    const hasMatchingGames = category.games.some(game => 
-      game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      game.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    return matchesCategory && (searchTerm === '' || hasMatchingGames);
-  });
+  const { playSound } = useSounds();
+  const { currentTheme, setTheme } = useTheme();
 
-  const handleGameComplete = useCallback((result: GameResult) => {
-    const currentTime = new Date().toISOString();
-    const newUserProgress = {
-      ...userProgress,
-      totalScore: userProgress.totalScore + result.score,
-      totalXP: userProgress.totalXP + result.xpEarned,
-      gamesPlayed: [...userProgress.gamesPlayed, result.gameId],
-      lastPlayDate: currentTime
-    };
-
-    // Level up logic
-    const newLevel = Math.floor(newUserProgress.totalXP / 1000) + 1;
-    if (newLevel > userProgress.level) {
-      newUserProgress.level = newLevel;
+  // Update theme when user changes it
+  useEffect(() => {
+    if (userProgress.activeTheme !== currentTheme.id) {
+      setTheme(userProgress.activeTheme);
     }
+  }, [userProgress.activeTheme, currentTheme.id, setTheme]);
 
-    setUserProgress(newUserProgress);
-    setSelectedGame(null);
-  }, [userProgress, setUserProgress]);
+  const achievements = [
+    { id: 'first-game', title: 'Getting Started', description: 'Play your first game', reward: 50, trigger: (progress: UserProgress) => progress.gamesPlayed.length >= 1 },
+    { id: 'streak-master', title: 'Streak Master', description: 'Maintain a 7-day streak', reward: 200, trigger: (progress: UserProgress) => progress.streak >= 7 },
+    { id: 'score-hunter', title: 'Score Hunter', description: 'Earn 10,000 total points', reward: 300, trigger: (progress: UserProgress) => progress.totalScore >= 10000 },
+    { id: 'level-up', title: 'Level Up!', description: 'Reach level 5', reward: 150, trigger: (progress: UserProgress) => progress.level >= 5 },
+    { id: 'time-warrior', title: 'Time Warrior', description: 'Play for 60 minutes total', reward: 100, trigger: (progress: UserProgress) => progress.totalPlayTime >= 3600 },
+    { id: 'game-explorer', title: 'Game Explorer', description: 'Try 10 different games', reward: 400, trigger: (progress: UserProgress) => progress.playedGames.length >= 10 },
+    { id: 'memory-master', title: 'Memory Master', description: 'Complete 5 memory games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => id.includes('memory')).length >= 5 },
+    { id: 'puzzle-solver', title: 'Puzzle Solver', description: 'Complete 5 puzzle games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => ['puzzle-blocks', 'sudoku', 'tetris', 'brain-teaser'].includes(id)).length >= 5 },
+    { id: 'speed-demon', title: 'Speed Demon', description: 'Complete 5 speed games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => ['reaction-time', 'speed-typing', 'math-sprint'].includes(id)).length >= 5 },
+    { id: 'strategist', title: 'Master Strategist', description: 'Complete chess and checkers', reward: 350, trigger: (progress: UserProgress) => progress.playedGames.includes('chess') && progress.playedGames.includes('checkers') },
+    { id: 'high-scorer', title: 'High Scorer', description: 'Score 50,000 points', reward: 500, trigger: (progress: UserProgress) => progress.totalScore >= 50000 },
+    { id: 'perfectionist', title: 'Perfectionist', description: 'Get 100% accuracy in any game', reward: 400, trigger: (progress: UserProgress) => progress.achievements.includes('perfect-game') },
+    { id: 'marathon-runner', title: 'Marathon Runner', description: 'Play for 3 hours total', reward: 300, trigger: (progress: UserProgress) => progress.totalPlayTime >= 10800 },
+    { id: 'daily-player', title: 'Daily Player', description: 'Play games 5 days in a row', reward: 250, trigger: (progress: UserProgress) => progress.streak >= 5 },
+    { id: 'category-master', title: 'Category Master', description: 'Play games from all categories', reward: 600, trigger: (progress: UserProgress) => {
+      const categories = ['memory', 'puzzle', 'speed', 'racing', 'shooting', 'arcade', 'strategy'];
+      return categories.every(cat => progress.playedGames.some(game => game.includes(cat)));
+    }},
+    { id: 'collector', title: 'Collector', description: 'Own 10 shop items', reward: 300, trigger: (progress: UserProgress) => (progress.ownedItems || []).length >= 10 },
+    { id: 'xp-master', title: 'XP Master', description: 'Earn 5,000 XP', reward: 200, trigger: (progress: UserProgress) => progress.totalXP >= 5000 },
+    { id: 'game-addict', title: 'Game Addict', description: 'Play 50 games total', reward: 800, trigger: (progress: UserProgress) => progress.gamesPlayed.length >= 50 },
+    { id: 'bronze-champion', title: 'Bronze Champion', description: 'Reach Bronze rank', reward: 100, trigger: (progress: UserProgress) => ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'silver-champion', title: 'Silver Champion', description: 'Reach Silver rank', reward: 200, trigger: (progress: UserProgress) => ['Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'gold-champion', title: 'Gold Champion', description: 'Reach Gold rank', reward: 300, trigger: (progress: UserProgress) => ['Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'platinum-champion', title: 'Platinum Champion', description: 'Reach Platinum rank', reward: 500, trigger: (progress: UserProgress) => ['Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'diamond-champion', title: 'Diamond Champion', description: 'Reach Diamond rank', reward: 750, trigger: (progress: UserProgress) => ['Diamond', 'Master', 'Legendary'].includes(progress.rank) },
+    { id: 'master-champion', title: 'Master Champion', description: 'Reach Master rank', reward: 1000, trigger: (progress: UserProgress) => ['Master', 'Legendary'].includes(progress.rank) },
+    { id: 'legendary-champion', title: 'Legendary Champion', description: 'Reach Legendary rank', reward: 1500, trigger: (progress: UserProgress) => progress.rank === 'Legendary' }
+  ];
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Easy': return 'bg-green-500';
-      case 'Medium': return 'bg-yellow-500';
-      case 'Hard': return 'bg-orange-500';
-      case 'Expert': return 'bg-red-500';
-      default: return 'bg-gray-500';
+  const checkAchievements = (newProgress: UserProgress) => {
+    const unlockedAchievements = achievements.filter(achievement => {
+      return !newProgress.achievements.includes(achievement.id) && achievement.trigger(newProgress);
+    });
+
+    if (unlockedAchievements.length > 0) {
+      const achievement = unlockedAchievements[0];
+      setCurrentAchievement(achievement);
+      
+      setUserProgress(prev => ({
+        ...prev,
+        achievements: [...prev.achievements, achievement.id],
+        totalXP: prev.totalXP + achievement.reward,
+        xp: prev.xp + achievement.reward
+      }));
+
+      playSound('notification');
+      toast({
+        title: "🎉 Achievement Unlocked!",
+        description: `${achievement.title} - +${achievement.reward} XP`,
+        duration: 3000,
+      });
     }
   };
 
-  const activePowerUps = new Set(userProgress.activePowerUps || []);
+  const calculateRank = (totalScore: number) => {
+    if (totalScore >= 500000) return 'Legendary';
+    if (totalScore >= 250000) return 'Master';
+    if (totalScore >= 100000) return 'Diamond';
+    if (totalScore >= 50000) return 'Platinum';
+    if (totalScore >= 25000) return 'Gold';
+    if (totalScore >= 10000) return 'Silver';
+    if (totalScore >= 5000) return 'Bronze';
+    return 'Bronze';
+  };
+
+  const handleGameComplete = (result: GameResult) => {
+    const today = new Date().toDateString();
+    const isNewDay = userProgress.lastPlayDate !== today;
+    
+    let xpMultiplier = 1;
+    if (activePowerUps.has('doubleXP')) {
+      xpMultiplier = 2;
+    }
+    
+    const finalXP = result.xpEarned * xpMultiplier;
+    const newXP = userProgress.totalXP + finalXP;
+    const newLevel = Math.floor(newXP / 100) + 1;
+    const newTotalScore = userProgress.totalScore + result.score;
+    const newRank = calculateRank(newTotalScore);
+    
+    const updatedPlayedGames = Array.isArray(userProgress.playedGames) 
+      ? [...userProgress.playedGames] 
+      : [];
+    
+    if (!updatedPlayedGames.includes(result.gameId)) {
+      updatedPlayedGames.push(result.gameId);
+    }
+
+    const updatedGamesPlayed = Array.isArray(userProgress.gamesPlayed) 
+      ? [...userProgress.gamesPlayed] 
+      : [];
+    
+    if (!updatedGamesPlayed.includes(result.gameId)) {
+      updatedGamesPlayed.push(result.gameId);
+    }
+    
+    setGameStats(prev => [...prev, {
+      ...result,
+      timestamp: Date.now(),
+      date: today
+    }]);
+    
+    const newProgress = {
+      ...userProgress,
+      totalXP: newXP,
+      xp: newXP,
+      level: newLevel,
+      streak: isNewDay ? userProgress.streak + 1 : userProgress.streak,
+      lastPlayDate: today,
+      gamesPlayed: updatedGamesPlayed,
+      totalScore: newTotalScore,
+      playedGames: updatedPlayedGames,
+      totalPlayTime: userProgress.totalPlayTime + result.timeSpent,
+      rank: newRank
+    };
+    
+    setUserProgress(newProgress);
+    checkAchievements(newProgress);
+
+    playSound('success');
+    setShowGameModal(false);
+    setSelectedGame(null);
+
+    toast({
+      title: "🎯 Game Complete!",
+      description: `+${result.score} points, +${finalXP} XP${xpMultiplier > 1 ? ' (2x bonus!)' : ''}`,
+      duration: 3000,
+    });
+  };
+
+  const handlePurchase = (itemId: string, price: number) => {
+    if (userProgress.totalScore >= price) {
+      setUserProgress(prev => ({
+        ...prev,
+        totalScore: prev.totalScore - price,
+        purchasedItems: [...(prev.purchasedItems || []), itemId],
+        ownedItems: [...(prev.ownedItems || []), itemId]
+      }));
+      
+      // Add power-up to inventory or apply theme/avatar
+      if (itemId.includes('doubleXP')) {
+        powerUpManager.addPowerUp('doubleXP', 'Double XP', 5);
+        playSound('powerup');
+      } else if (itemId.includes('timeFreeze')) {
+        powerUpManager.addPowerUp('timeFreeze', 'Time Freeze', 3);
+        playSound('powerup');
+      } else if (itemId.includes('accuracyBoost')) {
+        powerUpManager.addPowerUp('accuracyBoost', 'Accuracy Boost', 3);
+        playSound('powerup');
+      } else if (itemId.includes('shield')) {
+        powerUpManager.addPowerUp('shield', 'Error Shield', 5);
+        playSound('powerup');
+      } else if (itemId.includes('theme')) {
+        setUserProgress(prev => ({ ...prev, activeTheme: itemId, theme: itemId }));
+        setTheme(itemId);
+      } else if (itemId.includes('avatar')) {
+        setUserProgress(prev => ({ ...prev, avatar: itemId }));
+      }
+      
+      playSound('success');
+      toast({
+        title: "🛒 Purchase Successful!",
+        description: "Item added to your inventory",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handlePowerUpUsed = (type: string) => {
+    setActivePowerUps(prev => new Set([...prev, type]));
+    playSound('powerup');
+    
+    if (type === 'timeFreeze') {
+      setTimeout(() => {
+        setActivePowerUps(prev => {
+          const newSet = new Set(prev);
+          newSet.delete('timeFreeze');
+          return newSet;
+        });
+      }, 10000);
+    } else if (type === 'doubleXP') {
+      setTimeout(() => {
+        setActivePowerUps(prev => {
+          const newSet = new Set(prev);
+          newSet.delete('doubleXP');
+          return newSet;
+        });
+      }, 300000);
+    }
+  };
+
+  const handleResetProgress = () => {
+    if (confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
+      const resetProgress = {
+        totalScore: 0,
+        totalXP: 0,
+        level: 1,
+        gamesPlayed: [],
+        achievements: [],
+        rank: 'Bronze',
+        streak: 0,
+        purchasedItems: [],
+        activeTheme: 'default',
+        activePowerUps: [],
+        xp: 0,
+        lastPlayDate: '',
+        playedGames: [],
+        ownedItems: [],
+        totalPlayTime: 0,
+        theme: 'default',
+        avatar: 'default'
+      };
+      setUserProgress(resetProgress);
+      setGameStats([]);
+      powerUpManager.clearAllPowerUps();
+      playSound('click');
+      toast({
+        title: "🔄 Progress Reset",
+        description: "All progress has been reset",
+        duration: 3000,
+      });
+    }
+  };
+
+  const openGame = (game: any) => {
+    playSound('click');
+    setSelectedGame(game);
+    setShowGameModal(true);
+  };
+
+  const handleNavigation = (path: string) => {
+    playSound('click');
+    window.location.href = path;
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
-      <div className="container mx-auto px-4 py-6 md:py-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            🎮 Brain Games Arena
-          </h1>
-          <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
-            Challenge your mind with our collection of brain training games
-          </p>
+    <MobileOptimizedLayout 
+      currentPage="games" 
+      onNavigate={handleNavigation}
+      onChatOpen={() => setShowChatBot(true)}
+    >
+      <div className={`min-h-screen bg-gradient-to-br ${currentTheme.gradient} relative overflow-hidden`}>
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-32 md:w-96 h-32 md:h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-3/4 right-1/4 w-24 md:w-80 h-24 md:h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-1/2 left-1/2 w-16 md:w-64 h-16 md:h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
         </div>
 
-        {/* Search and Filter */}
-        <div className="mb-8 space-y-4">
-          {/* Search Bar */}
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 h-5 w-5" />
-            <input
-              type="text"
-              placeholder="Search games..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-          </div>
-
-          {/* Category Filter - Horizontal Scroll on Mobile */}
-          <div className="flex items-center space-x-3 overflow-x-auto pb-2">
-            <Filter className="text-white/70 h-5 w-5 flex-shrink-0" />
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium transition-all ${
-                selectedCategory === 'all'
-                  ? 'bg-white text-purple-900'
-                  : 'bg-white/10 text-white hover:bg-white/20'
-              }`}
-            >
-              All ({allGames.length})
-            </button>
-            {gameCategories.map((category) => (
+        <div className="container mx-auto px-3 md:px-4 py-4 md:py-6 max-w-6xl relative z-10">
+          {/* Header - Desktop Only */}
+          <div className="hidden md:flex justify-between items-center gap-3 mb-6">
+            <Link to="/" className="flex items-center space-x-2 text-white hover:text-blue-300 transition-colors">
+              <Home className="h-5 w-5" />
+              <span>Home</span>
+            </Link>
+            
+            <div className="flex gap-3">
               <button
-                key={category.id}
-                onClick={() => setSelectedCategory(category.id)}
-                className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium transition-all ${
-                  selectedCategory === category.id
-                    ? 'bg-white text-purple-900'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
+                onClick={() => setShowProfileModal(true)}
+                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
               >
-                {category.name} ({category.games.length})
+                <User className="h-5 w-5 text-white" />
+                <span className="text-white font-medium">Profile</span>
               </button>
-            ))}
+              <button
+                onClick={() => setShowStatsModal(true)}
+                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
+              >
+                <BarChart3 className="h-5 w-5 text-white" />
+                <span className="text-white font-medium">Stats</span>
+              </button>
+              <button
+                onClick={() => setShowRewardsModal(true)}
+                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
+              >
+                <Gift className="h-5 w-5 text-white" />
+                <span className="text-white font-medium">Rewards</span>
+              </button>
+              <button
+                onClick={() => setShowShopModal(true)}
+                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
+              >
+                <ShoppingCart className="h-5 w-5 text-white" />
+                <span className="text-white font-medium">Shop</span>
+              </button>
+              <button
+                onClick={handleResetProgress}
+                className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 backdrop-blur-lg rounded-xl px-4 py-2 border border-red-500/30 transition-all duration-300 hover:scale-105"
+              >
+                <RotateCcw className="h-5 w-5 text-red-400" />
+                <span className="text-red-400 font-medium">Reset</span>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Game Categories */}
-        <div className="space-y-8">
-          {filteredCategories.map((category) => {
-            const IconComponent = category.icon;
-            const filteredGames = category.games.filter(game =>
-              searchTerm === '' || 
-              game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              game.description.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-
-            if (filteredGames.length === 0) return null;
-
-            return (
-              <div key={category.id} className="space-y-4">
-                {/* Category Header */}
-                <div className="flex items-center space-x-3">
-                  <div className={`p-3 rounded-xl bg-gradient-to-r ${category.color}`}>
-                    <IconComponent className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl md:text-2xl font-bold">{category.name}</h2>
-                    <p className="text-white/70 text-sm md:text-base">{category.description}</p>
-                  </div>
-                </div>
-
-                {/* Games Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-                  {filteredGames.map((game) => {
-                    const GameIcon = game.icon;
-                    
-                    return (
-                      <div
-                        key={game.id}
-                        onClick={() => setSelectedGame(game)}
-                        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105 cursor-pointer group"
-                      >
-                        <div className="text-center">
-                          <div className={`inline-flex p-3 rounded-xl mb-3 bg-gradient-to-r ${category.color} group-hover:scale-110 transition-transform duration-300`}>
-                            <GameIcon className="h-6 w-6 text-white" />
-                          </div>
-                          
-                          <h3 className="text-white font-bold text-sm md:text-base mb-2 line-clamp-2">{game.title}</h3>
-                          <p className="text-white/70 text-xs mb-3 line-clamp-2">{game.description}</p>
-                          
-                          <div className="flex items-center justify-center">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getDifficultyColor(game.difficulty)}`}>
-                              {game.difficulty}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* No Results */}
-        {filteredCategories.length === 0 && (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">🎮</div>
-            <h3 className="text-2xl font-bold text-white mb-2">No Games Found</h3>
-            <p className="text-white/70">Try adjusting your search or filter criteria.</p>
+          {/* Mobile Header */}
+          <div className="md:hidden flex justify-between items-center mb-4">
+            <Link to="/" className="text-white hover:text-blue-300 transition-colors">
+              <Home className="h-6 w-6" />
+            </Link>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="p-2 bg-white/10 rounded-lg border border-white/20 touch-target"
+              >
+                <User className="h-5 w-5 text-white" />
+              </button>
+              <button
+                onClick={() => setShowShopModal(true)}
+                className="p-2 bg-white/10 rounded-lg border border-white/20 touch-target"
+              >
+                <ShoppingCart className="h-5 w-5 text-white" />
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Game Modal */}
-        {selectedGame && (
-          <GameModal
-            game={selectedGame}
-            onComplete={handleGameComplete}
-            onClose={() => setSelectedGame(null)}
-            activePowerUps={activePowerUps}
-            onPowerUpUsed={(type) => {
-              setUserProgress(prev => ({
-                ...prev,
-                activePowerUps: prev.activePowerUps.filter(item => item !== type)
-              }));
-            }}
+          <PowerUpBar onPowerUpUsed={handlePowerUpUsed} />
+          <ProgressHeader userProgress={userProgress} />
+          <CategoryFilter 
+            selectedCategory={selectedCategory} 
+            onCategoryChange={setSelectedCategory} 
           />
-        )}
+          <DailyChallenge userProgress={userProgress} onPlayGame={openGame} />
+          <GameFeed 
+            onPlayGame={openGame} 
+            playedGames={userProgress.playedGames || []}
+            selectedCategory={selectedCategory}
+          />
+          
+          <AchievementNotification
+            achievement={currentAchievement}
+            onClose={() => setCurrentAchievement(null)}
+          />
+          
+          {/* Modals */}
+          {showGameModal && selectedGame && (
+            <GameModal
+              game={selectedGame}
+              onComplete={handleGameComplete}
+              onClose={() => {
+                playSound('click');
+                setShowGameModal(false);
+                setSelectedGame(null);
+              }}
+              activePowerUps={activePowerUps}
+              onPowerUpUsed={handlePowerUpUsed}
+            />
+          )}
+
+          {showProfileModal && (
+            <ProfileModal
+              userProgress={userProgress}
+              gameStats={gameStats}
+              onClose={() => {
+                playSound('click');
+                setShowProfileModal(false);
+              }}
+            />
+          )}
+
+          {showStatsModal && (
+            <StatsModal
+              userProgress={userProgress}
+              gameStats={gameStats}
+              onClose={() => {
+                playSound('click');
+                setShowStatsModal(false);
+              }}
+            />
+          )}
+
+          {showRewardsModal && (
+            <RewardsModal
+              userProgress={userProgress}
+              onClaimReward={() => {}}
+              onClose={() => {
+                playSound('click');
+                setShowRewardsModal(false);
+              }}
+            />
+          )}
+
+          {showShopModal && (
+            <ShopModal
+              userProgress={userProgress}
+              onPurchase={handlePurchase}
+              onClose={() => {
+                playSound('click');
+                setShowShopModal(false);
+              }}
+            />
+          )}
+
+          <ChatBot 
+            isOpen={showChatBot}
+            onClose={() => setShowChatBot(false)}
+          />
+        </div>
       </div>
-    </div>
+    </MobileOptimizedLayout>
+  );
+};
+
+const Games = () => {
+  return (
+    <SoundProvider>
+      <ThemeProvider>
+        <GamesContent />
+      </ThemeProvider>
+    </SoundProvider>
   );
 };
 
