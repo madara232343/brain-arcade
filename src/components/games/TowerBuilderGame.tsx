@@ -1,9 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Mesh } from 'three';
-import { GameResult } from '@/pages/Games';
+import { GameResult } from '@/types/game';
 
 interface TowerBuilderGameProps {
   onComplete: (result: GameResult) => void;

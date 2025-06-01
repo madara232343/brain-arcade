@@ -1,7 +1,6 @@
-
 import React, { useState, useCallback } from 'react';
 import { GameModal } from '@/components/GameModal';
-import { Brain, Zap, Timer, Car, Target, Gamepad, Chess, Lightbulb, Search, Filter } from 'lucide-react';
+import { Brain, Zap, Timer, Car, Target, Gamepad, Crown, Lightbulb, Search, Filter } from 'lucide-react';
 import { GameResult } from '@/types/game';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 
@@ -91,12 +90,12 @@ const gameCategories = [
   {
     id: 'strategy',
     name: 'Strategy',
-    icon: Chess,
+    icon: Crown,
     color: 'from-gray-500 to-slate-600',
     description: 'Strategic thinking games',
     games: [
-      { id: 'chess', title: 'Chess', description: 'Classic strategy game', icon: Chess, difficulty: 'Hard' },
-      { id: 'tic-tac-toe', title: 'Tic Tac Toe', description: 'Strategic placement', icon: Chess, difficulty: 'Easy' }
+      { id: 'chess', title: 'Chess', description: 'Classic strategy game', icon: Crown, difficulty: 'Hard' },
+      { id: 'tic-tac-toe', title: 'Tic Tac Toe', description: 'Strategic placement', icon: Crown, difficulty: 'Easy' }
     ]
   },
   {
@@ -289,3 +288,5 @@ export const Games: React.FC = () => {
     </div>
   );
 };
+
+export default Games;
