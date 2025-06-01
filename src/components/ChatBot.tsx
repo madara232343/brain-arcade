@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 
@@ -29,24 +30,24 @@ const botResponses: { [key: string]: string[] } = {
     'Hey there! What brain challenge can I help you with today?'
   ],
   'creator': [
-    'Brain Burst Arcade was created by Raval Dhwanil, a passionate developer who wanted to make brain training fun and accessible for everyone!',
-    'This amazing platform was developed by Raval Dhwanil with the vision of combining entertainment with cognitive enhancement.',
-    'Raval Dhwanil is the mastermind behind Brain Burst Arcade - bringing you the best in brain training technology!'
+    'Brain Burst Arcade was created by Dhwanil Raval, a passionate developer who wanted to make brain training fun and accessible for everyone!',
+    'This amazing platform was developed by Dhwanil Raval with the vision of combining entertainment with cognitive enhancement.',
+    'Dhwanil Raval is the mastermind behind Brain Burst Arcade - bringing you the best in brain training technology!'
   ],
   'developer': [
-    'Brain Burst Arcade was developed by Raval Dhwanil, who put incredible effort into creating this comprehensive brain training platform.',
-    'The developer behind this fantastic brain training experience is Raval Dhwanil - a true innovator in cognitive gaming!',
-    'Raval Dhwanil developed this entire platform to help people improve their cognitive abilities through engaging games.'
+    'Brain Burst Arcade was developed by Dhwanil Raval, who put incredible effort into creating this comprehensive brain training platform.',
+    'The developer behind this fantastic brain training experience is Dhwanil Raval - a true innovator in cognitive gaming!',
+    'Dhwanil Raval developed this entire platform to help people improve their cognitive abilities through engaging games.'
   ],
   'made': [
-    'Brain Burst Arcade was made by Raval Dhwanil, combining cutting-edge technology with proven cognitive training methods.',
-    'This platform was crafted by Raval Dhwanil to provide the ultimate brain training experience.',
-    'Raval Dhwanil made Brain Burst Arcade to revolutionize how we approach mental fitness and cognitive enhancement.'
+    'Brain Burst Arcade was made by Dhwanil Raval, combining cutting-edge technology with proven cognitive training methods.',
+    'This platform was crafted by Dhwanil Raval to provide the ultimate brain training experience.',
+    'Dhwanil Raval made Brain Burst Arcade to revolutionize how we approach mental fitness and cognitive enhancement.'
   ],
   'who': [
-    'If you\'re asking about the creator, Brain Burst Arcade was built by Raval Dhwanil - a visionary developer passionate about cognitive enhancement!',
-    'The brilliant mind behind Brain Burst Arcade is Raval Dhwanil, who designed every aspect to maximize your brain training potential.',
-    'Raval Dhwanil is the creator who brought this incredible brain training platform to life!'
+    'If you\'re asking about the creator, Brain Burst Arcade was built by Dhwanil Raval - a visionary developer passionate about cognitive enhancement!',
+    'The brilliant mind behind Brain Burst Arcade is Dhwanil Raval, who designed every aspect to maximize your brain training potential.',
+    'Dhwanil Raval is the creator who brought this incredible brain training platform to life!'
   ],
   'help': [
     'I can help you with:\n• Game instructions and strategies\n• Account questions and progress\n• Technical issues and troubleshooting\n• Scoring system and XP calculation\n• Power-ups and shop items\n• Achievement unlocking tips',
@@ -84,7 +85,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hello! I\'m your Brain Burst Arcade assistant, created by Raval Dhwanil. I can help you with game strategies, technical issues, and much more! What would you like to know?',
+      text: 'Hello! I\'m your Brain Burst Arcade assistant. I can help you with game strategies, technical issues, and answer questions about our platform created by Dhwanil Raval. What would you like to know?',
       isBot: true,
       timestamp: new Date()
     }
@@ -105,7 +106,9 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
     const input = userInput.toLowerCase().trim();
     
     // Check for creator/developer questions first
-    if (input.includes('created') || input.includes('creator')) {
+    if (input.includes('created') || input.includes('creator') || 
+        input.includes('who made') || input.includes('who built') ||
+        input.includes('dhwanil') || input.includes('raval')) {
       const responses = botResponses['creator'];
       return responses[Math.floor(Math.random() * responses.length)];
     }
@@ -120,7 +123,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
       return responses[Math.floor(Math.random() * responses.length)];
     }
     
-    if (input.includes('who') && (input.includes('created') || input.includes('made') || input.includes('developed') || input.includes('built'))) {
+    if (input.includes('who') && (input.includes('created') || input.includes('made') || 
+        input.includes('developed') || input.includes('built'))) {
       const responses = botResponses['who'];
       return responses[Math.floor(Math.random() * responses.length)];
     }
@@ -188,9 +192,9 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 md:w-96 h-[500px] md:h-[600px] bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-2xl border border-white/30 shadow-2xl z-50 flex flex-col animate-scale-in">
+    <div className="fixed inset-0 md:inset-auto md:bottom-4 md:right-4 md:w-80 lg:w-96 md:h-[500px] lg:h-[600px] bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg md:rounded-2xl border border-white/30 shadow-2xl z-50 flex flex-col animate-scale-in">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/20 bg-white/5 rounded-t-2xl">
+      <div className="flex items-center justify-between p-3 md:p-4 border-b border-white/20 bg-white/5 md:rounded-t-2xl">
         <div className="flex items-center space-x-3">
           <div className="relative">
             <Bot className="h-5 w-5 md:h-6 md:w-6 text-purple-400" />
@@ -198,12 +202,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h3 className="text-white font-bold text-sm md:text-base">AI Assistant</h3>
-            <p className="text-white/70 text-xs">Online</p>
+            <p className="text-white/70 text-xs">Online • Created by Dhwanil Raval</p>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+          className="p-2 hover:bg-white/10 rounded-lg transition-colors touch-target"
         >
           <X className="h-4 w-4 md:h-5 md:w-5 text-white" />
         </button>
@@ -224,7 +228,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
               </div>
             )}
             <div
-              className={`max-w-[75%] p-2 md:p-3 rounded-2xl ${
+              className={`max-w-[85%] md:max-w-[75%] p-2 md:p-3 rounded-2xl ${
                 message.isBot
                   ? 'bg-white/10 text-white'
                   : 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
@@ -261,7 +265,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Input */}
-      <div className="p-3 md:p-4 border-t border-white/20">
+      <div className="p-3 md:p-4 border-t border-white/20 bg-white/5">
         <div className="flex space-x-2">
           <input
             type="text"
@@ -269,13 +273,13 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask me anything..."
-            className="flex-1 px-2 md:px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 text-xs md:text-sm"
+            className="flex-1 px-2 md:px-3 py-2 md:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm md:text-base"
             maxLength={300}
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputText.trim() || isTyping}
-            className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-300 hover:scale-105"
+            className="p-2 md:p-3 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all duration-300 hover:scale-105 touch-target"
           >
             <Send className="h-3 w-3 md:h-4 md:w-4 text-white" />
           </button>
