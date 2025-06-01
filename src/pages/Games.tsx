@@ -283,7 +283,6 @@ export default function Games() {
 
         {/* Category Filter */}
         <CategoryFilter
-          categories={categories}
           selectedCategory={selectedCategory}
           onCategorySelect={setSelectedCategory}
         />
