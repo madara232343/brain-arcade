@@ -28,17 +28,21 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
   const [obstacleId, setObstacleId] = useState(0);
   const [shieldActive, setShieldActive] = useState(false);
   const [gameWidth, setGameWidth] = useState(400);
+  const [gameHeight, setGameHeight] = useState(500);
 
   useEffect(() => {
-    const updateGameWidth = () => {
-      const width = window.innerWidth < 768 ? Math.min(350, window.innerWidth - 32) : 400;
+    const updateGameSize = () => {
+      const isMobile = window.innerWidth < 768;
+      const width = isMobile ? Math.min(350, window.innerWidth - 32) : 400;
+      const height = isMobile ? 400 : 500;
       setGameWidth(width);
+      setGameHeight(height);
       setPlayerX(width / 2);
     };
     
-    updateGameWidth();
-    window.addEventListener('resize', updateGameWidth);
-    return () => window.removeEventListener('resize', updateGameWidth);
+    updateGameSize();
+    window.addEventListener('resize', updateGameSize);
+    return () => window.removeEventListener('resize', updateGameSize);
   }, []);
 
   useEffect(() => {
@@ -57,6 +61,7 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
     setLives(activePowerUps.has('shield') ? 4 : 3);
     setTimeLeft(activePowerUps.has('timeFreeze') ? 150 : 120);
     setShieldActive(activePowerUps.has('shield'));
+    setObstacleId(0);
   };
 
   const generateObstacle = useCallback(() => {
@@ -77,7 +82,7 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
     if (!gameStarted) return;
 
     const gameInterval = setInterval(() => {
-      setObstacles(prev => prev.map(obs => ({ ...obs, y: obs.y + speed })).filter(obs => obs.y < 600));
+      setObstacles(prev => prev.map(obs => ({ ...obs, y: obs.y + speed })).filter(obs => obs.y < gameHeight + 50));
       
       if (Math.random() < 0.3) {
         generateObstacle();
@@ -104,7 +109,7 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
       clearInterval(gameInterval);
       clearInterval(timerInterval);
     };
-  }, [gameStarted, speed, generateObstacle, activePowerUps]);
+  }, [gameStarted, speed, generateObstacle, activePowerUps, gameHeight]);
 
   useEffect(() => {
     if (fuel <= 0 || lives <= 0) {
@@ -120,10 +125,14 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
       switch (e.key) {
         case 'ArrowLeft':
         case 'a':
+        case 'A':
+          e.preventDefault();
           setPlayerX(prev => Math.max(25, prev - moveAmount));
           break;
         case 'ArrowRight':
         case 'd':
+        case 'D':
+          e.preventDefault();
           setPlayerX(prev => Math.min(gameWidth - 25, prev + moveAmount));
           break;
       }
@@ -135,7 +144,9 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
 
   useEffect(() => {
     obstacles.forEach(obstacle => {
-      const playerCollision = Math.abs(obstacle.x - playerX) < 30 && obstacle.y > 450 && obstacle.y < 550;
+      const playerCollision = Math.abs(obstacle.x - playerX) < 35 && 
+                            obstacle.y > (gameHeight - 80) && 
+                            obstacle.y < (gameHeight - 20);
       
       if (playerCollision) {
         setObstacles(prev => prev.filter(obs => obs.id !== obstacle.id));
@@ -159,10 +170,10 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
         }
       }
     });
-  }, [obstacles, playerX, shieldActive, activePowerUps, onPowerUpUsed]);
+  }, [obstacles, playerX, shieldActive, activePowerUps, onPowerUpUsed, gameHeight]);
 
   const endGame = () => {
-    const accuracy = Math.round((score / timeLeft) * 100 / 60);
+    const accuracy = Math.round((score / Math.max(timeLeft, 1)) * 100 / 60);
     const xpMultiplier = activePowerUps.has('doubleXP') ? 2 : 1;
     onComplete({
       gameId,
@@ -173,7 +184,12 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
     });
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+  };
+
   const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
     const touch = e.touches[0];
     const rect = e.currentTarget.getBoundingClientRect();
     const x = touch.clientX - rect.left;
@@ -181,11 +197,23 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
     setPlayerX(Math.max(25, Math.min(gameWidth - 25, normalizedX)));
   };
 
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+  };
+
   const useTimeFreeze = () => {
     if (activePowerUps.has('timeFreeze')) {
       setTimeLeft(prev => prev + 30);
       onPowerUpUsed?.('timeFreeze');
     }
+  };
+
+  const moveLeft = () => {
+    setPlayerX(prev => Math.max(25, prev - 25));
+  };
+
+  const moveRight = () => {
+    setPlayerX(prev => Math.min(gameWidth - 25, prev + 25));
   };
 
   if (!gameStarted) {
@@ -253,12 +281,14 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
       </div>
 
       <div 
-        className="relative bg-gradient-to-b from-black via-purple-900 to-blue-900 rounded-xl mx-auto border border-white/30 overflow-hidden"
-        style={{ width: `${gameWidth}px`, height: '400px' }}
+        className="relative bg-gradient-to-b from-black via-purple-900 to-blue-900 rounded-xl mx-auto border border-white/30 overflow-hidden touch-none"
+        style={{ width: `${gameWidth}px`, height: `${gameHeight}px` }}
+        onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Stars background */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 pointer-events-none">
           {Array.from({ length: 30 }).map((_, i) => (
             <div
               key={i}
@@ -274,10 +304,10 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
         
         {/* Player ship */}
         <div
-          className="absolute w-6 h-8 md:w-8 md:h-12 transition-all duration-100"
+          className="absolute w-6 h-8 md:w-8 md:h-12 transition-all duration-100 z-10"
           style={{
             left: playerX - (window.innerWidth < 768 ? 12 : 16),
-            bottom: '50px'
+            bottom: '20px'
           }}
         >
           <div className="text-lg md:text-2xl">🚀</div>
@@ -311,8 +341,24 @@ export const SpaceRacerGame: React.FC<SpaceRacerGameProps> = ({ onComplete, game
         </div>
       </div>
       
+      {/* Mobile Controls */}
+      <div className="md:hidden flex justify-center space-x-4 mt-4">
+        <button
+          onTouchStart={moveLeft}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg active:scale-95 transition-all select-none"
+        >
+          ←
+        </button>
+        <button
+          onTouchStart={moveRight}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-lg active:scale-95 transition-all select-none"
+        >
+          →
+        </button>
+      </div>
+      
       <div className="mt-3 md:mt-4 text-xs md:text-sm text-white/70">
-        Use arrow keys or touch to move
+        {window.innerWidth < 768 ? 'Touch screen or use buttons to move' : 'Use arrow keys or touch to move'}
       </div>
       
       {/* Progress bar */}

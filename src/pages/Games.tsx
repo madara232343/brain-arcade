@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { GameModal } from '@/components/GameModal';
 import { Brain, Zap, Timer, Car, Target, Gamepad, Crown, Lightbulb, Search, Filter } from 'lucide-react';
@@ -105,13 +106,13 @@ const gameCategories = [
     color: 'from-cyan-500 to-blue-500',
     description: 'IQ and cognitive tests',
     games: [
-      { id: 'enhanced-iq-test', title: 'IQ Test', description: 'Comprehensive intelligence test', icon: Brain, difficulty: 'Expert' },
+      { id: 'iq-test', title: 'IQ Test', description: 'Comprehensive intelligence test', icon: Brain, difficulty: 'Expert' },
       { id: 'eq-test', title: 'EQ Test', description: 'Emotional intelligence test', icon: Brain, difficulty: 'Medium' }
     ]
   }
 ];
 
-export const Games: React.FC = () => {
+const Games: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -133,11 +134,13 @@ export const Games: React.FC = () => {
   );
 
   // Filter games based on category and search
-  const filteredGames = allGames.filter(game => {
-    const matchesCategory = selectedCategory === 'all' || game.category === selectedCategory;
-    const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         game.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+  const filteredCategories = gameCategories.filter(category => {
+    const matchesCategory = selectedCategory === 'all' || category.id === selectedCategory;
+    const hasMatchingGames = category.games.some(game => 
+      game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      game.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    return matchesCategory && (searchTerm === '' || hasMatchingGames);
   });
 
   const handleGameComplete = useCallback((result: GameResult) => {
@@ -173,38 +176,38 @@ export const Games: React.FC = () => {
   const activePowerUps = new Set(userProgress.activePowerUps || []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-2 md:p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
+      <div className="container mx-auto px-4 py-6 md:py-8">
         {/* Header */}
-        <div className="text-center mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-3 md:mb-4">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             🎮 Brain Games Arena
           </h1>
-          <p className="text-white/80 text-sm md:text-lg lg:text-xl max-w-3xl mx-auto px-4">
-            Challenge your mind with {allGames.length}+ unique brain training games
+          <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto">
+            Challenge your mind with our collection of brain training games
           </p>
         </div>
 
         {/* Search and Filter */}
-        <div className="mb-6 md:mb-8 space-y-3 md:space-y-4">
+        <div className="mb-8 space-y-4">
           {/* Search Bar */}
           <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 h-4 w-4 md:h-5 md:w-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 h-5 w-5" />
             <input
               type="text"
               placeholder="Search games..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 md:py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm md:text-base"
+              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
 
-          {/* Category Filter */}
-          <div className="flex items-center space-x-2 md:space-x-3 overflow-x-auto pb-2 px-2">
-            <Filter className="text-white/70 h-4 w-4 md:h-5 md:w-5 flex-shrink-0" />
+          {/* Category Filter - Horizontal Scroll on Mobile */}
+          <div className="flex items-center space-x-3 overflow-x-auto pb-2">
+            <Filter className="text-white/70 h-5 w-5 flex-shrink-0" />
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`flex-shrink-0 px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition-all text-xs md:text-sm ${
+              className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium transition-all ${
                 selectedCategory === 'all'
                   ? 'bg-white text-purple-900'
                   : 'bg-white/10 text-white hover:bg-white/20'
@@ -216,7 +219,7 @@ export const Games: React.FC = () => {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex-shrink-0 px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-medium transition-all text-xs md:text-sm ${
+                className={`flex-shrink-0 px-4 py-2 rounded-lg font-medium transition-all ${
                   selectedCategory === category.id
                     ? 'bg-white text-purple-900'
                     : 'bg-white/10 text-white hover:bg-white/20'
@@ -228,32 +231,59 @@ export const Games: React.FC = () => {
           </div>
         </div>
 
-        {/* Games Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
-          {filteredGames.map((game) => {
-            const category = gameCategories.find(cat => cat.id === game.category);
-            const IconComponent = game.icon;
-            
+        {/* Game Categories */}
+        <div className="space-y-8">
+          {filteredCategories.map((category) => {
+            const IconComponent = category.icon;
+            const filteredGames = category.games.filter(game =>
+              searchTerm === '' || 
+              game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              game.description.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (filteredGames.length === 0) return null;
+
             return (
-              <div
-                key={game.id}
-                onClick={() => setSelectedGame(game)}
-                className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105 cursor-pointer group"
-              >
-                <div className="text-center">
-                  <div className={`inline-flex p-3 md:p-4 rounded-xl md:rounded-2xl mb-3 md:mb-4 bg-gradient-to-r ${category?.color} group-hover:scale-110 transition-transform duration-300`}>
-                    <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-white" />
+              <div key={category.id} className="space-y-4">
+                {/* Category Header */}
+                <div className="flex items-center space-x-3">
+                  <div className={`p-3 rounded-xl bg-gradient-to-r ${category.color}`}>
+                    <IconComponent className="h-6 w-6 text-white" />
                   </div>
-                  
-                  <h3 className="text-white font-bold text-sm md:text-lg mb-2">{game.title}</h3>
-                  <p className="text-white/70 text-xs md:text-sm mb-3 md:mb-4 leading-relaxed">{game.description}</p>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60 text-xs md:text-sm capitalize">{category?.name}</span>
-                    <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium text-white ${getDifficultyColor(game.difficulty)}`}>
-                      {game.difficulty}
-                    </span>
+                  <div>
+                    <h2 className="text-xl md:text-2xl font-bold">{category.name}</h2>
+                    <p className="text-white/70 text-sm md:text-base">{category.description}</p>
                   </div>
+                </div>
+
+                {/* Games Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                  {filteredGames.map((game) => {
+                    const GameIcon = game.icon;
+                    
+                    return (
+                      <div
+                        key={game.id}
+                        onClick={() => setSelectedGame(game)}
+                        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:border-white/40 transition-all duration-300 hover:scale-105 cursor-pointer group"
+                      >
+                        <div className="text-center">
+                          <div className={`inline-flex p-3 rounded-xl mb-3 bg-gradient-to-r ${category.color} group-hover:scale-110 transition-transform duration-300`}>
+                            <GameIcon className="h-6 w-6 text-white" />
+                          </div>
+                          
+                          <h3 className="text-white font-bold text-sm md:text-base mb-2 line-clamp-2">{game.title}</h3>
+                          <p className="text-white/70 text-xs mb-3 line-clamp-2">{game.description}</p>
+                          
+                          <div className="flex items-center justify-center">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getDifficultyColor(game.difficulty)}`}>
+                              {game.difficulty}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
@@ -261,11 +291,11 @@ export const Games: React.FC = () => {
         </div>
 
         {/* No Results */}
-        {filteredGames.length === 0 && (
-          <div className="text-center py-12 md:py-16">
-            <div className="text-4xl md:text-6xl mb-4">🎮</div>
-            <h3 className="text-xl md:text-2xl font-bold text-white mb-2">No Games Found</h3>
-            <p className="text-white/70 text-sm md:text-base">Try adjusting your search or filter criteria.</p>
+        {filteredCategories.length === 0 && (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">🎮</div>
+            <h3 className="text-2xl font-bold text-white mb-2">No Games Found</h3>
+            <p className="text-white/70">Try adjusting your search or filter criteria.</p>
           </div>
         )}
 
