@@ -11,6 +11,7 @@ import { SpeedTypingGame } from '@/components/games/SpeedTypingGame';
 import { VisualAttentionGame } from '@/components/games/VisualAttentionGame';
 import { WordAssociationGame } from '@/components/games/WordAssociationGame';
 import { SpatialReasoningGame } from '@/components/games/SpatialReasoningGame';
+import { SpatialMemoryGame } from '@/components/games/SpatialMemoryGame';
 import { NumberSequenceGame } from '@/components/games/NumberSequenceGame';
 import { SimonSaysGame } from '@/components/games/SimonSaysGame';
 import { MemoryCardGame } from '@/components/games/MemoryCardGame';

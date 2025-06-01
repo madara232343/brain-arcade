@@ -1,513 +1,353 @@
+
 import React, { useState, useEffect } from 'react';
-import { BarChart3, Gift, ShoppingCart, RotateCcw, User, Home, MessageCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { GameFeed } from '@/components/GameFeed';
-import { DailyChallenge } from '@/components/DailyChallenge';
-import { ProgressHeader } from '@/components/ProgressHeader';
+import { 
+  Brain, 
+  Zap, 
+  Target, 
+  Puzzle, 
+  Crown,
+  Car,
+  Gamepad2,
+  Trophy,
+  Clock,
+  RotateCcw,
+  Compass,
+  Box,
+  Orbit,
+  HeartHandshake,
+  Palette,
+  Layers3,
+  Navigation,
+  Eye,
+  MapPin,
+  Shapes
+} from 'lucide-react';
 import { GameModal } from '@/components/GameModal';
-import { StatsModal } from '@/components/StatsModal';
-import { RewardsModal } from '@/components/RewardsModal';
-import { ShopModal } from '@/components/ShopModal';
-import { ProfileModal } from '@/components/ProfileModal';
 import { CategoryFilter } from '@/components/CategoryFilter';
-import { AchievementNotification } from '@/components/AchievementNotification';
-import { PowerUpBar } from '@/components/PowerUpBar';
-import { ChatBot } from '@/components/ChatBot';
 import { MobileOptimizedLayout } from '@/components/MobileOptimizedLayout';
-import { SoundProvider, useSounds } from '@/components/SoundManager';
-import { ThemeProvider, useTheme } from '@/components/ThemeManager';
+import { ChatBot } from '@/components/ChatBot';
+import { GameResult } from '@/types/game';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { audioManager } from '@/utils/audioUtils';
-import { powerUpManager } from '@/utils/powerUpManager';
-import { calculateAccurateStats } from '@/utils/profileUtils';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
-export interface UserProgress {
-  totalScore: number;
-  totalXP: number;
-  level: number;
-  gamesPlayed: string[];
-  achievements: string[];
-  rank: string;
-  streak: number;
-  purchasedItems: string[];
-  activeTheme: string;
-  activePowerUps: string[];
-  xp: number;
-  lastPlayDate: string;
-  playedGames: string[];
-  ownedItems: string[];
-  totalPlayTime: number;
-  theme: string;
-  avatar: string;
+interface Game {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  icon: React.ComponentType<any>;
+  timeEstimate: string;
+  xpReward: string;
+  bgGradient: string;
 }
 
-export interface GameResult {
-  gameId: string;
-  score: number;
-  accuracy: number;
-  timeSpent: number;
-  xpEarned: number;
-}
+const games: Game[] = [
+  // Memory Games
+  {
+    id: 'memory-sequence',
+    title: 'Memory Sequence',
+    description: 'Remember and repeat color sequences',
+    category: 'Memory',
+    difficulty: 'Medium',
+    icon: Brain,
+    timeEstimate: '2-3 min',
+    xpReward: '80-150 XP',
+    bgGradient: 'from-blue-500 to-purple-600'
+  },
+  {
+    id: 'spatial-memory',
+    title: 'Spatial Memory',
+    description: 'Remember positions and click them in order',
+    category: 'Memory',
+    difficulty: 'Medium',
+    icon: MapPin,
+    timeEstimate: '2-4 min',
+    xpReward: '90-180 XP',
+    bgGradient: 'from-green-500 to-teal-600'
+  },
+  {
+    id: 'color-memory',
+    title: 'Color Memory',
+    description: 'Memorize and reproduce color patterns',
+    category: 'Memory',
+    difficulty: 'Easy',
+    icon: Palette,
+    timeEstimate: '2-3 min',
+    xpReward: '60-120 XP',
+    bgGradient: 'from-pink-500 to-purple-600'
+  },
 
-const GamesContent = () => {
-  const [userProgress, setUserProgress] = useLocalStorage<UserProgress>('brainArcadeProgress', {
-    totalScore: 0,
+  // Puzzle Games
+  {
+    id: 'puzzle-blocks',
+    title: 'Puzzle Blocks',
+    description: 'Arrange colored blocks to match patterns',
+    category: 'Puzzle',
+    difficulty: 'Medium',
+    icon: Puzzle,
+    timeEstimate: '3-5 min',
+    xpReward: '100-200 XP',
+    bgGradient: 'from-indigo-500 to-purple-600'
+  },
+  {
+    id: 'spatial-reasoning',
+    title: 'Spatial Reasoning',
+    description: 'Identify rotated shapes and patterns',
+    category: 'Puzzle',
+    difficulty: 'Hard',
+    icon: Shapes,
+    timeEstimate: '3-4 min',
+    xpReward: '120-240 XP',
+    bgGradient: 'from-purple-500 to-pink-600'
+  },
+  {
+    id: 'shape-rotator',
+    title: 'Shape Rotator',
+    description: 'Rotate shapes to match target orientations',
+    category: 'Puzzle',
+    difficulty: 'Medium',
+    icon: RotateCcw,
+    timeEstimate: '2-3 min',
+    xpReward: '80-160 XP',
+    bgGradient: 'from-cyan-500 to-blue-600'
+  },
+  {
+    id: 'maze-runner',
+    title: 'Maze Runner',
+    description: 'Navigate through complex mazes to reach the exit',
+    category: 'Puzzle',
+    difficulty: 'Medium',
+    icon: Navigation,
+    timeEstimate: '3-5 min',
+    xpReward: '100-180 XP',
+    bgGradient: 'from-green-500 to-emerald-600'
+  },
+
+  // Speed Games  
+  {
+    id: 'reaction-time',
+    title: 'Reaction Time',
+    description: 'Test your reflexes and reaction speed',
+    category: 'Speed',
+    difficulty: 'Easy',
+    icon: Zap,
+    timeEstimate: '1-2 min',
+    xpReward: '50-100 XP',
+    bgGradient: 'from-red-500 to-orange-600'
+  },
+
+  // Strategy Games
+  {
+    id: 'chess',
+    title: 'Chess vs Computer',
+    description: 'Play chess against an intelligent AI opponent',
+    category: 'Strategy',
+    difficulty: 'Hard',
+    icon: Crown,
+    timeEstimate: '5-10 min',
+    xpReward: '150-300 XP',
+    bgGradient: 'from-amber-600 to-yellow-600'
+  },
+
+  // Racing Games
+  {
+    id: 'space-race',
+    title: 'Space Racer',
+    description: 'Navigate through space avoiding obstacles',
+    category: 'Racing',
+    difficulty: 'Medium',
+    icon: Target,
+    timeEstimate: '2-4 min',
+    xpReward: '80-200 XP',
+    bgGradient: 'from-blue-500 to-purple-600'
+  },
+
+  // Intelligence Tests
+  {
+    id: 'enhanced-iq-test',
+    title: 'Enhanced IQ Test',
+    description: 'Comprehensive intelligence assessment',
+    category: 'Intelligence',
+    difficulty: 'Hard',
+    icon: Brain,
+    timeEstimate: '5-8 min',
+    xpReward: '200-400 XP',
+    bgGradient: 'from-yellow-500 to-orange-600'
+  },
+
+  // 3D Games
+  {
+    id: 'tower-builder',
+    title: '3D Tower Builder',
+    description: 'Build the tallest stable tower in 3D',
+    category: '3D',
+    difficulty: 'Medium',
+    icon: Layers3,
+    timeEstimate: '3-5 min',
+    xpReward: '120-250 XP',
+    bgGradient: 'from-orange-500 to-red-600'
+  },
+  {
+    id: 'cube-matcher',
+    title: 'Cube Matcher',
+    description: 'Match 3D cube patterns and colors',
+    category: '3D',
+    difficulty: 'Medium',
+    icon: Box,
+    timeEstimate: '2-4 min',
+    xpReward: '90-170 XP',
+    bgGradient: 'from-purple-500 to-pink-600'
+  },
+  {
+    id: 'orbit-navigator',
+    title: 'Orbit Navigator',
+    description: 'Navigate through complex orbital paths',
+    category: '3D',
+    difficulty: 'Hard',
+    icon: Orbit,
+    timeEstimate: '3-6 min',
+    xpReward: '140-280 XP',
+    bgGradient: 'from-blue-500 to-indigo-600'
+  }
+];
+
+const categories = ['All', 'Memory', 'Puzzle', 'Speed', 'Strategy', 'Racing', 'Intelligence', '3D'];
+
+export default function Games() {
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showChatBot, setShowChatBot] = useState(false);
+  const [userStats, setUserStats] = useLocalStorage('userStats', {
     totalXP: 0,
     level: 1,
-    gamesPlayed: [],
-    achievements: [],
-    rank: 'Bronze',
-    streak: 0,
-    purchasedItems: [],
-    activeTheme: 'default',
-    activePowerUps: [],
-    xp: 0,
-    lastPlayDate: '',
-    playedGames: [],
-    ownedItems: [],
-    totalPlayTime: 0,
-    theme: 'default',
-    avatar: 'default'
+    gamesPlayed: 0,
+    totalScore: 0
   });
+  const [activePowerUps, setActivePowerUps] = useLocalStorage('activePowerUps', new Set<string>());
 
-  const [selectedGame, setSelectedGame] = useState<any>(null);
-  const [showGameModal, setShowGameModal] = useState(false);
-  const [showStatsModal, setShowStatsModal] = useState(false);
-  const [showRewardsModal, setShowRewardsModal] = useState(false);
-  const [showShopModal, setShowShopModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [showChatBot, setShowChatBot] = useState(false);
-  const [gameStats, setGameStats] = useState<any[]>([]);
-  const [currentAchievement, setCurrentAchievement] = useState<any>(null);
-  const [activePowerUps, setActivePowerUps] = useState<Set<string>>(new Set());
-  const [selectedCategory, setSelectedCategory] = useState('all');
-
-  const { playSound } = useSounds();
-  const { currentTheme, setTheme } = useTheme();
-
-  // Update theme when user changes it
-  useEffect(() => {
-    if (userProgress.activeTheme !== currentTheme.id) {
-      setTheme(userProgress.activeTheme);
-    }
-  }, [userProgress.activeTheme, currentTheme.id, setTheme]);
-
-  const achievements = [
-    { id: 'first-game', title: 'Getting Started', description: 'Play your first game', reward: 50, trigger: (progress: UserProgress) => progress.gamesPlayed.length >= 1 },
-    { id: 'streak-master', title: 'Streak Master', description: 'Maintain a 7-day streak', reward: 200, trigger: (progress: UserProgress) => progress.streak >= 7 },
-    { id: 'score-hunter', title: 'Score Hunter', description: 'Earn 10,000 total points', reward: 300, trigger: (progress: UserProgress) => progress.totalScore >= 10000 },
-    { id: 'level-up', title: 'Level Up!', description: 'Reach level 5', reward: 150, trigger: (progress: UserProgress) => progress.level >= 5 },
-    { id: 'time-warrior', title: 'Time Warrior', description: 'Play for 60 minutes total', reward: 100, trigger: (progress: UserProgress) => progress.totalPlayTime >= 3600 },
-    { id: 'game-explorer', title: 'Game Explorer', description: 'Try 10 different games', reward: 400, trigger: (progress: UserProgress) => progress.playedGames.length >= 10 },
-    { id: 'memory-master', title: 'Memory Master', description: 'Complete 5 memory games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => id.includes('memory')).length >= 5 },
-    { id: 'puzzle-solver', title: 'Puzzle Solver', description: 'Complete 5 puzzle games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => ['puzzle-blocks', 'sudoku', 'tetris', 'brain-teaser'].includes(id)).length >= 5 },
-    { id: 'speed-demon', title: 'Speed Demon', description: 'Complete 5 speed games', reward: 250, trigger: (progress: UserProgress) => progress.playedGames.filter(id => ['reaction-time', 'speed-typing', 'math-sprint'].includes(id)).length >= 5 },
-    { id: 'strategist', title: 'Master Strategist', description: 'Complete chess and checkers', reward: 350, trigger: (progress: UserProgress) => progress.playedGames.includes('chess') && progress.playedGames.includes('checkers') },
-    { id: 'high-scorer', title: 'High Scorer', description: 'Score 50,000 points', reward: 500, trigger: (progress: UserProgress) => progress.totalScore >= 50000 },
-    { id: 'perfectionist', title: 'Perfectionist', description: 'Get 100% accuracy in any game', reward: 400, trigger: (progress: UserProgress) => progress.achievements.includes('perfect-game') },
-    { id: 'marathon-runner', title: 'Marathon Runner', description: 'Play for 3 hours total', reward: 300, trigger: (progress: UserProgress) => progress.totalPlayTime >= 10800 },
-    { id: 'daily-player', title: 'Daily Player', description: 'Play games 5 days in a row', reward: 250, trigger: (progress: UserProgress) => progress.streak >= 5 },
-    { id: 'category-master', title: 'Category Master', description: 'Play games from all categories', reward: 600, trigger: (progress: UserProgress) => {
-      const categories = ['memory', 'puzzle', 'speed', 'racing', 'shooting', 'arcade', 'strategy'];
-      return categories.every(cat => progress.playedGames.some(game => game.includes(cat)));
-    }},
-    { id: 'collector', title: 'Collector', description: 'Own 10 shop items', reward: 300, trigger: (progress: UserProgress) => (progress.ownedItems || []).length >= 10 },
-    { id: 'xp-master', title: 'XP Master', description: 'Earn 5,000 XP', reward: 200, trigger: (progress: UserProgress) => progress.totalXP >= 5000 },
-    { id: 'game-addict', title: 'Game Addict', description: 'Play 50 games total', reward: 800, trigger: (progress: UserProgress) => progress.gamesPlayed.length >= 50 },
-    { id: 'bronze-champion', title: 'Bronze Champion', description: 'Reach Bronze rank', reward: 100, trigger: (progress: UserProgress) => ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
-    { id: 'silver-champion', title: 'Silver Champion', description: 'Reach Silver rank', reward: 200, trigger: (progress: UserProgress) => ['Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
-    { id: 'gold-champion', title: 'Gold Champion', description: 'Reach Gold rank', reward: 300, trigger: (progress: UserProgress) => ['Gold', 'Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
-    { id: 'platinum-champion', title: 'Platinum Champion', description: 'Reach Platinum rank', reward: 500, trigger: (progress: UserProgress) => ['Platinum', 'Diamond', 'Master', 'Legendary'].includes(progress.rank) },
-    { id: 'diamond-champion', title: 'Diamond Champion', description: 'Reach Diamond rank', reward: 750, trigger: (progress: UserProgress) => ['Diamond', 'Master', 'Legendary'].includes(progress.rank) },
-    { id: 'master-champion', title: 'Master Champion', description: 'Reach Master rank', reward: 1000, trigger: (progress: UserProgress) => ['Master', 'Legendary'].includes(progress.rank) },
-    { id: 'legendary-champion', title: 'Legendary Champion', description: 'Reach Legendary rank', reward: 1500, trigger: (progress: UserProgress) => progress.rank === 'Legendary' }
-  ];
-
-  const checkAchievements = (newProgress: UserProgress) => {
-    const unlockedAchievements = achievements.filter(achievement => {
-      return !newProgress.achievements.includes(achievement.id) && achievement.trigger(newProgress);
-    });
-
-    if (unlockedAchievements.length > 0) {
-      const achievement = unlockedAchievements[0];
-      setCurrentAchievement(achievement);
-      
-      setUserProgress(prev => ({
-        ...prev,
-        achievements: [...prev.achievements, achievement.id],
-        totalXP: prev.totalXP + achievement.reward,
-        xp: prev.xp + achievement.reward
-      }));
-
-      playSound('notification');
-      toast({
-        title: "🎉 Achievement Unlocked!",
-        description: `${achievement.title} - +${achievement.reward} XP`,
-        duration: 3000,
-      });
-    }
-  };
-
-  const calculateRank = (totalScore: number) => {
-    if (totalScore >= 500000) return 'Legendary';
-    if (totalScore >= 250000) return 'Master';
-    if (totalScore >= 100000) return 'Diamond';
-    if (totalScore >= 50000) return 'Platinum';
-    if (totalScore >= 25000) return 'Gold';
-    if (totalScore >= 10000) return 'Silver';
-    if (totalScore >= 5000) return 'Bronze';
-    return 'Bronze';
-  };
+  const filteredGames = selectedCategory === 'All' 
+    ? games 
+    : games.filter(game => game.category === selectedCategory);
 
   const handleGameComplete = (result: GameResult) => {
-    const today = new Date().toDateString();
-    const isNewDay = userProgress.lastPlayDate !== today;
-    
-    let xpMultiplier = 1;
-    if (activePowerUps.has('doubleXP')) {
-      xpMultiplier = 2;
-    }
-    
-    const finalXP = result.xpEarned * xpMultiplier;
-    const newXP = userProgress.totalXP + finalXP;
-    const newLevel = Math.floor(newXP / 100) + 1;
-    const newTotalScore = userProgress.totalScore + result.score;
-    const newRank = calculateRank(newTotalScore);
-    
-    const updatedPlayedGames = Array.isArray(userProgress.playedGames) 
-      ? [...userProgress.playedGames] 
-      : [];
-    
-    if (!updatedPlayedGames.includes(result.gameId)) {
-      updatedPlayedGames.push(result.gameId);
-    }
+    setUserStats(prev => ({
+      totalXP: prev.totalXP + result.xpEarned,
+      level: Math.floor((prev.totalXP + result.xpEarned) / 1000) + 1,
+      gamesPlayed: prev.gamesPlayed + 1,
+      totalScore: prev.totalScore + result.score
+    }));
 
-    const updatedGamesPlayed = Array.isArray(userProgress.gamesPlayed) 
-      ? [...userProgress.gamesPlayed] 
-      : [];
-    
-    if (!updatedGamesPlayed.includes(result.gameId)) {
-      updatedGamesPlayed.push(result.gameId);
-    }
-    
-    setGameStats(prev => [...prev, {
-      ...result,
-      timestamp: Date.now(),
-      date: today
-    }]);
-    
-    const newProgress = {
-      ...userProgress,
-      totalXP: newXP,
-      xp: newXP,
-      level: newLevel,
-      streak: isNewDay ? userProgress.streak + 1 : userProgress.streak,
-      lastPlayDate: today,
-      gamesPlayed: updatedGamesPlayed,
-      totalScore: newTotalScore,
-      playedGames: updatedPlayedGames,
-      totalPlayTime: userProgress.totalPlayTime + result.timeSpent,
-      rank: newRank
-    };
-    
-    setUserProgress(newProgress);
-    checkAchievements(newProgress);
-
-    playSound('success');
-    setShowGameModal(false);
-    setSelectedGame(null);
-
-    toast({
-      title: "🎯 Game Complete!",
-      description: `+${result.score} points, +${finalXP} XP${xpMultiplier > 1 ? ' (2x bonus!)' : ''}`,
-      duration: 3000,
+    toast.success(`Game completed! +${result.xpEarned} XP`, {
+      description: `Score: ${result.score} | Accuracy: ${result.accuracy}%`
     });
+
+    setSelectedGame(null);
   };
 
-  const handlePurchase = (itemId: string, price: number) => {
-    if (userProgress.totalScore >= price) {
-      setUserProgress(prev => ({
-        ...prev,
-        totalScore: prev.totalScore - price,
-        purchasedItems: [...(prev.purchasedItems || []), itemId],
-        ownedItems: [...(prev.ownedItems || []), itemId]
-      }));
-      
-      // Add power-up to inventory or apply theme/avatar
-      if (itemId.includes('doubleXP')) {
-        powerUpManager.addPowerUp('doubleXP', 'Double XP', 5);
-        playSound('powerup');
-      } else if (itemId.includes('timeFreeze')) {
-        powerUpManager.addPowerUp('timeFreeze', 'Time Freeze', 3);
-        playSound('powerup');
-      } else if (itemId.includes('accuracyBoost')) {
-        powerUpManager.addPowerUp('accuracyBoost', 'Accuracy Boost', 3);
-        playSound('powerup');
-      } else if (itemId.includes('shield')) {
-        powerUpManager.addPowerUp('shield', 'Error Shield', 5);
-        playSound('powerup');
-      } else if (itemId.includes('theme')) {
-        setUserProgress(prev => ({ ...prev, activeTheme: itemId, theme: itemId }));
-        setTheme(itemId);
-      } else if (itemId.includes('avatar')) {
-        setUserProgress(prev => ({ ...prev, avatar: itemId }));
-      }
-      
-      playSound('success');
-      toast({
-        title: "🛒 Purchase Successful!",
-        description: "Item added to your inventory",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handlePowerUpUsed = (type: string) => {
-    setActivePowerUps(prev => new Set([...prev, type]));
-    playSound('powerup');
-    
-    if (type === 'timeFreeze') {
-      setTimeout(() => {
-        setActivePowerUps(prev => {
-          const newSet = new Set(prev);
-          newSet.delete('timeFreeze');
-          return newSet;
-        });
-      }, 10000);
-    } else if (type === 'doubleXP') {
-      setTimeout(() => {
-        setActivePowerUps(prev => {
-          const newSet = new Set(prev);
-          newSet.delete('doubleXP');
-          return newSet;
-        });
-      }, 300000);
-    }
-  };
-
-  const handleResetProgress = () => {
-    if (confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
-      const resetProgress = {
-        totalScore: 0,
-        totalXP: 0,
-        level: 1,
-        gamesPlayed: [],
-        achievements: [],
-        rank: 'Bronze',
-        streak: 0,
-        purchasedItems: [],
-        activeTheme: 'default',
-        activePowerUps: [],
-        xp: 0,
-        lastPlayDate: '',
-        playedGames: [],
-        ownedItems: [],
-        totalPlayTime: 0,
-        theme: 'default',
-        avatar: 'default'
-      };
-      setUserProgress(resetProgress);
-      setGameStats([]);
-      powerUpManager.clearAllPowerUps();
-      playSound('click');
-      toast({
-        title: "🔄 Progress Reset",
-        description: "All progress has been reset",
-        duration: 3000,
-      });
-    }
-  };
-
-  const openGame = (game: any) => {
-    playSound('click');
-    setSelectedGame(game);
-    setShowGameModal(true);
+  const handlePowerUpUsed = (powerUpType: string) => {
+    const newActivePowerUps = new Set(activePowerUps);
+    newActivePowerUps.delete(powerUpType);
+    setActivePowerUps(newActivePowerUps);
   };
 
   const handleNavigation = (path: string) => {
-    playSound('click');
     window.location.href = path;
   };
 
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Easy': return 'text-green-400';
+      case 'Medium': return 'text-yellow-400';
+      case 'Hard': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
+  };
+
   return (
-    <MobileOptimizedLayout 
-      currentPage="games" 
+    <MobileOptimizedLayout
+      currentPage="games"
       onNavigate={handleNavigation}
       onChatOpen={() => setShowChatBot(true)}
     >
-      <div className={`min-h-screen bg-gradient-to-br ${currentTheme.gradient} relative overflow-hidden`}>
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-32 md:w-96 h-32 md:h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-3/4 right-1/4 w-24 md:w-80 h-24 md:h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-          <div className="absolute top-1/2 left-1/2 w-16 md:w-64 h-16 md:h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+            🎮 Brain Games
+          </h1>
+          <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto">
+            Challenge your mind with our collection of brain-training games
+          </p>
         </div>
 
-        <div className="container mx-auto px-3 md:px-4 py-4 md:py-6 max-w-6xl relative z-10">
-          {/* Header - Desktop Only */}
-          <div className="hidden md:flex justify-between items-center gap-3 mb-6">
-            <Link to="/" className="flex items-center space-x-2 text-white hover:text-blue-300 transition-colors">
-              <Home className="h-5 w-5" />
-              <span>Home</span>
-            </Link>
-            
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowProfileModal(true)}
-                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
-              >
-                <User className="h-5 w-5 text-white" />
-                <span className="text-white font-medium">Profile</span>
-              </button>
-              <button
-                onClick={() => setShowStatsModal(true)}
-                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
-              >
-                <BarChart3 className="h-5 w-5 text-white" />
-                <span className="text-white font-medium">Stats</span>
-              </button>
-              <button
-                onClick={() => setShowRewardsModal(true)}
-                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
-              >
-                <Gift className="h-5 w-5 text-white" />
-                <span className="text-white font-medium">Rewards</span>
-              </button>
-              <button
-                onClick={() => setShowShopModal(true)}
-                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
-              >
-                <ShoppingCart className="h-5 w-5 text-white" />
-                <span className="text-white font-medium">Shop</span>
-              </button>
-              <button
-                onClick={handleResetProgress}
-                className="flex items-center space-x-2 bg-red-500/20 hover:bg-red-500/30 backdrop-blur-lg rounded-xl px-4 py-2 border border-red-500/30 transition-all duration-300 hover:scale-105"
-              >
-                <RotateCcw className="h-5 w-5 text-red-400" />
-                <span className="text-red-400 font-medium">Reset</span>
-              </button>
+        {/* Category Filter */}
+        <CategoryFilter
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategorySelect={setSelectedCategory}
+        />
+
+        {/* Games Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+          {filteredGames.map((game) => (
+            <div
+              key={game.id}
+              onClick={() => setSelectedGame(game)}
+              className="group bg-white/10 backdrop-blur-sm rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/20 hover:border-white/40 transition-all duration-300 cursor-pointer hover:scale-105 hover:bg-white/15"
+            >
+              <div className={`w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br ${game.bgGradient} rounded-xl md:rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                <game.icon className="h-6 w-6 md:h-8 md:w-8 text-white" />
+              </div>
+              
+              <h3 className="text-lg md:text-xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">
+                {game.title}
+              </h3>
+              
+              <p className="text-sm md:text-base text-white/70 mb-4 line-clamp-2">
+                {game.description}
+              </p>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs md:text-sm">
+                  <span className={`font-medium ${getDifficultyColor(game.difficulty)}`}>
+                    {game.difficulty}
+                  </span>
+                  <span className="text-white/60">{game.timeEstimate}</span>
+                </div>
+                
+                <div className="flex items-center justify-between text-xs md:text-sm">
+                  <span className="text-purple-400 font-medium">{game.category}</span>
+                  <span className="text-green-400 font-medium">{game.xpReward}</span>
+                </div>
+              </div>
             </div>
-          </div>
-
-          {/* Mobile Header */}
-          <div className="md:hidden flex justify-between items-center mb-4">
-            <Link to="/" className="text-white hover:text-blue-300 transition-colors">
-              <Home className="h-6 w-6" />
-            </Link>
-            
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowProfileModal(true)}
-                className="p-2 bg-white/10 rounded-lg border border-white/20 touch-target"
-              >
-                <User className="h-5 w-5 text-white" />
-              </button>
-              <button
-                onClick={() => setShowShopModal(true)}
-                className="p-2 bg-white/10 rounded-lg border border-white/20 touch-target"
-              >
-                <ShoppingCart className="h-5 w-5 text-white" />
-              </button>
-            </div>
-          </div>
-
-          <PowerUpBar onPowerUpUsed={handlePowerUpUsed} />
-          <ProgressHeader userProgress={userProgress} />
-          <CategoryFilter 
-            selectedCategory={selectedCategory} 
-            onCategoryChange={setSelectedCategory} 
-          />
-          <DailyChallenge userProgress={userProgress} onPlayGame={openGame} />
-          <GameFeed 
-            onPlayGame={openGame} 
-            playedGames={userProgress.playedGames || []}
-            selectedCategory={selectedCategory}
-          />
-          
-          <AchievementNotification
-            achievement={currentAchievement}
-            onClose={() => setCurrentAchievement(null)}
-          />
-          
-          {/* Modals */}
-          {showGameModal && selectedGame && (
-            <GameModal
-              game={selectedGame}
-              onComplete={handleGameComplete}
-              onClose={() => {
-                playSound('click');
-                setShowGameModal(false);
-                setSelectedGame(null);
-              }}
-              activePowerUps={activePowerUps}
-              onPowerUpUsed={handlePowerUpUsed}
-            />
-          )}
-
-          {showProfileModal && (
-            <ProfileModal
-              userProgress={userProgress}
-              gameStats={gameStats}
-              onClose={() => {
-                playSound('click');
-                setShowProfileModal(false);
-              }}
-            />
-          )}
-
-          {showStatsModal && (
-            <StatsModal
-              userProgress={userProgress}
-              gameStats={gameStats}
-              onClose={() => {
-                playSound('click');
-                setShowStatsModal(false);
-              }}
-            />
-          )}
-
-          {showRewardsModal && (
-            <RewardsModal
-              userProgress={userProgress}
-              onClaimReward={() => {}}
-              onClose={() => {
-                playSound('click');
-                setShowRewardsModal(false);
-              }}
-            />
-          )}
-
-          {showShopModal && (
-            <ShopModal
-              userProgress={userProgress}
-              onPurchase={handlePurchase}
-              onClose={() => {
-                playSound('click');
-                setShowShopModal(false);
-              }}
-            />
-          )}
-
-          <ChatBot 
-            isOpen={showChatBot}
-            onClose={() => setShowChatBot(false)}
-          />
+          ))}
         </div>
+
+        {filteredGames.length === 0 && (
+          <div className="text-center py-12">
+            <Gamepad2 className="h-16 w-16 text-white/30 mx-auto mb-4" />
+            <p className="text-xl text-white/60">No games found in this category</p>
+          </div>
+        )}
       </div>
+
+      {/* Game Modal */}
+      {selectedGame && (
+        <GameModal
+          game={selectedGame}
+          onComplete={handleGameComplete}
+          onClose={() => setSelectedGame(null)}
+          activePowerUps={activePowerUps}
+          onPowerUpUsed={handlePowerUpUsed}
+        />
+      )}
+
+      {/* ChatBot */}
+      {showChatBot && (
+        <ChatBot onClose={() => setShowChatBot(false)} />
+      )}
     </MobileOptimizedLayout>
   );
-};
-
-const Games = () => {
-  return (
-    <SoundProvider>
-      <ThemeProvider>
-        <GamesContent />
-      </ThemeProvider>
-    </SoundProvider>
-  );
-};
-
-export default Games;
+}
