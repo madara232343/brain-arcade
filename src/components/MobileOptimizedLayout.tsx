@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, Gamepad2, Trophy, MessageCircle } from 'lucide-react';
+import { Home, Gamepad2, Trophy, User, MessageCircle } from 'lucide-react';
 
 interface MobileOptimizedLayoutProps {
   children: React.ReactNode;
@@ -76,10 +76,10 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
         </div>
       </div>
 
-      {/* Floating Chat Button for Desktop - Positioned higher to avoid overlap */}
+      {/* Floating Chat Button for Desktop */}
       <button
         onClick={onChatOpen}
-        className="hidden md:flex fixed bottom-20 right-6 w-14 h-14 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 rounded-full shadow-2xl z-40 transition-all duration-300 hover:scale-110 items-center justify-center"
+        className="hidden md:flex fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 rounded-full shadow-2xl z-40 transition-all duration-300 hover:scale-110 items-center justify-center"
       >
         <MessageCircle className="h-6 w-6 text-white" />
         <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>

@@ -14,23 +14,24 @@ import {
 
 interface CategoryFilterProps {
   selectedCategory: string;
-  onCategorySelect: (category: string) => void;
+  onCategoryChange: (category: string) => void;
 }
 
-const categoryDetails = [
-  { id: 'All', name: 'All Games', icon: Gamepad2, color: 'from-gray-500 to-gray-600', count: 13 },
-  { id: 'Memory', name: 'Memory', icon: Brain, color: 'from-blue-500 to-cyan-500', count: 3 },
-  { id: 'Puzzle', name: 'Puzzle', icon: Puzzle, color: 'from-green-500 to-teal-500', count: 4 },
-  { id: 'Speed', name: 'Speed', icon: Zap, color: 'from-yellow-500 to-orange-500', count: 1 },
-  { id: 'Racing', name: 'Racing', icon: Car, color: 'from-orange-500 to-red-500', count: 1 },
-  { id: 'Strategy', name: 'Strategy', icon: Crown, color: 'from-indigo-500 to-purple-500', count: 1 },
-  { id: 'Intelligence', name: 'Intelligence', icon: Users, color: 'from-violet-500 to-purple-600', count: 1 },
-  { id: '3D', name: '3D Games', icon: Target, color: 'from-purple-500 to-pink-500', count: 3 }
+const categories = [
+  { id: 'all', name: 'All Games', icon: Gamepad2, color: 'from-gray-500 to-gray-600', count: 105 },
+  { id: 'memory', name: 'Memory', icon: Brain, color: 'from-blue-500 to-cyan-500', count: 15 },
+  { id: 'puzzle', name: 'Puzzle', icon: Puzzle, color: 'from-green-500 to-teal-500', count: 20 },
+  { id: 'speed', name: 'Speed', icon: Zap, color: 'from-yellow-500 to-orange-500', count: 15 },
+  { id: 'racing', name: 'Racing', icon: Car, color: 'from-orange-500 to-red-500', count: 15 },
+  { id: 'shooting', name: 'Shooting', icon: Target, color: 'from-red-500 to-pink-500', count: 15 },
+  { id: 'arcade', name: 'Arcade', icon: Gamepad2, color: 'from-purple-500 to-pink-500', count: 10 },
+  { id: 'strategy', name: 'Strategy', icon: Crown, color: 'from-indigo-500 to-purple-500', count: 10 },
+  { id: 'intelligence', name: 'Intelligence', icon: Users, color: 'from-violet-500 to-purple-600', count: 5 }
 ];
 
 export const CategoryFilter: React.FC<CategoryFilterProps> = ({ 
   selectedCategory, 
-  onCategorySelect 
+  onCategoryChange 
 }) => {
   return (
     <div className="mb-8">
@@ -38,14 +39,14 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       
       {/* Desktop View */}
       <div className="hidden md:grid grid-cols-3 lg:grid-cols-5 gap-4">
-        {categoryDetails.map((category) => {
+        {categories.map((category) => {
           const IconComponent = category.icon;
           const isSelected = selectedCategory === category.id;
           
           return (
             <button
               key={category.id}
-              onClick={() => onCategorySelect(category.id)}
+              onClick={() => onCategoryChange(category.id)}
               className={`group relative p-4 rounded-2xl border transition-all duration-300 hover:scale-105 ${
                 isSelected 
                   ? 'bg-white/20 border-white/40 shadow-lg' 
@@ -76,14 +77,14 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       {/* Mobile View */}
       <div className="md:hidden">
         <div className="flex overflow-x-auto space-x-3 pb-2 scrollbar-hide">
-          {categoryDetails.map((category) => {
+          {categories.map((category) => {
             const IconComponent = category.icon;
             const isSelected = selectedCategory === category.id;
             
             return (
               <button
                 key={category.id}
-                onClick={() => onCategorySelect(category.id)}
+                onClick={() => onCategoryChange(category.id)}
                 className={`flex-shrink-0 flex flex-col items-center p-3 rounded-xl transition-all duration-300 ${
                   isSelected 
                     ? 'bg-white/20 border border-white/40' 
@@ -109,7 +110,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
       <div className="mt-6 flex flex-wrap gap-4 justify-center">
         <div className="bg-white/5 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/20">
           <span className="text-white/70 text-sm">Total Games: </span>
-          <span className="text-white font-bold">13</span>
+          <span className="text-white font-bold">105+</span>
         </div>
         <div className="bg-white/5 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/20">
           <span className="text-white/70 text-sm">Categories: </span>

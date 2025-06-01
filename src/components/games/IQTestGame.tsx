@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Brain, Clock, Award, Target } from 'lucide-react';
-import { GameResult } from '@/types/game';
+import { GameResult } from '@/pages/Games';
 
 interface IQTestGameProps {
   onComplete: (result: GameResult) => void;

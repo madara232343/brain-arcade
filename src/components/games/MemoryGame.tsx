@@ -5,16 +5,9 @@ import { GameResult } from '@/types/game';
 interface MemoryGameProps {
   onComplete: (result: GameResult) => void;
   gameId: string;
-  activePowerUps?: Set<string>;
-  onPowerUpUsed?: (type: string) => void;
 }
 
-export const MemoryGame: React.FC<MemoryGameProps> = ({ 
-  onComplete, 
-  gameId,
-  activePowerUps = new Set(),
-  onPowerUpUsed
-}) => {
+export const MemoryGame: React.FC<MemoryGameProps> = ({ onComplete, gameId }) => {
   const [sequence, setSequence] = useState<number[]>([]);
   const [userSequence, setUserSequence] = useState<number[]>([]);
   const [showingSequence, setShowingSequence] = useState(false);
@@ -23,7 +16,6 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({
   const [level, setLevel] = useState(1);
   const [gameOver, setGameOver] = useState(false);
   const [currentShowing, setCurrentShowing] = useState(-1);
-  const [timeLeft, setTimeLeft] = useState(120);
 
   const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-pink-500'];
 
@@ -42,14 +34,14 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({
     seq.forEach((num, index) => {
       setTimeout(() => {
         setCurrentShowing(num);
-        setTimeout(() => setCurrentShowing(-1), 600);
-      }, (index + 1) * 800);
+        setTimeout(() => setCurrentShowing(-1), 400);
+      }, (index + 1) * 600);
     });
     
     setTimeout(() => {
       setShowingSequence(false);
       setCurrentShowing(-1);
-    }, seq.length * 800 + 800);
+    }, seq.length * 600 + 500);
   };
 
   const startGame = () => {
@@ -61,27 +53,12 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({
     setGameOver(false);
     setShowingSequence(false);
     setCurrentShowing(-1);
-    setTimeLeft(120);
     
-    // Apply time freeze power-up
-    if (activePowerUps.has('timeFreeze')) {
-      setTimeLeft(prev => prev + 30);
-      onPowerUpUsed?.('timeFreeze');
-    }
-    
+    // Start first sequence after a delay
     setTimeout(() => {
       generateSequence();
     }, 1000);
   };
-
-  useEffect(() => {
-    if (gameStarted && timeLeft > 0 && !gameOver) {
-      const timer = setTimeout(() => setTimeLeft(prev => prev - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
-      setGameOver(true);
-    }
-  }, [timeLeft, gameStarted, gameOver]);
 
   const handleColorClick = (colorIndex: number) => {
     if (showingSequence || gameOver) return;
@@ -97,13 +74,8 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({
 
     // Check if sequence is complete
     if (newUserSequence.length === sequence.length) {
-      const levelScore = level * 100;
-      const timeBonus = Math.floor(timeLeft / 10) * 5;
-      const totalLevelScore = levelScore + timeBonus;
-      
-      setScore(prev => prev + totalLevelScore);
+      setScore(prev => prev + level * 100);
       setLevel(prev => prev + 1);
-      
       setTimeout(() => {
         generateSequence();
       }, 1000);
@@ -111,22 +83,13 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({
   };
 
   const endGame = () => {
-    const accuracy = sequence.length > 0 ? Math.round((level / (level + 1)) * 100) : 0;
-    
-    let finalScore = score;
-    
-    // Apply double XP power-up
-    if (activePowerUps.has('doubleXP')) {
-      finalScore *= 2;
-      onPowerUpUsed?.('doubleXP');
-    }
-    
+    const accuracy = sequence.length > 0 ? Math.round((sequence.length / (sequence.length + 1)) * 100) : 0;
     onComplete({
       gameId,
-      score: finalScore,
+      score,
       accuracy: Math.min(accuracy, 100),
-      timeSpent: 120 - timeLeft,
-      xpEarned: Math.round(finalScore / 4)
+      timeSpent: level * 5,
+      xpEarned: Math.round(score / 2)
     });
   };
 
@@ -174,10 +137,10 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({
   return (
     <div className="text-center text-white p-4">
       <div className="mb-6">
-        <div className="flex justify-between text-sm md:text-lg mb-4">
-          <span>Time: {timeLeft}s</span>
+        <div className="flex justify-between text-base md:text-lg mb-4">
           <span>Level: {level}</span>
           <span>Score: {score}</span>
+          <span>Sequence: {sequence.length}</span>
         </div>
       </div>
 
@@ -187,7 +150,7 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({
             key={index}
             onClick={() => handleColorClick(index)}
             className={`w-16 h-16 md:w-20 md:h-20 rounded-xl transition-all duration-200 ${color} ${
-              currentShowing === index ? 'scale-110 brightness-150 shadow-xl ring-4 ring-white' : ''
+              currentShowing === index ? 'scale-110 brightness-150 shadow-lg' : ''
             } ${
               showingSequence ? 'cursor-not-allowed opacity-70' : 'hover:scale-105 active:scale-95 shadow-md hover:shadow-lg'
             }`}
@@ -210,22 +173,15 @@ export const MemoryGame: React.FC<MemoryGameProps> = ({
       </div>
       
       {userSequence.length > 0 && (
-        <div className="flex justify-center space-x-1 md:space-x-2 mb-4">
+        <div className="flex justify-center space-x-2 mb-4">
           {userSequence.map((colorIndex, i) => (
             <div
               key={i}
-              className={`w-4 h-4 md:w-6 md:h-6 rounded-full ${colors[colorIndex]} border-2 border-white`}
+              className={`w-6 h-6 rounded-full ${colors[colorIndex]} border-2 border-white`}
             />
           ))}
         </div>
       )}
-      
-      <button
-        onClick={() => setGameOver(true)}
-        className="mt-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition-all duration-200 text-sm"
-      >
-        End Game
-      </button>
     </div>
   );
 };
