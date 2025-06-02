@@ -37,9 +37,11 @@ export const ReactionTimeGame: React.FC<ReactionTimeGameProps> = ({ onComplete, 
       
       const newAttempts = [...attempts, reaction];
       setAttempts(newAttempts);
-      setCurrentAttempt(currentAttempt + 1);
+      const nextAttempt = currentAttempt + 1;
+      setCurrentAttempt(nextAttempt);
 
-      if (currentAttempt >= 4) {
+      if (nextAttempt >= 5) {
+        // Game complete after 5 attempts
         const avgReaction = newAttempts.reduce((a, b) => a + b, 0) / newAttempts.length;
         const score = Math.max(0, 1000 - avgReaction);
         const accuracy = avgReaction < 300 ? 100 : avgReaction < 500 ? 80 : avgReaction < 800 ? 60 : 40;
