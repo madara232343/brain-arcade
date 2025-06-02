@@ -24,6 +24,12 @@ export const ReactionTimeGame: React.FC<ReactionTimeGameProps> = ({ onComplete, 
   };
 
   const handleClick = () => {
+    if (gameState === 'waiting') {
+      // Start the game when user clicks "Click to Start"
+      startGame();
+      return;
+    }
+
     if (gameState === 'ready') {
       setGameState('too-early');
       setTimeout(() => setGameState('waiting'), 2000);
@@ -77,7 +83,7 @@ export const ReactionTimeGame: React.FC<ReactionTimeGameProps> = ({ onComplete, 
 
       <div 
         className={`w-full max-w-xs md:max-w-sm h-48 md:h-80 mx-auto rounded-lg flex items-center justify-center text-base md:text-xl font-bold cursor-pointer transition-all duration-300 touch-target ${
-          gameState === 'waiting' ? 'bg-gray-600' :
+          gameState === 'waiting' ? 'bg-gray-600 hover:bg-gray-500' :
           gameState === 'ready' ? 'bg-red-600' :
           gameState === 'click' ? 'bg-green-600' :
           gameState === 'too-early' ? 'bg-red-800' :
