@@ -64,17 +64,17 @@ export const ReactionTimeGame: React.FC<ReactionTimeGameProps> = ({ onComplete, 
   };
 
   return (
-    <div className="text-center text-white p-4">
-      <h3 className="text-2xl font-bold mb-4">Reaction Time Test</h3>
+    <div className="text-center text-white p-2 md:p-4">
+      <h3 className="text-lg md:text-2xl font-bold mb-4">⚡ Reaction Time Test</h3>
       <div className="mb-4">
-        <p>Attempt {currentAttempt + 1} of 5</p>
+        <p className="text-sm md:text-base">Attempt {currentAttempt + 1} of 5</p>
         {attempts.length > 0 && (
-          <p>Average: {Math.round(attempts.reduce((a, b) => a + b, 0) / attempts.length)}ms</p>
+          <p className="text-sm md:text-base">Average: {Math.round(attempts.reduce((a, b) => a + b, 0) / attempts.length)}ms</p>
         )}
       </div>
 
       <div 
-        className={`w-80 h-80 mx-auto rounded-lg flex items-center justify-center text-xl font-bold cursor-pointer transition-all duration-300 ${
+        className={`w-full max-w-xs md:max-w-sm h-48 md:h-80 mx-auto rounded-lg flex items-center justify-center text-base md:text-xl font-bold cursor-pointer transition-all duration-300 touch-target ${
           gameState === 'waiting' ? 'bg-gray-600' :
           gameState === 'ready' ? 'bg-red-600' :
           gameState === 'click' ? 'bg-green-600' :
@@ -84,25 +84,25 @@ export const ReactionTimeGame: React.FC<ReactionTimeGameProps> = ({ onComplete, 
         onClick={handleClick}
       >
         {gameState === 'waiting' && (
-          <div className="text-center">
-            <p>Click to Start</p>
-            <p className="text-sm mt-2">Wait for green, then click!</p>
+          <div className="text-center px-4">
+            <p className="text-sm md:text-lg">Click to Start</p>
+            <p className="text-xs md:text-sm mt-2">Wait for green, then click!</p>
           </div>
         )}
-        {gameState === 'ready' && <p>Wait for it...</p>}
-        {gameState === 'click' && <p>CLICK NOW!</p>}
+        {gameState === 'ready' && <p className="text-sm md:text-lg">Wait for it...</p>}
+        {gameState === 'click' && <p className="text-sm md:text-lg">CLICK NOW!</p>}
         {gameState === 'too-early' && (
           <div className="text-center">
-            <p>Too Early!</p>
-            <button onClick={resetAttempt} className="mt-2 px-4 py-2 bg-blue-500 rounded">
+            <p className="text-sm md:text-lg">Too Early!</p>
+            <button onClick={resetAttempt} className="mt-2 px-3 md:px-4 py-2 bg-blue-500 rounded text-xs md:text-sm">
               Try Again
             </button>
           </div>
         )}
         {gameState === 'result' && (
           <div className="text-center">
-            <p>{reactionTime}ms</p>
-            <p className="text-sm">
+            <p className="text-sm md:text-lg">{reactionTime}ms</p>
+            <p className="text-xs md:text-sm">
               {reactionTime < 200 ? 'Excellent!' : 
                reactionTime < 300 ? 'Great!' : 
                reactionTime < 500 ? 'Good!' : 'Keep practicing!'}

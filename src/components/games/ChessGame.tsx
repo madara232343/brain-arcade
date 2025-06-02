@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameResult } from '@/types/game';
 
 interface ChessGameProps {
@@ -7,12 +7,20 @@ interface ChessGameProps {
   gameId: string;
 }
 
-type Piece = {
-  type: 'king' | 'queen' | 'rook' | 'bishop' | 'knight' | 'pawn';
-  color: 'white' | 'black';
-} | null;
+type PieceType = 'king' | 'queen' | 'rook' | 'bishop' | 'knight' | 'pawn';
+type PieceColor = 'white' | 'black';
 
-const initialBoard: Piece[][] = [
+interface Piece {
+  type: PieceType;
+  color: PieceColor;
+}
+
+interface Position {
+  row: number;
+  col: number;
+}
+
+const initialBoard: (Piece | null)[][] = [
   [
     { type: 'rook', color: 'black' }, { type: 'knight', color: 'black' }, 
     { type: 'bishop', color: 'black' }, { type: 'queen', color: 'black' }, 
@@ -44,12 +52,33 @@ const pieceSymbols = {
 
 export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
   const [gameStarted, setGameStarted] = useState(false);
-  const [board, setBoard] = useState<Piece[][]>(initialBoard);
-  const [currentPlayer, setCurrentPlayer] = useState<'white' | 'black'>('white');
-  const [selectedSquare, setSelectedSquare] = useState<{row: number, col: number} | null>(null);
+  const [board, setBoard] = useState<(Piece | null)[][]>(initialBoard.map(row => [...row]));
+  const [currentPlayer, setCurrentPlayer] = useState<PieceColor>('white');
+  const [selectedSquare, setSelectedSquare] = useState<Position | null>(null);
   const [moveCount, setMoveCount] = useState(0);
   const [capturedPieces, setCapturedPieces] = useState<Piece[]>([]);
   const [gameTime, setGameTime] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState<PieceColor | null>(null);
+
+  useEffect(() => {
+    if (gameStarted && !gameOver) {
+      const timer = setInterval(() => {
+        setGameTime(prev => prev + 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [gameStarted, gameOver]);
+
+  // Computer AI move
+  useEffect(() => {
+    if (gameStarted && currentPlayer === 'black' && !gameOver) {
+      const timer = setTimeout(() => {
+        makeComputerMove();
+      }, 1000 + Math.random() * 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPlayer, gameStarted, gameOver]);
 
   const startGame = () => {
     setGameStarted(true);
@@ -59,20 +88,48 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
     setMoveCount(0);
     setCapturedPieces([]);
     setGameTime(0);
+    setGameOver(false);
+    setWinner(null);
   };
 
-  React.useEffect(() => {
-    if (gameStarted) {
-      const timer = setInterval(() => {
-        setGameTime(prev => prev + 1);
-      }, 1000);
-      return () => clearInterval(timer);
+  const makeComputerMove = () => {
+    const allMoves = getAllValidMoves('black');
+    if (allMoves.length === 0) {
+      endGame('white');
+      return;
     }
-  }, [gameStarted]);
 
-  const isValidMove = (from: {row: number, col: number}, to: {row: number, col: number}): boolean => {
+    // Simple AI: prioritize captures, then random moves
+    const captureMoves = allMoves.filter(move => board[move.to.row][move.to.col] !== null);
+    const selectedMove = captureMoves.length > 0 ? 
+      captureMoves[Math.floor(Math.random() * captureMoves.length)] :
+      allMoves[Math.floor(Math.random() * allMoves.length)];
+
+    executeMove(selectedMove.from, selectedMove.to);
+  };
+
+  const getAllValidMoves = (color: PieceColor) => {
+    const moves: { from: Position; to: Position }[] = [];
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = board[row][col];
+        if (piece && piece.color === color) {
+          for (let toRow = 0; toRow < 8; toRow++) {
+            for (let toCol = 0; toCol < 8; toCol++) {
+              if (isValidMove({ row, col }, { row: toRow, col: toCol })) {
+                moves.push({ from: { row, col }, to: { row: toRow, col: toCol } });
+              }
+            }
+          }
+        }
+      }
+    }
+    return moves;
+  };
+
+  const isValidMove = (from: Position, to: Position): boolean => {
     const piece = board[from.row][from.col];
-    if (!piece || piece.color !== currentPlayer) return false;
+    if (!piece) return false;
 
     const targetPiece = board[to.row][to.col];
     if (targetPiece && targetPiece.color === piece.color) return false;
@@ -112,7 +169,7 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
     }
   };
 
-  const isPathBlocked = (from: {row: number, col: number}, to: {row: number, col: number}): boolean => {
+  const isPathBlocked = (from: Position, to: Position): boolean => {
     const rowStep = to.row > from.row ? 1 : to.row < from.row ? -1 : 0;
     const colStep = to.col > from.col ? 1 : to.col < from.col ? -1 : 0;
     
@@ -128,37 +185,47 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
     return false;
   };
 
-  const makeMove = (to: {row: number, col: number}) => {
-    if (!selectedSquare) return;
+  const executeMove = (from: Position, to: Position) => {
+    const newBoard = board.map(row => [...row]);
+    const movingPiece = newBoard[from.row][from.col];
+    const capturedPiece = newBoard[to.row][to.col];
     
-    if (isValidMove(selectedSquare, to)) {
-      const newBoard = board.map(row => [...row]);
-      const movingPiece = newBoard[selectedSquare.row][selectedSquare.col];
-      const capturedPiece = newBoard[to.row][to.col];
+    if (capturedPiece) {
+      setCapturedPieces(prev => [...prev, capturedPiece]);
       
-      if (capturedPiece) {
-        setCapturedPieces(prev => [...prev, capturedPiece]);
-      }
-      
-      newBoard[to.row][to.col] = movingPiece;
-      newBoard[selectedSquare.row][selectedSquare.col] = null;
-      
-      setBoard(newBoard);
-      setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
-      setMoveCount(prev => prev + 1);
-      
-      // Simple game end condition (after 20 moves)
-      if (moveCount >= 20) {
-        endGame();
+      // Check for game end conditions
+      if (capturedPiece.type === 'king') {
+        endGame(movingPiece!.color);
+        return;
       }
     }
     
-    setSelectedSquare(null);
+    newBoard[to.row][to.col] = movingPiece;
+    newBoard[from.row][from.col] = null;
+    
+    setBoard(newBoard);
+    setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
+    setMoveCount(prev => prev + 1);
+    
+    // End game after 30 moves or if no valid moves
+    if (moveCount >= 30) {
+      endGame(capturedPieces.filter(p => p.color === 'black').length > capturedPieces.filter(p => p.color === 'white').length ? 'white' : 'black');
+    }
   };
 
   const handleSquareClick = (row: number, col: number) => {
+    if (gameOver || currentPlayer === 'black') return;
+
     if (selectedSquare) {
-      makeMove({ row, col });
+      if (selectedSquare.row === row && selectedSquare.col === col) {
+        setSelectedSquare(null);
+        return;
+      }
+      
+      if (isValidMove(selectedSquare, { row, col })) {
+        executeMove(selectedSquare, { row, col });
+      }
+      setSelectedSquare(null);
     } else {
       const piece = board[row][col];
       if (piece && piece.color === currentPlayer) {
@@ -167,12 +234,15 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
     }
   };
 
-  const endGame = () => {
-    const score = capturedPieces.length * 100 + (moveCount * 10);
+  const endGame = (winnerColor: PieceColor) => {
+    setGameOver(true);
+    setWinner(winnerColor);
+    
+    const score = capturedPieces.length * 100 + (winnerColor === 'white' ? 500 : 0);
     onComplete({
       gameId,
       score,
-      accuracy: Math.max(50, 100 - moveCount),
+      accuracy: Math.max(50, 100 - Math.floor(moveCount / 2)),
       timeSpent: gameTime,
       xpEarned: Math.round(score / 5)
     });
@@ -180,19 +250,19 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
 
   if (!gameStarted) {
     return (
-      <div className="text-center text-white p-4">
-        <h3 className="text-xl md:text-2xl font-bold mb-4">♔ Chess</h3>
-        <p className="mb-6 text-sm md:text-base">Strategic board game - capture opponent pieces!</p>
+      <div className="text-center text-white p-2 md:p-4">
+        <h3 className="text-lg md:text-2xl font-bold mb-4">♔ Chess vs Computer</h3>
+        <p className="mb-6 text-sm md:text-base">Play chess against an AI opponent!</p>
         <div className="mb-6">
           <div className="inline-block bg-white/20 rounded-lg p-3 md:p-4">
+            <p className="text-xs md:text-sm mb-2">• You play as White pieces</p>
             <p className="text-xs md:text-sm mb-2">• Click piece to select, click square to move</p>
-            <p className="text-xs md:text-sm mb-2">• White moves first</p>
-            <p className="text-xs md:text-sm">• Game ends after 20 moves</p>
+            <p className="text-xs md:text-sm">• Capture the king or get more points to win</p>
           </div>
         </div>
         <button
           onClick={startGame}
-          className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white px-6 py-3 rounded-lg font-bold transition-all duration-300 hover:scale-105"
+          className="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-bold transition-all duration-300 hover:scale-105 text-sm md:text-base"
         >
           Start Chess
         </button>
@@ -200,32 +270,46 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
     );
   }
 
+  if (gameOver) {
+    return (
+      <div className="text-center text-white p-2 md:p-4">
+        <h3 className="text-lg md:text-xl font-bold mb-4">🎯 Game Over!</h3>
+        <div className="space-y-2 text-sm md:text-lg">
+          <p>Winner: <span className="text-yellow-400 font-bold">{winner === 'white' ? 'You!' : 'Computer'}</span></p>
+          <p>Moves: <span className="text-blue-400 font-bold">{moveCount}</span></p>
+          <p>Pieces Captured: <span className="text-green-400 font-bold">{capturedPieces.length}</span></p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="text-center text-white p-4">
+    <div className="text-center text-white p-2 md:p-4">
       <div className="mb-4">
-        <div className="flex justify-between text-base md:text-lg mb-4">
-          <span>Turn: {currentPlayer === 'white' ? '⚪' : '⚫'} {currentPlayer}</span>
-          <span>Moves: {moveCount}/20</span>
+        <div className="flex justify-between text-sm md:text-lg mb-4">
+          <span>Turn: {currentPlayer === 'white' ? '⚪ You' : '⚫ Computer'}</span>
+          <span>Moves: {moveCount}/30</span>
           <span>Time: {Math.floor(gameTime / 60)}:{(gameTime % 60).toString().padStart(2, '0')}</span>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-center items-start gap-4">
+      <div className="flex flex-col lg:flex-row justify-center items-start gap-4">
         {/* Chess Board */}
         <div className="bg-amber-900 p-2 rounded-lg">
-          <div className="grid grid-cols-8 gap-0" style={{ width: '320px', height: '320px' }}>
+          <div className="grid grid-cols-8 gap-0 w-64 h-64 md:w-80 md:h-80">
             {board.map((row, rowIndex) =>
               row.map((piece, colIndex) => (
                 <button
                   key={`${rowIndex}-${colIndex}`}
                   onClick={() => handleSquareClick(rowIndex, colIndex)}
-                  className={`w-10 h-10 flex items-center justify-center text-2xl transition-all duration-200 ${
+                  className={`w-8 h-8 md:w-10 md:h-10 flex items-center justify-center text-lg md:text-2xl transition-all duration-200 ${
                     (rowIndex + colIndex) % 2 === 0 ? 'bg-amber-100' : 'bg-amber-800'
                   } ${
                     selectedSquare?.row === rowIndex && selectedSquare?.col === colIndex
                       ? 'bg-yellow-400'
                       : 'hover:bg-yellow-200'
                   }`}
+                  disabled={currentPlayer === 'black'}
                 >
                   {piece && pieceSymbols[piece.type][piece.color]}
                 </button>
@@ -241,17 +325,17 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
             <div className="flex flex-wrap gap-1">
               {capturedPieces.map((piece, index) => (
                 <span key={index} className="text-lg">
-                  {piece && pieceSymbols[piece.type][piece.color]}
+                  {pieceSymbols[piece.type][piece.color]}
                 </span>
               ))}
             </div>
           </div>
           
           <button
-            onClick={endGame}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition-all duration-200"
+            onClick={() => endGame('black')}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-bold transition-all duration-200 text-sm md:text-base"
           >
-            End Game
+            Resign
           </button>
         </div>
       </div>

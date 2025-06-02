@@ -37,6 +37,7 @@ import { SpaceRacerGame } from '@/components/games/SpaceRacerGame';
 import { SudokuGame } from '@/components/games/SudokuGame';
 import { TetrisGame } from '@/components/games/TetrisGame';
 import { ChessGame } from '@/components/games/ChessGame';
+import { SpatialMemoryGame } from '@/components/games/SpatialMemoryGame';
 import { GameCompleteModal } from '@/components/GameCompleteModal';
 import { audioManager } from '@/utils/audioUtils';
 import { useSounds } from '@/components/SoundManager';
@@ -103,7 +104,7 @@ export const GameModal: React.FC<GameModalProps> = ({
         case 'face-memory':
           return <PatternMatchGame {...gameProps} />;
         case 'spatial-memory':
-          return <SpatialReasoningGame {...gameProps} />;
+          return <SpatialMemoryGame {...gameProps} />;
         case 'visual-memory':
           return <VisualAttentionGame {...gameProps} />;
         

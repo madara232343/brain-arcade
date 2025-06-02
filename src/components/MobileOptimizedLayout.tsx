@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Home, Gamepad2, Trophy, User, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface MobileOptimizedLayoutProps {
   children: React.ReactNode;
@@ -28,8 +29,8 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-lg border-t border-white/20 z-40">
         <div className="safe-area-inset-bottom">
           <div className="grid grid-cols-4 h-16 px-2">
-            <button
-              onClick={() => onNavigate('/')}
+            <Link
+              to="/"
               className={`flex flex-col items-center justify-center space-y-1 transition-all duration-200 px-1 ${
                 currentPage === 'home' 
                   ? 'text-purple-400 scale-110' 
@@ -38,10 +39,10 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
             >
               <Home className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="text-xs font-medium leading-none">Home</span>
-            </button>
+            </Link>
             
-            <button
-              onClick={() => onNavigate('/games')}
+            <Link
+              to="/games"
               className={`flex flex-col items-center justify-center space-y-1 transition-all duration-200 px-1 ${
                 currentPage === 'games' 
                   ? 'text-purple-400 scale-110' 
@@ -50,10 +51,10 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
             >
               <Gamepad2 className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="text-xs font-medium leading-none">Games</span>
-            </button>
+            </Link>
             
-            <button
-              onClick={() => onNavigate('/leaderboard')}
+            <Link
+              to="/leaderboard"
               className={`flex flex-col items-center justify-center space-y-1 transition-all duration-200 px-1 ${
                 currentPage === 'leaderboard' 
                   ? 'text-purple-400 scale-110' 
@@ -62,7 +63,7 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
             >
               <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="text-xs font-medium leading-none">Leaders</span>
-            </button>
+            </Link>
             
             <button
               onClick={onChatOpen}
