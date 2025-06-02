@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Crown, Medal, Trophy, Star, ArrowLeft, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -18,18 +17,27 @@ const Leaderboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('all-time');
   const [selectedCategory, setSelectedCategory] = useState('total-score');
 
-  // Mock leaderboard data
+  // Function to determine rank based on score
+  const calculateRank = (score: number): string => {
+    if (score >= 80000) return 'Diamond';
+    if (score >= 60000) return 'Platinum';
+    if (score >= 40000) return 'Gold';
+    if (score >= 20000) return 'Silver';
+    return 'Bronze';
+  };
+
+  // Mock leaderboard data with proper ranking
   const leaderboardData: LeaderboardEntry[] = [
-    { id: '1', name: 'BrainMaster', score: 89500, level: 45, gamesPlayed: 234, avatar: '🧠', rank: 'Diamond', streak: 28 },
-    { id: '2', name: 'LogicKing', score: 76300, level: 38, gamesPlayed: 198, avatar: '👑', rank: 'Platinum', streak: 22 },
-    { id: '3', name: 'PuzzleQueen', score: 68900, level: 34, gamesPlayed: 187, avatar: '🎯', rank: 'Platinum', streak: 19 },
-    { id: '4', name: 'MindBender', score: 54200, level: 27, gamesPlayed: 156, avatar: '🚀', rank: 'Gold', streak: 15 },
-    { id: '5', name: 'ThinkFast', score: 47800, level: 24, gamesPlayed: 143, avatar: '⚡', rank: 'Gold', streak: 12 },
-    { id: '6', name: 'SmartCookie', score: 41500, level: 21, gamesPlayed: 129, avatar: '🍪', rank: 'Silver', streak: 10 },
-    { id: '7', name: 'BrainWave', score: 38200, level: 19, gamesPlayed: 118, avatar: '🌊', rank: 'Silver', streak: 8 },
-    { id: '8', name: 'MindMelt', score: 34700, level: 17, gamesPlayed: 105, avatar: '🔥', rank: 'Silver', streak: 7 },
-    { id: '9', name: 'CognitoErgo', score: 29300, level: 15, gamesPlayed: 92, avatar: '🤖', rank: 'Bronze', streak: 5 },
-    { id: '10', name: 'YouPlayer', score: 12500, level: 8, gamesPlayed: 45, avatar: '👤', rank: 'Bronze', streak: 3 }
+    { id: '1', name: 'BrainMaster', score: 89500, level: 45, gamesPlayed: 234, avatar: '🧠', rank: calculateRank(89500), streak: 28 },
+    { id: '2', name: 'LogicKing', score: 76300, level: 38, gamesPlayed: 198, avatar: '👑', rank: calculateRank(76300), streak: 22 },
+    { id: '3', name: 'PuzzleQueen', score: 68900, level: 34, gamesPlayed: 187, avatar: '🎯', rank: calculateRank(68900), streak: 19 },
+    { id: '4', name: 'MindBender', score: 54200, level: 27, gamesPlayed: 156, avatar: '🚀', rank: calculateRank(54200), streak: 15 },
+    { id: '5', name: 'ThinkFast', score: 47800, level: 24, gamesPlayed: 143, avatar: '⚡', rank: calculateRank(47800), streak: 12 },
+    { id: '6', name: 'SmartCookie', score: 41500, level: 21, gamesPlayed: 129, avatar: '🍪', rank: calculateRank(41500), streak: 10 },
+    { id: '7', name: 'BrainWave', score: 38200, level: 19, gamesPlayed: 118, avatar: '🌊', rank: calculateRank(38200), streak: 8 },
+    { id: '8', name: 'MindMelt', score: 34700, level: 17, gamesPlayed: 105, avatar: '🔥', rank: calculateRank(34700), streak: 7 },
+    { id: '9', name: 'CognitoErgo', score: 29300, level: 15, gamesPlayed: 92, avatar: '🤖', rank: calculateRank(29300), streak: 5 },
+    { id: '10', name: 'YouPlayer', score: 25500, level: 12, gamesPlayed: 68, avatar: '👤', rank: calculateRank(25500), streak: 3 }
   ];
 
   const periods = [
@@ -230,15 +238,15 @@ const Leaderboard = () => {
               <div className="text-white/70 text-sm">Current Rank</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">12,500</div>
+              <div className="text-2xl font-bold text-white">25,500</div>
               <div className="text-white/70 text-sm">Total Score</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">Level 8</div>
-              <div className="text-white/70 text-sm">Current Level</div>
+              <div className="text-2xl font-bold text-white">Silver</div>
+              <div className="text-white/70 text-sm">Current Tier</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">45</div>
+              <div className="text-2xl font-bold text-white">68</div>
               <div className="text-white/70 text-sm">Games Played</div>
             </div>
           </div>

@@ -214,7 +214,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 pb-20 md:pb-4">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -264,8 +264,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-3 md:p-4 border-t border-white/20 bg-white/5">
+      {/* Input - Fixed positioning for mobile */}
+      <div className="absolute md:relative bottom-0 left-0 right-0 p-3 md:p-4 border-t border-white/20 bg-white/5 md:bg-transparent">
         <div className="flex space-x-2">
           <input
             type="text"
