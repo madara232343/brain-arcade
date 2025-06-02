@@ -1,59 +1,34 @@
 
-import React, { useState, useEffect } from 'react';
-import { Zap, Clock, Target, Shield } from 'lucide-react';
-import { powerUpManager, PowerUp } from '@/utils/powerUpManager';
+import React from 'react';
+import { Zap, Shield, Clock, Star } from 'lucide-react';
 
 interface PowerUpBarProps {
-  onPowerUpActivated?: (powerUpId: string, type: string) => void;
-  onPowerUpUsed?: (type: string) => void;
+  onPowerUpUsed: (type: string) => void;
 }
 
-export const PowerUpBar: React.FC<PowerUpBarProps> = ({ onPowerUpActivated, onPowerUpUsed }) => {
-  const [availablePowerUps, setAvailablePowerUps] = useState<PowerUp[]>([]);
-
-  useEffect(() => {
-    const unsubscribe = powerUpManager.subscribe((powerUps) => {
-      setAvailablePowerUps(powerUps.filter(p => p.usesLeft > 0));
-    });
-
-    // Initial load
-    setAvailablePowerUps(powerUpManager.getActivePowerUps().filter(p => p.usesLeft > 0));
-
-    return unsubscribe;
-  }, []);
-
-  const handlePowerUpClick = (powerUp: PowerUp) => {
-    if (powerUpManager.usePowerUp(powerUp.id)) {
-      onPowerUpActivated?.(powerUp.id, powerUp.type);
-      onPowerUpUsed?.(powerUp.type);
-    }
-  };
-
-  const getPowerUpIcon = (type: string) => {
-    switch (type) {
-      case 'doubleXP': return <Zap className="h-4 w-4" />;
-      case 'timeFreeze': return <Clock className="h-4 w-4" />;
-      case 'accuracyBoost': return <Target className="h-4 w-4" />;
-      case 'shield': return <Shield className="h-4 w-4" />;
-      default: return <Zap className="h-4 w-4" />;
-    }
-  };
-
-  if (availablePowerUps.length === 0) return null;
+export const PowerUpBar: React.FC<PowerUpBarProps> = ({ onPowerUpUsed }) => {
+  const powerUps = [
+    { id: 'doubleXP', icon: Star, name: 'Double XP', color: 'bg-yellow-500' },
+    { id: 'timeFreeze', icon: Clock, name: 'Time Freeze', color: 'bg-blue-500' },
+    { id: 'accuracyBoost', icon: Zap, name: 'Accuracy Boost', color: 'bg-green-500' },
+    { id: 'shield', icon: Shield, name: 'Error Shield', color: 'bg-purple-500' }
+  ];
 
   return (
-    <div className="fixed top-4 right-4 z-30 space-y-2">
-      {availablePowerUps.map((powerUp) => (
-        <button
-          key={powerUp.id}
-          onClick={() => handlePowerUpClick(powerUp)}
-          className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-400 hover:to-blue-400 text-white px-3 py-2 rounded-lg shadow-lg transition-all duration-300 hover:scale-105"
-          title={`${powerUp.name} (${powerUp.usesLeft} uses left)`}
-        >
-          {getPowerUpIcon(powerUp.type)}
-          <span className="text-sm font-medium">{powerUp.usesLeft}</span>
-        </button>
-      ))}
+    <div className="flex justify-center space-x-2 mb-4">
+      {powerUps.map((powerUp) => {
+        const IconComponent = powerUp.icon;
+        return (
+          <button
+            key={powerUp.id}
+            onClick={() => onPowerUpUsed(powerUp.id)}
+            className={`${powerUp.color} hover:opacity-80 text-white p-2 rounded-lg transition-all duration-200 hover:scale-110`}
+            title={powerUp.name}
+          >
+            <IconComponent className="h-4 w-4" />
+          </button>
+        );
+      })}
     </div>
   );
 };

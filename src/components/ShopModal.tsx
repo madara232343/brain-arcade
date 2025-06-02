@@ -1,6 +1,6 @@
+
 import React, { useState } from 'react';
 import { X, ShoppingCart, Star, Zap, Heart, Shield, Clock, Target, Package } from 'lucide-react';
-import { powerUpManager } from '@/utils/powerUpManager';
 
 interface UserProgress {
   totalScore: number;
@@ -180,11 +180,6 @@ export const ShopModal: React.FC<ShopModalProps> = ({ userProgress, onClose, onP
   const handlePurchase = (item: ShopItem) => {
     if (userProgress.totalScore >= item.price && !item.owned) {
       onPurchase(item.id, item.price);
-      
-      // Add power-up to the manager when purchased
-      if (item.category === 'powerups') {
-        powerUpManager.addPowerUp(item.id, item.name, 1);
-      }
     }
   };
 

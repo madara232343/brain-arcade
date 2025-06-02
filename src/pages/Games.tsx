@@ -435,8 +435,7 @@ const GamesContent = () => {
           {showGameModal && selectedGame && (
             <GameModal
               game={selectedGame}
-              isOpen={showGameModal}
-              onGameComplete={handleGameComplete}
+              onComplete={handleGameComplete}
               onClose={() => {
                 playSound('click');
                 setShowGameModal(false);
