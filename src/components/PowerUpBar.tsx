@@ -5,9 +5,10 @@ import { powerUpManager, PowerUp } from '@/utils/powerUpManager';
 
 interface PowerUpBarProps {
   onPowerUpActivated?: (powerUpId: string, type: string) => void;
+  onPowerUpUsed?: (type: string) => void;
 }
 
-export const PowerUpBar: React.FC<PowerUpBarProps> = ({ onPowerUpActivated }) => {
+export const PowerUpBar: React.FC<PowerUpBarProps> = ({ onPowerUpActivated, onPowerUpUsed }) => {
   const [availablePowerUps, setAvailablePowerUps] = useState<PowerUp[]>([]);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export const PowerUpBar: React.FC<PowerUpBarProps> = ({ onPowerUpActivated }) =>
   const handlePowerUpClick = (powerUp: PowerUp) => {
     if (powerUpManager.usePowerUp(powerUp.id)) {
       onPowerUpActivated?.(powerUp.id, powerUp.type);
+      onPowerUpUsed?.(powerUp.type);
     }
   };
 

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { GameResult } from '@/types/game';
@@ -21,41 +22,49 @@ interface GameModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGameComplete: (result: GameResult) => void;
+  activePowerUps?: Set<string>;
+  onPowerUpUsed?: (type: string) => void;
 }
 
 export const GameModal: React.FC<GameModalProps> = ({ 
   game, 
   isOpen, 
   onClose, 
-  onGameComplete 
+  onGameComplete,
+  activePowerUps = new Set(),
+  onPowerUpUsed
 }) => {
-  const [activePowerUps, setActivePowerUps] = useState<Set<string>>(new Set());
+  const [internalActivePowerUps, setInternalActivePowerUps] = useState<Set<string>>(new Set());
 
   const handlePowerUpActivated = (powerUpId: string, type: string) => {
-    setActivePowerUps(prev => new Set([...prev, type]));
-    // Power-up will be automatically deactivated when game completes
+    setInternalActivePowerUps(prev => new Set([...prev, type]));
+    onPowerUpUsed?.(type);
   };
 
   const handleGameComplete = (result: GameResult) => {
     // Clear active power-ups when game completes
-    setActivePowerUps(new Set());
+    setInternalActivePowerUps(new Set());
     onGameComplete(result);
+  };
+
+  const handlePowerUpUsedInGame = (type: string) => {
+    setInternalActivePowerUps(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(type);
+      return newSet;
+    });
   };
 
   const renderGameComponent = () => {
     if (!game) return null;
 
+    const combinedActivePowerUps = new Set([...activePowerUps, ...internalActivePowerUps]);
+
     const commonProps = {
       onComplete: handleGameComplete,
       gameId: game.id,
-      activePowerUps,
-      onPowerUpUsed: (type: string) => {
-        setActivePowerUps(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(type);
-          return newSet;
-        });
-      }
+      activePowerUps: combinedActivePowerUps,
+      onPowerUpUsed: handlePowerUpUsedInGame
     };
 
     switch (game.component) {
