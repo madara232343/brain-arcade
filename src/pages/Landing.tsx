@@ -13,37 +13,37 @@ const Landing = () => {
     {
       icon: Brain,
       title: "Memory Training",
-      description: "Enhance your working memory with sequence and pattern games",
+      description: "Enhance your working memory with sequence and pattern games based on the dual n-back paradigm",
       color: "from-blue-500 to-cyan-500"
     },
     {
       icon: Zap,
       title: "Speed Challenges", 
-      description: "Improve reaction time and processing speed with fast-paced games",
+      description: "Improve reaction time and processing speed with fast-paced games that enhance cognitive agility",
       color: "from-yellow-500 to-orange-500"
     },
     {
       icon: Target,
       title: "Focus & Attention",
-      description: "Sharpen your concentration with visual attention tasks",
+      description: "Sharpen your concentration with visual attention tasks and sustained focus exercises",
       color: "from-green-500 to-emerald-500"
     },
     {
       icon: Users,
       title: "Social Competition",
-      description: "Compete with friends and climb the global leaderboards",
+      description: "Compete with friends and climb global leaderboards while tracking cognitive improvements",
       color: "from-purple-500 to-pink-500"
     },
     {
       icon: GamepadIcon,
-      title: "100+ Games",
-      description: "Racing, shooting, puzzle, arcade and many more game categories",
+      title: "100+ Scientific Games",
+      description: "Racing, shooting, puzzle, arcade and cognitive assessment games designed by neuroscientists",
       color: "from-red-500 to-rose-500"
     },
     {
       icon: Award,
-      title: "Intelligence Tests",
-      description: "Test your IQ, EQ, and SQ with scientifically designed assessments",
+      title: "Intelligence Testing",
+      description: "Comprehensive IQ, EQ, and SQ assessments with detailed cognitive ability analysis",
       color: "from-indigo-500 to-blue-500"
     }
   ];
@@ -90,6 +90,18 @@ const Landing = () => {
             </span>
           </div>
           <div className="flex items-center space-x-4 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <Link 
+              to="/about"
+              className="hidden md:flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
+            >
+              <span>About</span>
+            </Link>
+            <Link 
+              to="/faq"
+              className="hidden md:flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
+            >
+              <span>FAQ</span>
+            </Link>
             <button
               onClick={() => setShowReviewModal(true)}
               className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-lg rounded-xl px-4 py-2 border border-white/30 transition-all duration-300 hover:scale-105"
@@ -124,14 +136,14 @@ const Landing = () => {
             </h1>
             <div className="flex items-center justify-center space-x-2 mb-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <Sparkles className="h-6 w-6 text-yellow-400" />
-              <span className="text-xl text-white/90">The Ultimate Brain Training Experience</span>
+              <span className="text-xl text-white/90">Scientifically Designed Cognitive Enhancement</span>
               <Sparkles className="h-6 w-6 text-yellow-400" />
             </div>
           </div>
           
           <p className="text-xl md:text-2xl text-white/80 mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            Challenge your mind with 100+ scientifically designed games across multiple categories.
-            Improve memory, attention, and cognitive abilities through engaging gameplay.
+            Enhance your memory, attention, and cognitive abilities with over 100 research-based brain training games. 
+            Join 50,000+ users improving their mental performance through engaging, adaptive gameplay designed by neuroscientists.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in" style={{ animationDelay: '0.6s' }}>
@@ -282,7 +294,38 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="container mx-auto px-4 py-12 border-t border-white/20 relative z-10">
-        <div className="text-center text-white/60">
+        <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <h3 className="text-lg font-bold mb-4">Brain Burst Arcade</h3>
+            <p className="text-white/70 text-sm">
+              Evidence-based cognitive training games designed to enhance memory, attention, and mental agility.
+            </p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-3">Platform</h4>
+            <ul className="space-y-2 text-sm text-white/70">
+              <li><Link to="/games" className="hover:text-white transition-colors">Games</Link></li>
+              <li><Link to="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link></li>
+              <li><Link to="/about" className="hover:text-white transition-colors">About</Link></li>
+              <li><Link to="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-3">Legal</h4>
+            <ul className="space-y-2 text-sm text-white/70">
+              <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-3">Support</h4>
+            <ul className="space-y-2 text-sm text-white/70">
+              <li>support@brainburstart.com</li>
+              <li>Response within 24 hours</li>
+            </ul>
+          </div>
+        </div>
+        <div className="text-center text-white/60 border-t border-white/20 pt-8">
           <p className="text-lg">&copy; 2025 Brain Burst Arcade. All rights reserved.</p>
           <p className="mt-2">Enhance your mind, one game at a time.</p>
         </div>
