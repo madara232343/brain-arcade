@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Crown, Medal, Trophy, Star, ArrowLeft, Filter } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { Crown, Medal, Trophy, Star, ArrowLeft, Filter, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { getRank } from '@/utils/profileUtils';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
 
 interface LeaderboardEntry {
   id: string;
@@ -13,14 +15,59 @@ interface LeaderboardEntry {
   avatar: string;
   rank: string;
   streak: number;
+  profilePhoto?: string;
+}
+
+interface UserProgress {
+  totalScore: number;
+  totalXP: number;
+  level: number;
+  gamesPlayed: string[];
+  achievements: string[];
+  rank: string;
+  streak: number;
+  purchasedItems: string[];
+  activeTheme: string;
+  activePowerUps: string[];
+  xp: number;
+  lastPlayDate: string;
+  playedGames: string[];
+  ownedItems: string[];
+  totalPlayTime: number;
+  theme: string;
+  avatar: string;
+  profilePhoto?: string;
+  playerName?: string;
 }
 
 const Leaderboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('all-time');
   const [selectedCategory, setSelectedCategory] = useState('total-score');
+  
+  // Get user progress for real-time sync
+  const [userProgress] = useLocalStorage<UserProgress>('brainArcadeProgress', {
+    totalScore: 0,
+    totalXP: 0,
+    level: 1,
+    gamesPlayed: [],
+    achievements: [],
+    rank: 'Bronze',
+    streak: 0,
+    purchasedItems: [],
+    activeTheme: 'default',
+    activePowerUps: [],
+    xp: 0,
+    lastPlayDate: '',
+    playedGames: [],
+    ownedItems: [],
+    totalPlayTime: 0,
+    theme: 'default',
+    avatar: 'default',
+    playerName: 'Player'
+  });
 
-  // Mock leaderboard data with updated ranks
-  const leaderboardData: LeaderboardEntry[] = [
+  // Mock leaderboard data with updated ranks that sync with user progress
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([
     { id: '1', name: 'BrainMaster', score: 89500, level: 45, gamesPlayed: 234, avatar: '🧠', rank: 'Crown', streak: 28 },
     { id: '2', name: 'LogicKing', score: 76300, level: 38, gamesPlayed: 198, avatar: '👑', rank: 'Crown', streak: 22 },
     { id: '3', name: 'PuzzleQueen', score: 68900, level: 34, gamesPlayed: 187, avatar: '🎯', rank: 'Diamond', streak: 19 },
@@ -29,9 +76,31 @@ const Leaderboard = () => {
     { id: '6', name: 'SmartCookie', score: 41500, level: 21, gamesPlayed: 129, avatar: '🍪', rank: 'Diamond', streak: 10 },
     { id: '7', name: 'BrainWave', score: 38200, level: 19, gamesPlayed: 118, avatar: '🌊', rank: 'Diamond', streak: 8 },
     { id: '8', name: 'MindMelt', score: 34700, level: 17, gamesPlayed: 105, avatar: '🔥', rank: 'Gold', streak: 7 },
-    { id: '9', name: 'CognitoErgo', score: 29300, level: 15, gamesPlayed: 92, avatar: '🤖', rank: 'Gold', streak: 5 },
-    { id: '10', name: 'YouPlayer', score: 12500, level: 8, gamesPlayed: 45, avatar: '👤', rank: 'Silver', streak: 3 }
-  ];
+    { id: '9', name: 'CognitoErgo', score: 29300, level: 15, gamesPlayed: 92, avatar: '🤖', rank: 'Gold', streak: 5 }
+  ]);
+
+  // Update user entry in leaderboard with real-time data
+  useEffect(() => {
+    const userRank = getRank(userProgress.totalScore);
+    const userLevel = Math.floor(userProgress.totalXP / 100) + 1;
+    
+    setLeaderboardData(prev => {
+      const filteredData = prev.filter(entry => entry.id !== 'user');
+      const userEntry: LeaderboardEntry = {
+        id: 'user',
+        name: userProgress.playerName || 'You',
+        score: userProgress.totalScore,
+        level: userLevel,
+        gamesPlayed: userProgress.gamesPlayed.length,
+        avatar: userProgress.profilePhoto ? '' : '👤',
+        rank: userRank,
+        streak: userProgress.streak,
+        profilePhoto: userProgress.profilePhoto
+      };
+      
+      return [...filteredData, userEntry].sort((a, b) => b.score - a.score);
+    });
+  }, [userProgress]);
 
   const periods = [
     { value: 'all-time', label: 'All Time' },
@@ -79,6 +148,7 @@ const Leaderboard = () => {
   };
 
   const sortedData = getSortedData();
+  const userPosition = sortedData.findIndex(entry => entry.id === 'user') + 1;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 relative overflow-hidden">
@@ -99,6 +169,12 @@ const Leaderboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6 md:mb-8">
           <div className="flex items-center space-x-4">
+            <Link 
+              to="/" 
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors touch-target"
+            >
+              <Home className="h-5 w-5 text-white" />
+            </Link>
             <Link 
               to="/games" 
               className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors touch-target"
@@ -155,8 +231,12 @@ const Leaderboard = () => {
             
             return (
               <div key={player.id} className="text-center">
-                <div className={`bg-gradient-to-r ${getRankColor(player.rank)} mx-auto w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-2 shadow-lg`}>
-                  {player.avatar}
+                <div className={`bg-gradient-to-r ${getRankColor(player.rank)} mx-auto w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-2 shadow-lg overflow-hidden`}>
+                  {player.profilePhoto ? (
+                    <img src={player.profilePhoto} alt={player.name} className="w-full h-full object-cover" />
+                  ) : (
+                    player.avatar
+                  )}
                 </div>
                 <div className="text-white font-bold text-sm md:text-base mb-1">{player.name}</div>
                 <div className="flex justify-center mb-2">{getRankIcon(position)}</div>
@@ -183,7 +263,7 @@ const Leaderboard = () => {
           <div className="divide-y divide-white/10">
             {sortedData.map((player, index) => {
               const position = index + 1;
-              const isCurrentUser = player.name === 'YouPlayer';
+              const isCurrentUser = player.id === 'user';
               
               return (
                 <div
@@ -198,8 +278,12 @@ const Leaderboard = () => {
                         {position <= 3 ? getRankIcon(position) : `#${position}`}
                       </div>
                       
-                      <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${getRankColor(player.rank)} flex items-center justify-center text-xl`}>
-                        {player.avatar}
+                      <div className={`w-12 h-12 rounded-full bg-gradient-to-r ${getRankColor(player.rank)} flex items-center justify-center text-xl overflow-hidden`}>
+                        {player.profilePhoto ? (
+                          <img src={player.profilePhoto} alt={player.name} className="w-full h-full object-cover" />
+                        ) : (
+                          player.avatar
+                        )}
                       </div>
                       
                       <div>
@@ -231,24 +315,24 @@ const Leaderboard = () => {
           </div>
         </div>
 
-        {/* Personal Stats */}
+        {/* Personal Stats - Real-time sync */}
         <div className="mt-6 bg-white/10 backdrop-blur-md rounded-2xl p-4 md:p-6 border border-white/20">
           <h3 className="text-lg font-bold text-white mb-4">Your Stats</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">10th</div>
+              <div className="text-2xl font-bold text-white">{userPosition > 0 ? `${userPosition}${userPosition === 1 ? 'st' : userPosition === 2 ? 'nd' : userPosition === 3 ? 'rd' : 'th'}` : 'Unranked'}</div>
               <div className="text-white/70 text-sm">Current Rank</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">12,500</div>
+              <div className="text-2xl font-bold text-white">{userProgress.totalScore.toLocaleString()}</div>
               <div className="text-white/70 text-sm">Total Score</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">Level 8</div>
+              <div className="text-2xl font-bold text-white">Level {Math.floor(userProgress.totalXP / 100) + 1}</div>
               <div className="text-white/70 text-sm">Current Level</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-white">45</div>
+              <div className="text-2xl font-bold text-white">{userProgress.gamesPlayed.length}</div>
               <div className="text-white/70 text-sm">Games Played</div>
             </div>
           </div>

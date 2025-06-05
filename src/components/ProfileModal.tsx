@@ -1,6 +1,7 @@
-import React from 'react';
-import { X, Trophy, Star, Award, Crown, Medal, Clock, Target, Gamepad2, Package } from 'lucide-react';
-import { calculateAccurateStats, formatPlayTime, getNextRankRequirement } from '@/utils/profileUtils';
+
+import React, { useState } from 'react';
+import { X, Trophy, Star, Award, Crown, Medal, Clock, Target, Gamepad2, Package, Camera, Edit2, Save } from 'lucide-react';
+import { calculateAccurateStats, formatPlayTime, getNextRankRequirement, getRank } from '@/utils/profileUtils';
 
 interface UserProgress {
   totalScore: number;
@@ -20,25 +21,56 @@ interface UserProgress {
   totalPlayTime: number;
   theme: string;
   avatar: string;
+  profilePhoto?: string;
+  playerName?: string;
 }
 
 interface ProfileModalProps {
   userProgress: UserProgress;
   onClose: () => void;
+  onUpdateProfile: (updates: Partial<UserProgress>) => void;
   gameStats?: any[];
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ 
   userProgress, 
   onClose,
+  onUpdateProfile,
   gameStats = []
 }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [playerName, setPlayerName] = useState(userProgress.playerName || 'Player');
+  const [profilePhoto, setProfilePhoto] = useState(userProgress.profilePhoto || '');
+
   const stats = calculateAccurateStats(userProgress);
-  const nextRank = getNextRankRequirement(stats.rank);
+  const currentRank = getRank(userProgress.totalScore); // Real-time rank calculation
+  const nextRank = getNextRankRequirement(userProgress.totalScore);
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const photoUrl = e.target?.result as string;
+        setProfilePhoto(photoUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    onUpdateProfile({
+      playerName,
+      profilePhoto,
+      rank: currentRank // Update rank in real-time
+    });
+    setIsEditing(false);
+  };
 
   const getRankInfo = (rank: string) => {
     const rankMap: { [key: string]: any } = {
-      'Master': { name: 'Master', icon: Crown, color: 'from-yellow-400 to-orange-400', bgColor: 'bg-yellow-500/20', emoji: '👑' },
+      'Ace': { name: 'Ace', icon: Crown, color: 'from-purple-400 to-pink-400', bgColor: 'bg-purple-500/20', emoji: '🚀' },
+      'Crown': { name: 'Crown', icon: Crown, color: 'from-yellow-400 to-orange-400', bgColor: 'bg-yellow-500/20', emoji: '👑' },
       'Diamond': { name: 'Diamond', icon: Crown, color: 'from-blue-400 to-cyan-400', bgColor: 'bg-blue-500/20', emoji: '💎' },
       'Platinum': { name: 'Platinum', icon: Medal, color: 'from-gray-300 to-gray-400', bgColor: 'bg-gray-500/20', emoji: '🥈' },
       'Gold': { name: 'Gold', icon: Award, color: 'from-yellow-400 to-yellow-500', bgColor: 'bg-yellow-500/20', emoji: '🥇' },
@@ -49,6 +81,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   };
 
   const getAvatarDisplay = () => {
+    if (profilePhoto) {
+      return (
+        <img 
+          src={profilePhoto} 
+          alt="Profile" 
+          className="w-12 h-12 md:w-16 md:h-16 rounded-full object-cover border-2 border-white/30"
+        />
+      );
+    }
+
     const avatarMap: { [key: string]: string } = {
       'robot-avatar': '🤖',
       'wizard-avatar': '🧙‍♂️',
@@ -56,22 +98,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       'default': '👤'
     };
     
-    // Check if user owns the avatar they're trying to display
     const currentAvatar = userProgress.avatar || 'default';
     const ownedItems = userProgress.purchasedItems || [];
     
     if (currentAvatar !== 'default' && !ownedItems.includes(currentAvatar)) {
-      return avatarMap['default'];
+      return <div className="text-3xl md:text-4xl">{avatarMap['default']}</div>;
     }
     
-    return avatarMap[currentAvatar] || avatarMap['default'];
+    return <div className="text-3xl md:text-4xl">{avatarMap[currentAvatar] || avatarMap['default']}</div>;
   };
 
-  const rankInfo = getRankInfo(stats.rank);
+  const rankInfo = getRankInfo(currentRank);
   const RankIcon = rankInfo.icon;
 
   const progressToNextRank = nextRank.pointsNeeded > 0 
-    ? Math.min((stats.totalScore / (stats.totalScore + nextRank.pointsNeeded)) * 100, 100)
+    ? Math.min((userProgress.totalScore / (userProgress.totalScore + nextRank.pointsNeeded)) * 100, 100)
     : 100;
 
   const achievementNames: { [key: string]: string } = {
@@ -99,21 +140,58 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       <div className="bg-gradient-to-br from-indigo-900/95 to-purple-900/95 backdrop-blur-lg rounded-2xl md:rounded-3xl max-w-4xl w-full max-h-[95vh] overflow-hidden border border-white/30 shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-white/20 bg-white/5">
           <div className="flex items-center space-x-3">
-            <div className="text-3xl md:text-4xl">{getAvatarDisplay()}</div>
-            <div>
-              <h2 className="text-xl md:text-2xl font-bold text-white">Player Profile</h2>
-              <p className="text-white/70 text-sm md:text-base">Level {stats.level} Brain Trainer</p>
-              {userProgress.avatar && userProgress.avatar !== 'default' && (
-                <p className="text-purple-400 text-xs md:text-sm">Using: {userProgress.avatar.replace('-', ' ')}</p>
+            <div className="relative">
+              {getAvatarDisplay()}
+              {isEditing && (
+                <label className="absolute -bottom-1 -right-1 bg-blue-500 hover:bg-blue-600 rounded-full p-1 cursor-pointer transition-colors">
+                  <Camera className="h-3 w-3 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                </label>
               )}
             </div>
+            <div>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={playerName}
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  className="bg-white/10 border border-white/30 rounded-lg px-3 py-1 text-white text-xl md:text-2xl font-bold focus:outline-none focus:border-blue-400"
+                />
+              ) : (
+                <h2 className="text-xl md:text-2xl font-bold text-white">{playerName}</h2>
+              )}
+              <p className="text-white/70 text-sm md:text-base">Level {stats.level} Brain Trainer</p>
+              <p className="text-purple-400 text-xs md:text-sm">{currentRank} Rank</p>
+            </div>
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors touch-target"
-          >
-            <X className="h-5 w-5 md:h-6 md:w-6 text-white" />
-          </button>
+          <div className="flex items-center space-x-2">
+            {isEditing ? (
+              <button 
+                onClick={handleSaveProfile}
+                className="p-2 bg-green-500 hover:bg-green-600 rounded-lg transition-colors touch-target"
+              >
+                <Save className="h-5 w-5 md:h-6 md:w-6 text-white" />
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsEditing(true)}
+                className="p-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors touch-target"
+              >
+                <Edit2 className="h-5 w-5 md:h-6 md:w-6 text-white" />
+              </button>
+            )}
+            <button 
+              onClick={onClose} 
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors touch-target"
+            >
+              <X className="h-5 w-5 md:h-6 md:w-6 text-white" />
+            </button>
+          </div>
         </div>
 
         <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(95vh-100px)] md:max-h-[calc(95vh-120px)]">

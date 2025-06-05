@@ -40,6 +40,8 @@ export interface UserProgress {
   totalPlayTime: number;
   theme: string;
   avatar: string;
+  profilePhoto: string;
+  playerName: string;
 }
 
 export interface GameResult {
@@ -68,7 +70,9 @@ const GamesContent = () => {
     ownedItems: [],
     totalPlayTime: 0,
     theme: 'default',
-    avatar: 'default'
+    avatar: 'default',
+    profilePhoto: '',
+    playerName: 'Player'
   });
 
   const [selectedGame, setSelectedGame] = useState<any>(null);
@@ -150,13 +154,12 @@ const GamesContent = () => {
   };
 
   const calculateRank = (totalScore: number) => {
-    if (totalScore >= 500000) return 'Legendary';
-    if (totalScore >= 250000) return 'Master';
-    if (totalScore >= 100000) return 'Diamond';
-    if (totalScore >= 50000) return 'Platinum';
-    if (totalScore >= 25000) return 'Gold';
-    if (totalScore >= 10000) return 'Silver';
-    if (totalScore >= 5000) return 'Bronze';
+    if (totalScore >= 100000) return 'Ace';
+    if (totalScore >= 75000) return 'Crown';
+    if (totalScore >= 35000) return 'Diamond';
+    if (totalScore >= 15000) return 'Platinum';
+    if (totalScore >= 5000) return 'Gold';
+    if (totalScore >= 1000) return 'Silver';
     return 'Bronze';
   };
 
@@ -305,7 +308,9 @@ const GamesContent = () => {
         ownedItems: [],
         totalPlayTime: 0,
         theme: 'default',
-        avatar: 'default'
+        avatar: 'default',
+        profilePhoto: '',
+        playerName: 'Player'
       };
       setUserProgress(resetProgress);
       setGameStats([]);
@@ -317,6 +322,14 @@ const GamesContent = () => {
         duration: 3000,
       });
     }
+  };
+
+  const handleProfileUpdate = (updates: Partial<UserProgress>) => {
+    setUserProgress(prev => ({
+      ...prev,
+      ...updates,
+      rank: calculateRank(updates.totalScore || prev.totalScore) // Update rank in real-time
+    }));
   };
 
   const openGame = (game: any) => {
@@ -450,6 +463,7 @@ const GamesContent = () => {
             <ProfileModal
               userProgress={userProgress}
               gameStats={gameStats}
+              onUpdateProfile={handleProfileUpdate}
               onClose={() => {
                 playSound('click');
                 setShowProfileModal(false);

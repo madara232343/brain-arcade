@@ -17,6 +17,8 @@ export interface UserProgress {
   totalPlayTime: number;
   theme: string;
   avatar: string;
+  profilePhoto?: string;
+  playerName?: string;
 }
 
 export const calculateLevel = (xp: number): number => {
@@ -27,7 +29,7 @@ export const calculateXPForNextLevel = (level: number): number => {
   return (level * level) * 100;
 };
 
-// Updated rank calculation to match leaderboard ranks
+// Updated rank calculation to match leaderboard ranks exactly
 export const getRank = (totalScore: number): string => {
   if (totalScore >= 100000) return 'Ace';
   if (totalScore >= 75000) return 'Crown';
@@ -53,7 +55,7 @@ export const calculateAccurateStats = (progress: UserProgress) => {
   const nextLevelXP = calculateXPForNextLevel(level);
   const xpProgress = progress.totalXP - currentLevelXP;
   const xpNeeded = nextLevelXP - currentLevelXP;
-  const rank = getRank(progress.totalScore);
+  const rank = getRank(progress.totalScore); // Use real-time rank calculation
   
   return {
     level,
@@ -72,7 +74,7 @@ export const calculateAccurateStats = (progress: UserProgress) => {
   };
 };
 
-export const getNextRankRequirement = (currentRank: string): { nextRank: string; pointsNeeded: number } => {
+export const getNextRankRequirement = (currentScore: number): { nextRank: string; pointsNeeded: number } => {
   const ranks = [
     { rank: 'Bronze', score: 0 },
     { rank: 'Silver', score: 1000 },
@@ -83,11 +85,13 @@ export const getNextRankRequirement = (currentRank: string): { nextRank: string;
     { rank: 'Ace', score: 100000 }
   ];
   
+  const currentRank = getRank(currentScore);
   const currentIndex = ranks.findIndex(r => r.rank === currentRank);
+  
   if (currentIndex === -1 || currentIndex === ranks.length - 1) {
     return { nextRank: 'Ace', pointsNeeded: 0 };
   }
   
   const nextRank = ranks[currentIndex + 1];
-  return { nextRank: nextRank.rank, pointsNeeded: nextRank.score };
+  return { nextRank: nextRank.rank, pointsNeeded: nextRank.score - currentScore };
 };
