@@ -9,6 +9,7 @@ interface Review {
 }
 
 const REVIEWS_KEY = 'brain-burst-reviews';
+export const SUPPORT_EMAIL = 'brain.burst0777@gmail.com';
 
 export const reviewStorage = {
   addReview: (review: { rating: number; comment: string; name: string }) => {
@@ -52,5 +53,11 @@ export const reviewStorage = {
       review.id === reviewId ? { ...review, hidden: false } : review
     );
     localStorage.setItem(REVIEWS_KEY, JSON.stringify(updatedReviews));
+  },
+  
+  getFeaturedReviews: (): Review[] => {
+    // Get a few non-hidden reviews that are good for featuring
+    const reviews = reviewStorage.getVisibleReviews();
+    return reviews.filter(review => review.rating >= 4).slice(0, 3);
   }
 };

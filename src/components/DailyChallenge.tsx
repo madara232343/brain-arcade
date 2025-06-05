@@ -1,213 +1,69 @@
 
 import React from 'react';
-import { Calendar, Play, Flame, Star, Trophy, Gift, Target, Zap, Clock, Brain } from 'lucide-react';
-
-interface UserProgress {
-  totalScore: number;
-  totalXP: number;
-  level: number;
-  gamesPlayed: string[];
-  achievements: string[];
-  rank: string;
-  streak: number;
-  purchasedItems: string[];
-  activeTheme: string;
-  activePowerUps: string[];
-  xp: number;
-  lastPlayDate: string;
-  playedGames: string[];
-  ownedItems: string[];
-  totalPlayTime: number;
-  theme: string;
-  avatar: string;
-}
+import { Zap, Trophy, Calendar } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { gameData } from '@/data/gameData';
+import { UserProgress } from '@/pages/Games';
 
 interface DailyChallengeProps {
   userProgress: UserProgress;
-  onPlayGame: (game: any) => void;
+  onPlayGame?: (game: any) => void;
 }
 
-const dailyChallenges = [
-  {
-    id: 'memory-sequence',
-    title: 'Memory Master Challenge',
-    description: 'Complete 3 memory games in a row without mistakes',
-    type: 'memory',
-    difficulty: 'hard',
-    xpReward: 100,
-    bonusReward: 'Memory Champion Badge',
-    icon: Brain
-  },
-  {
-    id: 'reaction-time',
-    title: 'Speed Demon Challenge',
-    description: 'Beat your best reaction time 5 times',
-    type: 'speed',
-    difficulty: 'medium',
-    xpReward: 75,
-    bonusReward: 'Lightning Badge',
-    icon: Zap
-  },
-  {
-    id: 'math-sprint',
-    title: 'Math Wizard Challenge',
-    description: 'Solve 50 math problems with 95% accuracy',
-    type: 'math',
-    difficulty: 'hard',
-    xpReward: 120,
-    bonusReward: 'Calculator Master Badge',
-    icon: Target
-  },
-  {
-    id: 'pattern-match',
-    title: 'Pattern Genius Challenge',
-    description: 'Complete pattern matching in under 30 seconds',
-    type: 'pattern',
-    difficulty: 'medium',
-    xpReward: 80,
-    bonusReward: 'Pattern Expert Badge',
-    icon: Star
-  },
-  {
-    id: 'speed-typing',
-    title: 'Typing Master Challenge',
-    description: 'Achieve 60+ WPM in speed typing',
-    type: 'typing',
-    difficulty: 'medium',
-    xpReward: 90,
-    bonusReward: 'Speed Typer Badge',
-    icon: Clock
-  },
-  {
-    id: 'visual-attention',
-    title: 'Focus Master Challenge',
-    description: 'Complete visual attention with 100% accuracy',
-    type: 'attention',
-    difficulty: 'hard',
-    xpReward: 110,
-    bonusReward: 'Eagle Eye Badge',
-    icon: Trophy
-  },
-  {
-    id: 'word-association',
-    title: 'Word Wizard Challenge',
-    description: 'Get 20 correct word associations in a row',
-    type: 'language',
-    difficulty: 'medium',
-    xpReward: 85,
-    bonusReward: 'Word Master Badge',
-    icon: Gift
-  }
-];
+export const DailyChallenge: React.FC<DailyChallengeProps> = ({ userProgress }) => {
+  // Get a deterministic "random" game based on the date
+  const getGameOfTheDay = () => {
+    const today = new Date();
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+    const gameIndex = dayOfYear % gameData.length;
+    return gameData[gameIndex];
+  };
 
-export const DailyChallenge: React.FC<DailyChallengeProps> = ({ userProgress, onPlayGame }) => {
-  const today = new Date().toDateString();
-  const hasPlayedToday = userProgress.lastPlayDate === today;
+  const gameOfTheDay = getGameOfTheDay();
+  const IconComponent = gameOfTheDay.icon;
   
-  // Rotate daily challenge based on day of year
-  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
-  const todaysChallenge = dailyChallenges[dayOfYear % dailyChallenges.length];
-
-  const getStreakColor = () => {
-    if (userProgress.streak >= 30) return 'from-purple-500 to-pink-500';
-    if (userProgress.streak >= 14) return 'from-yellow-500 to-orange-500';
-    if (userProgress.streak >= 7) return 'from-green-500 to-blue-500';
-    return 'from-orange-500 to-pink-500';
-  };
-
-  const getStreakEmoji = () => {
-    if (userProgress.streak >= 30) return '🏆';
-    if (userProgress.streak >= 14) return '⭐';
-    if (userProgress.streak >= 7) return '🔥';
-    return '✨';
-  };
-
-  const dailyGame = {
-    ...todaysChallenge,
-    isDailyChallenge: true
-  };
-
-  const IconComponent = todaysChallenge.icon;
+  // Check if user has already played the daily challenge
+  const hasDailyChallenge = userProgress.lastPlayDate === new Date().toDateString() &&
+    userProgress.playedGames?.includes(gameOfTheDay.id);
 
   return (
-    <div className={`bg-gradient-to-r ${getStreakColor()} rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-2xl animate-fade-in hover:scale-[1.02] transition-all duration-300`}>
-      {/* Animated background elements */}
-      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 animate-pulse" />
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16 animate-pulse" style={{ animationDelay: '1s' }} />
-      <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-white/5 rounded-full animate-bounce" style={{ animationDelay: '2s' }} />
+    <div className="bg-gradient-to-r from-blue-900/70 to-purple-900/70 backdrop-blur-lg rounded-xl p-4 border border-white/20 mb-6 animate-fade-in">
+      <div className="flex items-center mb-3">
+        <div className="p-2 bg-yellow-500 rounded-lg mr-3">
+          <Calendar className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-white">Daily Challenge</h2>
+          <p className="text-white/70 text-sm">Extra XP for completing today's challenge!</p>
+        </div>
+      </div>
       
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <Calendar className="h-8 w-8 animate-pulse" />
-            <div>
-              <h2 className="text-3xl font-bold">Daily Challenge</h2>
-              <p className="text-white/90 text-sm">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-            </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mt-3">
+        <div className="flex items-center mb-3 md:mb-0">
+          <div className="mr-3 p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+            <IconComponent className="h-5 w-5 text-white" />
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-center">
-              <div className="flex items-center space-x-2 bg-white/20 rounded-full px-4 py-2 backdrop-blur-sm">
-                <Flame className="h-6 w-6 animate-pulse" />
-                <span className="font-bold text-xl">{userProgress.streak}</span>
-              </div>
-              <p className="text-xs mt-1 opacity-90">day streak</p>
-            </div>
-            <div className="text-4xl animate-bounce">
-              {getStreakEmoji()}
-            </div>
+          <div>
+            <h3 className="font-medium text-white">{gameOfTheDay.title}</h3>
+            <p className="text-white/70 text-sm line-clamp-1">{gameOfTheDay.description}</p>
           </div>
         </div>
-
-        <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 mb-6">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <IconComponent className="h-6 w-6 text-white" />
+        
+        <div className="flex items-center">
+          {hasDailyChallenge ? (
+            <div className="flex items-center text-green-400">
+              <Trophy className="h-5 w-5 mr-2" />
+              <span className="font-medium">Complete!</span>
             </div>
-            <h3 className="text-xl font-bold">{todaysChallenge.title}</h3>
-          </div>
-          <p className="text-lg mb-4 opacity-95">
-            {todaysChallenge.description}
-          </p>
-          <div className="flex items-center space-x-4 flex-wrap gap-2">
-            <div className="flex items-center space-x-2 bg-white/20 rounded-lg px-3 py-2">
-              <Star className="h-4 w-4" />
-              <span className="text-sm font-medium">{todaysChallenge.difficulty}</span>
-            </div>
-            <div className="flex items-center space-x-2 bg-white/20 rounded-lg px-3 py-2">
-              <Gift className="h-4 w-4" />
-              <span className="text-sm font-medium">+{todaysChallenge.xpReward} XP</span>
-            </div>
-            <div className="bg-yellow-500/20 rounded-lg px-3 py-2">
-              <span className="text-sm font-medium text-yellow-200">{todaysChallenge.bonusReward}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-lg font-semibold opacity-95">
-              Keep your streak alive! 🚀
-            </p>
-            <p className="text-sm opacity-80">
-              Complete daily challenges to earn bonus rewards and maintain your streak.
-            </p>
-          </div>
-          
-          <button
-            onClick={() => onPlayGame(dailyGame)}
-            className={`flex items-center space-x-3 px-8 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 active:scale-95 ${
-              hasPlayedToday
-                ? 'bg-white/20 text-white/70 cursor-not-allowed'
-                : 'bg-white text-purple-600 hover:bg-purple-50 shadow-lg hover:shadow-xl'
-            }`}
-            disabled={hasPlayedToday}
-          >
-            <Play className={`h-6 w-6 ${hasPlayedToday ? '' : 'animate-pulse'}`} />
-            <span className="text-lg">
-              {hasPlayedToday ? 'Completed! ✓' : 'Start Challenge'}
-            </span>
-          </button>
+          ) : (
+            <Link
+              to={`/game/${gameOfTheDay.id}`}
+              className="flex items-center bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 hover:scale-105"
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              <span>Play Challenge</span>
+            </Link>
+          )}
         </div>
       </div>
     </div>
