@@ -1,7 +1,7 @@
 
 import { 
   Brain, Cpu, Zap, Puzzle, Clock, Target, Layers, 
-  Grid3X3, Shapes, Gamepad2, ChessKnight, Microscope, PuzzlePiece,
+  Grid3X3, Shapes, Gamepad2, Crown, Microscope, PuzzlePiece,
   Dices, MousePointer, KeyRound, Layout, Megaphone, Rocket, Blocks,
   CaseSensitive, Boxes, 
 } from 'lucide-react';
@@ -101,7 +101,7 @@ export const gameData = [
     id: 'puzzle-blocks',
     title: 'Puzzle Blocks',
     description: 'Arrange blocks to solve spatial puzzles.',
-    icon: PuzzlePiece,
+    icon: Puzzle,
     category: 'Puzzle',
     difficulty: 'Medium',
     duration: '3-5 min',
@@ -281,7 +281,7 @@ export const gameData = [
     id: 'chess',
     title: 'Chess',
     description: 'Classic chess game to improve strategic thinking.',
-    icon: ChessKnight,
+    icon: Crown,
     category: 'Strategy',
     difficulty: 'Hard',
     duration: '10-15 min',

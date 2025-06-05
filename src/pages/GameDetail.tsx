@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Brain, Star, Trophy, Clock, User, Share2, BookmarkPlus } from 'lucide-react';
@@ -8,7 +7,7 @@ import { gameData } from '@/data/gameData';
 import { GameModal } from '@/components/GameModal';
 import { GameResult } from '@/types/game';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 
 export interface UserProgress {
   totalScore: number;
