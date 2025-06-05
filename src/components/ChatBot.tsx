@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 
@@ -30,24 +29,24 @@ const botResponses: { [key: string]: string[] } = {
     'Hey there! What brain challenge can I help you with today?'
   ],
   'creator': [
-    'Brain Burst Arcade was created by Dhwanil Raval, a passionate developer who wanted to make brain training fun and accessible for everyone!',
-    'This amazing platform was developed by Dhwanil Raval with the vision of combining entertainment with cognitive enhancement.',
-    'Dhwanil Raval is the mastermind behind Brain Burst Arcade - bringing you the best in brain training technology!'
+    'Brain Burst Arcade was created by Mr.Robot, a passionate developer who wanted to make brain training fun and accessible for everyone!',
+    'This amazing platform was developed by Mr.Robot with the vision of combining entertainment with cognitive enhancement.',
+    'Mr.Robot is the mastermind behind Brain Burst Arcade - bringing you the best in brain training technology!'
   ],
   'developer': [
-    'Brain Burst Arcade was developed by Dhwanil Raval, who put incredible effort into creating this comprehensive brain training platform.',
-    'The developer behind this fantastic brain training experience is Dhwanil Raval - a true innovator in cognitive gaming!',
-    'Dhwanil Raval developed this entire platform to help people improve their cognitive abilities through engaging games.'
+    'Brain Burst Arcade was developed by Mr.Robot, who put incredible effort into creating this comprehensive brain training platform.',
+    'The developer behind this fantastic brain training experience is Mr.Robot - a true innovator in cognitive gaming!',
+    'Mr.Robot developed this entire platform to help people improve their cognitive abilities through engaging games.'
   ],
   'made': [
-    'Brain Burst Arcade was made by Dhwanil Raval, combining cutting-edge technology with proven cognitive training methods.',
-    'This platform was crafted by Dhwanil Raval to provide the ultimate brain training experience.',
-    'Dhwanil Raval made Brain Burst Arcade to revolutionize how we approach mental fitness and cognitive enhancement.'
+    'Brain Burst Arcade was made by Mr.Robot, combining cutting-edge technology with proven cognitive training methods.',
+    'This platform was crafted by Mr.Robot to provide the ultimate brain training experience.',
+    'Mr.Robot made Brain Burst Arcade to revolutionize how we approach mental fitness and cognitive enhancement.'
   ],
   'who': [
-    'If you\'re asking about the creator, Brain Burst Arcade was built by Dhwanil Raval - a visionary developer passionate about cognitive enhancement!',
-    'The brilliant mind behind Brain Burst Arcade is Dhwanil Raval, who designed every aspect to maximize your brain training potential.',
-    'Dhwanil Raval is the creator who brought this incredible brain training platform to life!'
+    'If you\'re asking about the creator, Brain Burst Arcade was built by Mr.Robot - a visionary developer passionate about cognitive enhancement!',
+    'The brilliant mind behind Brain Burst Arcade is Mr.Robot, who designed every aspect to maximize your brain training potential.',
+    'Mr.Robot is the creator who brought this incredible brain training platform to life!'
   ],
   'help': [
     'I can help you with:\n• Game instructions and strategies\n• Account questions and progress\n• Technical issues and troubleshooting\n• Scoring system and XP calculation\n• Power-ups and shop items\n• Achievement unlocking tips',
@@ -85,7 +84,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hello! I\'m your Brain Burst Arcade assistant. I can help you with game strategies, technical issues, and answer questions about our platform created by Dhwanil Raval. What would you like to know?',
+      text: 'Hello! I\'m your Brain Burst Arcade assistant. I can help you with game strategies, technical issues, and answer questions about our platform created by Mr.Robot. What would you like to know?',
       isBot: true,
       timestamp: new Date()
     }
@@ -108,7 +107,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
     // Check for creator/developer questions first
     if (input.includes('created') || input.includes('creator') || 
         input.includes('who made') || input.includes('who built') ||
-        input.includes('dhwanil') || input.includes('raval')) {
+        input.includes('mr.robot') || input.includes('mr robot') || input.includes('robot')) {
       const responses = botResponses['creator'];
       return responses[Math.floor(Math.random() * responses.length)];
     }
@@ -202,7 +201,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h3 className="text-white font-bold text-sm md:text-base">AI Assistant</h3>
-            <p className="text-white/70 text-xs">Online • Created by Dhwanil Raval</p>
+            <p className="text-white/70 text-xs">Online • Created by Mr.Robot</p>
           </div>
         </div>
         <button
