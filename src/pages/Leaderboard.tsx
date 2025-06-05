@@ -1,7 +1,8 @@
-
 import React, { useState } from 'react';
 import { Crown, Medal, Trophy, Star, ArrowLeft, Filter } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { getRank } from '@/utils/profileUtils';
 
 interface LeaderboardEntry {
   id: string;
@@ -18,18 +19,18 @@ const Leaderboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('all-time');
   const [selectedCategory, setSelectedCategory] = useState('total-score');
 
-  // Mock leaderboard data
+  // Mock leaderboard data with updated ranks
   const leaderboardData: LeaderboardEntry[] = [
-    { id: '1', name: 'BrainMaster', score: 89500, level: 45, gamesPlayed: 234, avatar: '🧠', rank: 'Diamond', streak: 28 },
-    { id: '2', name: 'LogicKing', score: 76300, level: 38, gamesPlayed: 198, avatar: '👑', rank: 'Platinum', streak: 22 },
-    { id: '3', name: 'PuzzleQueen', score: 68900, level: 34, gamesPlayed: 187, avatar: '🎯', rank: 'Platinum', streak: 19 },
-    { id: '4', name: 'MindBender', score: 54200, level: 27, gamesPlayed: 156, avatar: '🚀', rank: 'Gold', streak: 15 },
-    { id: '5', name: 'ThinkFast', score: 47800, level: 24, gamesPlayed: 143, avatar: '⚡', rank: 'Gold', streak: 12 },
-    { id: '6', name: 'SmartCookie', score: 41500, level: 21, gamesPlayed: 129, avatar: '🍪', rank: 'Silver', streak: 10 },
-    { id: '7', name: 'BrainWave', score: 38200, level: 19, gamesPlayed: 118, avatar: '🌊', rank: 'Silver', streak: 8 },
-    { id: '8', name: 'MindMelt', score: 34700, level: 17, gamesPlayed: 105, avatar: '🔥', rank: 'Silver', streak: 7 },
-    { id: '9', name: 'CognitoErgo', score: 29300, level: 15, gamesPlayed: 92, avatar: '🤖', rank: 'Bronze', streak: 5 },
-    { id: '10', name: 'YouPlayer', score: 12500, level: 8, gamesPlayed: 45, avatar: '👤', rank: 'Bronze', streak: 3 }
+    { id: '1', name: 'BrainMaster', score: 89500, level: 45, gamesPlayed: 234, avatar: '🧠', rank: 'Crown', streak: 28 },
+    { id: '2', name: 'LogicKing', score: 76300, level: 38, gamesPlayed: 198, avatar: '👑', rank: 'Crown', streak: 22 },
+    { id: '3', name: 'PuzzleQueen', score: 68900, level: 34, gamesPlayed: 187, avatar: '🎯', rank: 'Diamond', streak: 19 },
+    { id: '4', name: 'MindBender', score: 54200, level: 27, gamesPlayed: 156, avatar: '🚀', rank: 'Diamond', streak: 15 },
+    { id: '5', name: 'ThinkFast', score: 47800, level: 24, gamesPlayed: 143, avatar: '⚡', rank: 'Diamond', streak: 12 },
+    { id: '6', name: 'SmartCookie', score: 41500, level: 21, gamesPlayed: 129, avatar: '🍪', rank: 'Diamond', streak: 10 },
+    { id: '7', name: 'BrainWave', score: 38200, level: 19, gamesPlayed: 118, avatar: '🌊', rank: 'Diamond', streak: 8 },
+    { id: '8', name: 'MindMelt', score: 34700, level: 17, gamesPlayed: 105, avatar: '🔥', rank: 'Gold', streak: 7 },
+    { id: '9', name: 'CognitoErgo', score: 29300, level: 15, gamesPlayed: 92, avatar: '🤖', rank: 'Gold', streak: 5 },
+    { id: '10', name: 'YouPlayer', score: 12500, level: 8, gamesPlayed: 45, avatar: '👤', rank: 'Silver', streak: 3 }
   ];
 
   const periods = [
@@ -56,6 +57,8 @@ const Leaderboard = () => {
 
   const getRankColor = (rank: string) => {
     switch (rank) {
+      case 'Ace': return 'from-purple-400 to-pink-400';
+      case 'Crown': return 'from-yellow-300 to-amber-500';
       case 'Diamond': return 'from-blue-400 to-cyan-400';
       case 'Platinum': return 'from-gray-300 to-gray-400';
       case 'Gold': return 'from-yellow-400 to-yellow-500';
@@ -79,6 +82,13 @@ const Leaderboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 relative overflow-hidden">
+      {/* SEO Optimization */}
+      <Helmet>
+        <title>Leaderboard - Brain Burst Arcade | Top Players & Rankings</title>
+        <meta name="description" content="Discover top players and rankings in Brain Burst Arcade. Challenge yourself to reach the elite ranks with brain training games that boost cognitive performance." />
+        <meta name="keywords" content="brain game leaderboard, cognitive training rankings, brain training competition, mental performance, brain game scores, top brain gamers, online game rankings, brain fitness leaderboard, cognitive skills ranking" />
+      </Helmet>
+
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-64 md:w-96 h-64 md:h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />

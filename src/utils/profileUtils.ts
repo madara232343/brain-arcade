@@ -27,13 +27,15 @@ export const calculateXPForNextLevel = (level: number): number => {
   return (level * level) * 100;
 };
 
+// Updated rank calculation to match leaderboard ranks
 export const getRank = (totalScore: number): string => {
-  if (totalScore < 1000) return 'Bronze';
-  if (totalScore < 5000) return 'Silver';
-  if (totalScore < 15000) return 'Gold';
-  if (totalScore < 35000) return 'Platinum';
-  if (totalScore < 75000) return 'Diamond';
-  return 'Master';
+  if (totalScore >= 100000) return 'Ace';
+  if (totalScore >= 75000) return 'Crown';
+  if (totalScore >= 35000) return 'Diamond';
+  if (totalScore >= 15000) return 'Platinum';
+  if (totalScore >= 5000) return 'Gold';
+  if (totalScore >= 1000) return 'Silver';
+  return 'Bronze';
 };
 
 export const formatPlayTime = (minutes: number): string => {
@@ -77,12 +79,13 @@ export const getNextRankRequirement = (currentRank: string): { nextRank: string;
     { rank: 'Gold', score: 5000 },
     { rank: 'Platinum', score: 15000 },
     { rank: 'Diamond', score: 35000 },
-    { rank: 'Master', score: 75000 }
+    { rank: 'Crown', score: 75000 },
+    { rank: 'Ace', score: 100000 }
   ];
   
   const currentIndex = ranks.findIndex(r => r.rank === currentRank);
   if (currentIndex === -1 || currentIndex === ranks.length - 1) {
-    return { nextRank: 'Master', pointsNeeded: 0 };
+    return { nextRank: 'Ace', pointsNeeded: 0 };
   }
   
   const nextRank = ranks[currentIndex + 1];

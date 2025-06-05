@@ -41,6 +41,7 @@ const initialBoard: (Piece | null)[][] = [
   ]
 ];
 
+// Updated piece symbols with better contrast for white pieces
 const pieceSymbols = {
   king: { white: '♔', black: '♚' },
   queen: { white: '♕', black: '♛' },
@@ -294,7 +295,7 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
       </div>
 
       <div className="flex flex-col lg:flex-row justify-center items-start gap-4">
-        {/* Chess Board */}
+        {/* Chess Board - Updated for better white piece visibility */}
         <div className="bg-amber-900 p-2 rounded-lg">
           <div className="grid grid-cols-8 gap-0 w-64 h-64 md:w-80 md:h-80">
             {board.map((row, rowIndex) =>
@@ -311,7 +312,11 @@ export const ChessGame: React.FC<ChessGameProps> = ({ onComplete, gameId }) => {
                   }`}
                   disabled={currentPlayer === 'black'}
                 >
-                  {piece && pieceSymbols[piece.type][piece.color]}
+                  {piece && (
+                    <span className={`${piece.color === 'white' ? 'text-white drop-shadow-[0_0_2px_rgba(0,0,0,0.8)]' : 'text-black'}`}>
+                      {pieceSymbols[piece.type][piece.color]}
+                    </span>
+                  )}
                 </button>
               ))
             )}
