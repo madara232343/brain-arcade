@@ -1,7 +1,6 @@
-
 import { 
   Brain, Cpu, Zap, Puzzle, Clock, Target, Layers, 
-  Grid3X3, Shapes, Gamepad2, Crown, Microscope, PuzzlePiece,
+  Grid3X3, Shapes, Gamepad2, Crown, Microscope,
   Dices, MousePointer, KeyRound, Layout, Megaphone, Rocket, Blocks,
   CaseSensitive, Boxes, 
 } from 'lucide-react';
