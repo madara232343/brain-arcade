@@ -17,6 +17,7 @@ import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
+import Resources from "./pages/Resources";
 import { HelmetProvider } from 'react-helmet-async';
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
                 <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:postId" element={<BlogPost />} />
+                <Route path="/resources" element={<Resources />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
