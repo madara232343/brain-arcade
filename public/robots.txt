@@ -1,3 +1,20 @@
+
+User-agent: *
+Allow: /
+Allow: /games
+Allow: /blog
+Allow: /about
+Allow: /resources
+Allow: /leaderboard
+Allow: /faq
+Allow: /privacy
+Allow: /terms
+
+# AdSense crawler
+User-agent: Mediapartners-Google
+Allow: /
+
+# Google crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +27,8 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+# Sitemap location
+Sitemap: https://a2e8e168-ced0-488f-9647-cf6189b75b68.lovableproject.com/sitemap.xml
+
+# Crawl-delay for better server performance
+Crawl-delay: 1
